@@ -823,9 +823,9 @@ describe("Twitter Integration", () => {
 
       const encrypted = encrypt("test-value");
       // Tamper with the ciphertext
-      const tampered =
-        encrypted.slice(0, -2) + (encrypted.slice(-1) === "A" ? "B" : "A") + "=";
-
+      const buf = Buffer.from(encrypted, "base64");
+      buf[28] ^= 0xff; // flip a byte in the ciphertext (after 12-byte IV + 16-byte authTag)
+      const tampered = buf.toString("base64");
       expect(() => decrypt(tampered)).toThrow();
     });
   });

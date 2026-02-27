@@ -172,3 +172,43 @@
 - `bun run test` — 370 tests pass (13 test files), 0 failures
 - `bun run build` — clean, 26 routes (including `/api/auth/twitter` and `/api/auth/twitter/callback`)
 - Zero TS diagnostics on all new files
+
+## Task 15: AI Content Adaptation Engine
+
+### Architecture
+- `AdaptationEngine` class takes `AIProvider` (dependency injection) — easy to mock in tests.
+- Pipeline: extract plain text → AI provider call → quality checks → Twitter threading.
+- Pure utility functions exported separately for unit testing: `extractPlainText`, `isEnglish`, `fitsLengthLimit`, `hasHashtags`, `runQualityChecks`, `splitIntoThread`.
+
+### Twitter Thread Splitting
+- Split at sentence boundaries first (regex: `/[^.!?]*[.!?]\s?|[^.!?]+$/g`).
+- If single sentence exceeds `maxLength`, fall back to word-boundary splitting.
+- Thread numbering added as ` N/M` suffix (e.g., ` 1/3`).
+- Default `maxLength=270` (reserves 10 chars for numbering within 280 limit).
+- Content ≤ 280 chars → no splitting, returned as single-element array.
+
+### Quality Checks
+- `isEnglish()`: Counts Latin vs Cyrillic alpha chars. >90% Latin = English. Extended Latin (accented) counted as Latin.
+- `fitsLengthLimit()`: LinkedIn ≤ 3000, Twitter ≤ 280.
+- For Twitter threads, checks each tweet individually (not total content).
+- `hasHashtags()`: Simple regex `/#\w+/`.
+- Warnings array collects human-readable issues for UI display.
+
+### Inngest Function Pattern (adapt-content)
+- Event: `ai/content.adapt` with `{ postId, userId, platform, channelId?, modelTier? }`.
+- Uses lazy imports pattern consistently (`await import(...)` inside `step.run()`).
+- `contentParsed` from DB is `jsonb` — needs type assertion to `ParsedContent` shape.
+- For inline type imports in runtime code: `import("@/lib/telegram/parser.types").ParsedContent` works for type position only.
+- Cannot destructure types from dynamic `import()` — `const { ParsedContent } = await import(...)` fails because types are erased.
+- Channel profile fetched from `channel_profiles` table if `channelId` available (from event data or post's `channelId`).
+- Result stored in `cross_posts` with `status: "draft"` — user reviews before posting.
+
+### Testing
+- 45 tests covering: extractPlainText (8), isEnglish (6), fitsLengthLimit (4), hasHashtags (4), runQualityChecks (8), splitIntoThread (7), AdaptationEngine (8).
+- Mock `AIProvider` via `vi.fn().mockResolvedValue()` — no actual API calls.
+- `satisfies` keyword useful for type-checking mock return values against interface.
+
+### Build Stats After Task 15
+- `bun run test` — 430 tests pass (15 test files), 0 failures
+- `bun run build` — clean, 26 routes
+- Zero TS diagnostics on all new files

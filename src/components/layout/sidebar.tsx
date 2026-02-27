@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   ChevronsUpDown,
+  Send,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -37,15 +38,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logout } from "@/server/actions/auth";
 
 type NavItem = {
-  key: "dashboard" | "posts" | "channels" | "schedule" | "analytics" | "media" | "settings";
+  key: "dashboard" | "posts" | "channels" | "schedule" | "analytics" | "media" | "crosspost" | "settings";
   icon: React.ComponentType<{ className?: string }>;
   href: string;
 };
 
 const navItems: NavItem[] = [
+
   { key: "dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { key: "posts", icon: FileText, href: "/dashboard/posts" },
   { key: "channels", icon: Radio, href: "/dashboard/channels" },
+  { key: "crosspost", icon: Send, href: "/dashboard/crosspost" },
   { key: "schedule", icon: Calendar, href: "/dashboard/schedule" },
   { key: "analytics", icon: BarChart3, href: "/dashboard/analytics" },
   { key: "media", icon: ImageIcon, href: "/dashboard/media" },
