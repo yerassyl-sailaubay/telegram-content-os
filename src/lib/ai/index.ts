@@ -1,0 +1,40 @@
+/**
+ * AI provider — public API barrel export.
+ *
+ * Usage:
+ *   import { OpenRouterClient, AI_MODELS } from "@/lib/ai";
+ *   const ai = new OpenRouterClient();
+ *   const result = await ai.adaptContent({ content: "...", platform: "linkedin" });
+ */
+
+// Types
+export type {
+  AIModel,
+  ModelTier,
+  Platform,
+  TokenUsage,
+  AdaptationRequest,
+  AdaptationOptions,
+  AdaptedContent,
+  ChannelProfile,
+  ChannelProfileRequest,
+  ChannelProfileResult,
+  OpenRouterRequest,
+  OpenRouterMessage,
+  OpenRouterResponse,
+  OpenRouterChoice,
+} from "./types";
+export { AI_MODELS, AIProviderError } from "./types";
+
+// Provider interface
+export type { AIProvider } from "./provider";
+
+// OpenRouter client
+export { OpenRouterClient } from "./openrouter";
+export type { CompletionResult, CompleteOptions } from "./openrouter";
+
+// Prompt builders
+export { buildTranslatePrompt } from "./prompts/translate";
+export { buildLinkedInAdaptPrompt } from "./prompts/adapt-linkedin";
+export { buildTwitterAdaptPrompt } from "./prompts/adapt-twitter";
+export { buildChannelProfilePrompt } from "./prompts/channel-profile";
