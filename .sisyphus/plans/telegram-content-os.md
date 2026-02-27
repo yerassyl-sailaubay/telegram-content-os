@@ -239,7 +239,7 @@ Max Concurrent: 7 (Wave 1)
 
 ### Wave 1 — Foundation (all independent, MAX PARALLEL)
 
-- [ ] 1. Project Scaffolding — Next.js 15 + Tailwind + shadcn/ui
+- [x] 1. Project Scaffolding — Next.js 15 + Tailwind + shadcn/ui
 
   **What to do**:
   - Initialize Next.js 15 project with App Router, TypeScript strict mode
@@ -309,7 +309,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `package.json`, `next.config.ts`, `tailwind.config.ts`, `tsconfig.json`, `src/app/**`
   - Pre-commit: `bun lint`
 
-- [ ] 2. Test Infrastructure — vitest + Playwright + Test Utilities
+- [x] 2. Test Infrastructure — vitest + Playwright + Test Utilities
 
   **What to do**:
   - Install vitest, @testing-library/react, @testing-library/jest-dom, happy-dom
@@ -376,7 +376,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `vitest.config.ts`, `playwright.config.ts`, `src/test/**`, `e2e/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 3. Supabase Project + DB Schema + Drizzle ORM
+- [x] 3. Supabase Project + DB Schema + Drizzle ORM
 
   **What to do**:
   - Install Drizzle ORM + drizzle-kit + @supabase/supabase-js + @supabase/ssr
@@ -462,7 +462,7 @@ Max Concurrent: 7 (Wave 1)
 
 ---
 
-- [ ] 4. Supabase Auth + Protected Routes + Middleware
+- [x] 4. Supabase Auth + Protected Routes + Middleware
 
   **What to do**:
   - Configure Supabase Auth with email/password + Google OAuth + GitHub OAuth providers
@@ -544,7 +544,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/middleware.ts`, `src/lib/supabase/**`, `src/app/(auth)/**`, `src/server/actions/auth.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 5. i18n Setup — next-intl with Russian + English
+- [x] 5. i18n Setup — next-intl with Russian + English
 
   **What to do**:
   - Install `next-intl` and configure for Next.js App Router
@@ -605,7 +605,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/i18n/**`, `src/messages/**`, `src/components/language-switcher.tsx`
   - Pre-commit: `bun test --run`
 
-- [ ] 6. UI Shell — Dashboard Layout, Sidebar Navigation, Theme
+- [x] 6. UI Shell — Dashboard Layout, Sidebar Navigation, Theme
 
   **What to do**:
   - Create main dashboard layout with responsive sidebar navigation:
@@ -688,7 +688,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/components/layout/**`, `src/app/(dashboard)/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 7. Inngest Setup — Dev Server + First Test Function
+- [x] 7. Inngest Setup — Dev Server + First Test Function
 
   **What to do**:
   - Install `inngest` and `inngest/next` packages

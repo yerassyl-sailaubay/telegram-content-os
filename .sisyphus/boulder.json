@@ -5,5 +5,6 @@
     "ses_3604b9270ffeBHqKe0xPDCzKmg"
   ],
   "plan_name": "telegram-content-os",
-  "agent": "atlas"
+  "agent": "atlas",
+  "worktree_path": "/Users/yerassyl/Documents/Code/telegram-content-os-work"
 }
