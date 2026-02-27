@@ -1,0 +1,41 @@
+{
+  "common": {
+    "loading": "Загрузка...",
+    "error": "Что-то пошло не так",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "back": "Назад",
+    "next": "Далее",
+    "search": "Поиск...",
+    "noResults": "Ничего не найдено",
+    "comingSoon": "Скоро будет"
+  },
+  "auth": {
+    "login": "Войти",
+    "signup": "Создать аккаунт",
+    "logout": "Выйти",
+    "email": "Эл. почта",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "forgotPassword": "Забыли пароль?",
+    "orContinueWith": "Или продолжить с",
+    "noAccount": "Нет аккаунта?",
+    "haveAccount": "Уже есть аккаунт?"
+  },
+  "nav": {
+    "dashboard": "Дашборд",
+    "posts": "Публикации",
+    "channels": "Каналы",
+    "schedule": "Расписание",
+    "analytics": "Аналитика",
+    "media": "Медиа",
+    "settings": "Настройки"
+  },
+  "dashboard": {
+    "title": "Дашборд",
+    "welcomeMessage": "Добро пожаловать в Telegram Content OS",
+    "quickActions": "Быстрые действия"
+  }
+}
