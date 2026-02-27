@@ -119,3 +119,12 @@
 - `bun run build` — clean, 22 routes generated
 - `npx tsc --noEmit` — zero type errors
 - 6 new files created, 1 existing file modified, 3 pre-existing files fixed
+
+## Channel Management (Task completed 2026-02-28)
+- **No `Alert` component**: shadcn Alert is not installed — use custom `div` with destructive styling instead
+- **No `Switch` component**: shadcn Switch is not installed — use `Button` with variant toggle as alternative
+- **Telegram `getChat` test**: Bot access check for a channel works by catching the thrown `TelegramApiError` when bot isn't admin
+- **Server action pattern for nested queries**: Use `Promise.all` for parallel queries; `sql<Date | null>` for max aggregates
+- **Channel detail page**: Use `"use server"` inline function + `redirect()` for server-side disconnect action in Server Component
+- **Test `selectResults` queue**: Each `db.select()` call consumes one entry from the queue — remember to push entries for ALL selects in a single action call (channel lookup + post stats + recent posts = 3 pushes)
+- **Build fix**: Always check `ls src/components/ui/` before importing shadcn components; not all are installed
