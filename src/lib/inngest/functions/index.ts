@@ -5,4 +5,7 @@ import { telegramPostReceived } from "./telegram/post-received";
 import { executeScheduledPost } from "./scheduling/execute-scheduled-post";
 import { profileChannel } from "./ai/profile-channel";
 import { adaptContent } from "./ai/adapt-content";
-export const functions = [helloWorld, scheduledExample, telegramPostReceived, executeScheduledPost, profileChannel, adaptContent];
+import { collectLinkedInAnalytics } from "./analytics/collect-linkedin-analytics";
+import { collectTwitterAnalytics } from "./analytics/collect-twitter-analytics";
+import { collectTelegramAnalytics } from "./analytics/collect-telegram-analytics";
+export const functions = [helloWorld, scheduledExample, telegramPostReceived, executeScheduledPost, profileChannel, adaptContent, collectLinkedInAnalytics, collectTwitterAnalytics, collectTelegramAnalytics];

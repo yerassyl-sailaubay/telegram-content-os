@@ -15,6 +15,7 @@
     "inngest-dev": "bunx inngest-cli@latest dev"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.8.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.98.0",
     "class-variance-authority": "^0.7.1",
@@ -33,6 +34,7 @@
     "react-day-picker": "^9.14.0",
     "react-dom": "19.2.3",
     "react-dropzone": "^15.0.0",
+    "stripe": "^20.4.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

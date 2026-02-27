@@ -34,3 +34,9 @@ export {
 } from "./channel-profiles";
 export { usageTracking, usageTrackingRelations } from "./usage-tracking";
 export { welcomeMessages, welcomeMessagesRelations } from "./welcome-messages";
+export { postAnalytics, postAnalyticsRelations } from "./post-analytics";
+export { channelMetrics, channelMetricsRelations } from "./channel-metrics";
+export {
+  analyticsSyncLog,
+  analyticsSyncLogRelations,
+} from "./analytics-sync-log";

@@ -32,7 +32,8 @@
     "schedule": "Расписание",
     "analytics": "Аналитика",
     "media": "Медиа",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "billing": "Биллинг"
   },
   "dashboard": {
     "title": "Дашборд",
@@ -257,5 +258,22 @@
     "selectDatetimeError": "Пожалуйста, выберите дату и время.",
     "postNowDescription": "Опубликовать немедленно на {platform}",
     "scheduleDescription": "Выберите дату и время для публикации позже"
+  },
+  "billing": {
+    "title": "Биллинг",
+    "description": "Управляйте подпиской и оплатой",
+    "currentPlan": "Текущий план",
+    "plans": "Тарифы",
+    "upgrade": "Улучшить",
+    "perMonth": "/ месяц",
+    "popular": "Популярный",
+    "free": "Бесплатно",
+    "canceling": "Отменяется",
+    "pastDue": "Просрочена",
+    "crossPostsUsage": "Кросс-посты в этом месяце",
+    "aiCallsUsage": "ИИ-запросы в этом месяце",
+    "renewsAt": "Продлевается {date}",
+    "cancelingAt": "Отменяется {date}",
+    "manageSubscription": "Управление подпиской"
   }
 }

@@ -7,6 +7,7 @@ import {
   Calendar,
   BarChart3,
   ImageIcon,
+  CreditCard,
   Settings,
   LogOut,
   ChevronsUpDown,
@@ -38,7 +39,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logout } from "@/server/actions/auth";
 
 type NavItem = {
-  key: "dashboard" | "posts" | "channels" | "schedule" | "analytics" | "media" | "crosspost" | "settings";
+  key: "dashboard" | "posts" | "channels" | "schedule" | "analytics" | "media" | "crosspost" | "billing" | "settings";
   icon: React.ComponentType<{ className?: string }>;
   href: string;
 };
@@ -52,6 +53,7 @@ const navItems: NavItem[] = [
   { key: "schedule", icon: Calendar, href: "/dashboard/schedule" },
   { key: "analytics", icon: BarChart3, href: "/dashboard/analytics" },
   { key: "media", icon: ImageIcon, href: "/dashboard/media" },
+  { key: "billing", icon: CreditCard, href: "/dashboard/billing" },
   { key: "settings", icon: Settings, href: "/dashboard/settings" },
 ];
 

@@ -32,7 +32,8 @@
     "schedule": "Schedule",
     "analytics": "Analytics",
     "media": "Media",
-    "settings": "Settings"
+    "settings": "Settings",
+    "billing": "Billing"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -257,5 +258,22 @@
     "selectDatetimeError": "Please select a date and time.",
     "postNowDescription": "Publish immediately to {platform}",
     "scheduleDescription": "Pick a date and time to post later"
+  },
+  "billing": {
+    "title": "Billing",
+    "description": "Manage your subscription and billing",
+    "currentPlan": "Current Plan",
+    "plans": "Plans",
+    "upgrade": "Upgrade",
+    "perMonth": "/ month",
+    "popular": "Popular",
+    "free": "Free",
+    "canceling": "Canceling",
+    "pastDue": "Past Due",
+    "crossPostsUsage": "Cross-posts this month",
+    "aiCallsUsage": "AI calls this month",
+    "renewsAt": "Renews on {date}",
+    "cancelingAt": "Cancels on {date}",
+    "manageSubscription": "Manage Subscription"
   }
 }
