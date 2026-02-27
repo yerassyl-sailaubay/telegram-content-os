@@ -189,5 +189,14 @@
     "errorNotChannel": "Указанный username не является каналом.",
     "errorAlreadyConnected": "Этот канал уже подключён к вашему аккаунту.",
     "errorGeneric": "Не удалось подключить канал. Попробуйте ещё раз."
+  },
+  "channelProfile": {
+    "title": "Профиль канала",
+    "niche": "Ниша",
+    "tone": "Тон",
+    "topTopics": "Топ-темы",
+    "language": "Язык",
+    "generatedAt": "Сгенерировано",
+    "refreshProfile": "Обновить профиль"
   }
 }

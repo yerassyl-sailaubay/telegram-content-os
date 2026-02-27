@@ -189,5 +189,14 @@
     "errorNotChannel": "The provided username is not a channel.",
     "errorAlreadyConnected": "This channel is already connected to your account.",
     "errorGeneric": "Failed to connect channel. Please try again."
+  },
+  "channelProfile": {
+    "title": "Channel Profile",
+    "niche": "Niche",
+    "tone": "Tone",
+    "topTopics": "Top Topics",
+    "language": "Language",
+    "generatedAt": "Generated",
+    "refreshProfile": "Refresh Profile"
   }
 }

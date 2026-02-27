@@ -342,3 +342,43 @@ export async function updateChannelSettings(input: {
     return { success: false, error: message };
   }
 }
+
+export async function refreshChannelProfile(
+  channelId: string,
+): Promise<ActionResult> {
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!channelId) {
+      return { success: false, error: "Channel ID is required" };
+    }
+
+    // Verify ownership
+    const [channel] = await db
+      .select({ id: telegramChannels.id })
+      .from(telegramChannels)
+      .where(
+        and(eq(telegramChannels.id, channelId), eq(telegramChannels.userId, userId)),
+      )
+      .limit(1);
+
+    if (!channel) {
+      return { success: false, error: "Channel not found" };
+    }
+
+    // Send Inngest event to trigger profile generation
+    const { inngest } = await import("@/lib/inngest/client");
+    await inngest.send({
+      name: "ai/profile-channel",
+      data: { channelId, userId },
+    });
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to refresh channel profile";
+    return { success: false, error: message };
+  }
+}

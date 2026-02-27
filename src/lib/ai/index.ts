@@ -38,3 +38,22 @@ export { buildTranslatePrompt } from "./prompts/translate";
 export { buildLinkedInAdaptPrompt } from "./prompts/adapt-linkedin";
 export { buildTwitterAdaptPrompt } from "./prompts/adapt-twitter";
 export { buildChannelProfilePrompt } from "./prompts/channel-profile";
+
+// Channel profiler
+export { ChannelProfiler } from "./channel-profiler";
+
+// Adaptation engine
+export {
+  AdaptationEngine,
+  extractPlainText,
+  isEnglish,
+  fitsLengthLimit,
+  hasHashtags,
+  runQualityChecks,
+  splitIntoThread,
+} from "./adaptation-engine";
+export type {
+  AdaptationInput,
+  AdaptationResult,
+  QualityCheckResult,
+} from "./adaptation-engine";
