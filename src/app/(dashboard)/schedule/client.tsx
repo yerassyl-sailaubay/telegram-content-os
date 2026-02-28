@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns";
 import { ScheduleCalendar, type ScheduleItem } from "@/components/schedule/calendar";
@@ -8,11 +9,7 @@ import { ScheduleDialog } from "@/components/schedule/schedule-dialog";
 import { TimezoneSelect } from "@/components/schedule/timezone-select";
 import { Button } from "@/components/ui/button";
 import { detectBrowserTimezone } from "@/lib/scheduling/timezone";
-import {
-  createScheduleAction,
-  cancelScheduleAction,
-  getSchedulesForCalendar,
-} from "@/server/actions/schedule";
+import { cancelScheduleAction, getSchedulesForCalendar } from "@/server/actions/schedule";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +25,7 @@ import { CalendarPlus } from "lucide-react";
 export function SchedulePageClient() {
   const t = useTranslations("schedule");
   const tCommon = useTranslations("common");
+  const router = useRouter();
 
   // Timezone state — detect from browser on mount
   const [timezone, setTimezone] = React.useState("UTC");
@@ -62,10 +60,7 @@ export function SchedulePageClient() {
       const rangeEnd = new Date(end);
       rangeEnd.setMonth(rangeEnd.getMonth() + 2);
 
-      const data = await getSchedulesForCalendar(
-        rangeStart.toISOString(),
-        rangeEnd.toISOString(),
-      );
+      const data = await getSchedulesForCalendar(rangeStart.toISOString(), rangeEnd.toISOString());
 
       setSchedules(
         data.map((s) => ({
@@ -104,19 +99,11 @@ export function SchedulePageClient() {
     scheduledAt: Date;
     timezone: string;
   }) {
-    // We need a crossPostId — for now, we'll create a placeholder
-    // In the real flow, the user would select existing content
-    const formData = new FormData();
-    formData.set("crossPostId", "placeholder"); // Would come from content selection
-    formData.set("scheduledAt", data.scheduledAt.toISOString());
-    formData.set("timezone", data.timezone);
-
-    const result = await createScheduleAction(formData);
-    if (!result.success) {
-      throw new Error(result.error ?? tCommon("error"));
-    }
-
-    await fetchSchedules();
+    // Redirect to crosspost workflow where proper content selection and scheduling happens
+    router.push(
+      `/dashboard/crosspost?scheduledAt=${data.scheduledAt.toISOString()}&timezone=${data.timezone}&platform=${data.platform}`,
+    );
+    setDialogOpen(false);
   }
 
   async function handleCancelSchedule() {
@@ -144,11 +131,7 @@ export function SchedulePageClient() {
     <div className="space-y-4">
       {/* Toolbar with timezone + new schedule */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <TimezoneSelect
-          value={timezone}
-          onValueChange={setTimezone}
-          className="w-[280px]"
-        />
+        <TimezoneSelect value={timezone} onValueChange={setTimezone} className="w-[280px]" />
         <Button onClick={() => setDialogOpen(true)}>
           <CalendarPlus className="mr-2 h-4 w-4" />
           {t("newSchedule")}
@@ -158,7 +141,7 @@ export function SchedulePageClient() {
       {/* Calendar */}
       {loading ? (
         <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
-          <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
+          <p className="text-muted-foreground text-sm">{tCommon("loading")}</p>
         </div>
       ) : (
         <ScheduleCalendar
@@ -182,16 +165,11 @@ export function SchedulePageClient() {
       />
 
       {/* Cancel Confirmation */}
-      <AlertDialog
-        open={cancelId !== null}
-        onOpenChange={(open) => !open && setCancelId(null)}
-      >
+      <AlertDialog open={cancelId !== null} onOpenChange={(open) => !open && setCancelId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("cancelConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("cancelConfirmDescription")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("cancelConfirmDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>

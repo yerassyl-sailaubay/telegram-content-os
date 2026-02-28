@@ -39,8 +39,7 @@ export const adaptContent = inngest.createFunction(
   },
   { event: "ai/content.adapt" },
   async ({ event, step }) => {
-    const { postId, userId, platform, channelId, modelTier } =
-      (event as AdaptContentEvent).data;
+    const { postId, userId, platform, channelId, modelTier } = (event as AdaptContentEvent).data;
 
     // Step 1: Fetch the telegram post
     const post = await step.run("fetch-post", async () => {
@@ -97,14 +96,10 @@ export const adaptContent = inngest.createFunction(
 
       // Otherwise parse from raw content
       if (!post.contentRaw) {
-        throw new Error(
-          `Post ${postId} has no raw content or parsed content`,
-        );
+        throw new Error(`Post ${postId} has no raw content or parsed content`);
       }
 
-      const { parseTelegramMessage } = await import(
-        "@/lib/telegram/parser"
-      );
+      const { parseTelegramMessage } = await import("@/lib/telegram/parser");
 
       // Parse as a simple text message
       return parseTelegramMessage({
@@ -117,39 +112,34 @@ export const adaptContent = inngest.createFunction(
 
     // Step 3: Fetch channel profile if channelId is available
     const resolvedChannelId = channelId ?? post.channelId;
-    const channelProfile = await step.run(
-      "fetch-channel-profile",
-      async () => {
-        if (!resolvedChannelId) return null;
+    const channelProfile = await step.run("fetch-channel-profile", async () => {
+      if (!resolvedChannelId) return null;
 
-        const { db } = await import("@/server/db");
-        const { channelProfiles } = await import("@/server/db/schema");
-        const { eq } = await import("drizzle-orm");
+      const { db } = await import("@/server/db");
+      const { channelProfiles } = await import("@/server/db/schema");
+      const { eq } = await import("drizzle-orm");
 
-        const rows = await db
-          .select()
-          .from(channelProfiles)
-          .where(eq(channelProfiles.channelId, resolvedChannelId))
-          .limit(1);
+      const rows = await db
+        .select()
+        .from(channelProfiles)
+        .where(eq(channelProfiles.channelId, resolvedChannelId))
+        .limit(1);
 
-        if (rows.length === 0) return null;
+      if (rows.length === 0) return null;
 
-        const row = rows[0]!;
-        return {
-          niche: row.niche,
-          tone: row.tone,
-          topTopics: (row.topTopics ?? []) as string[],
-          language: row.language ?? "ru",
-        };
-      },
-    );
+      const row = rows[0]!;
+      return {
+        niche: row.niche,
+        tone: row.tone,
+        topTopics: (row.topTopics ?? []) as string[],
+        language: row.language ?? "ru",
+      };
+    });
 
     // Step 4: Run adaptation engine
     const result = await step.run("adapt-content", async () => {
       const { OpenRouterClient } = await import("@/lib/ai/openrouter");
-      const { AdaptationEngine } = await import(
-        "@/lib/ai/adaptation-engine"
-      );
+      const { AdaptationEngine } = await import("@/lib/ai/adaptation-engine");
 
       const aiProvider = new OpenRouterClient();
       const engine = new AdaptationEngine(aiProvider);
@@ -184,13 +174,8 @@ export const adaptContent = inngest.createFunction(
       return inserted[0]!.id;
     });
 
-    // Step 6: Notify (placeholder — future integration with websockets/SSE)
-    await step.run("notify-client", async () => {
-      // TODO: Send real-time notification to client via websocket/SSE
-      console.log(
-        `[ai/adapt-content] Adaptation complete: crossPost=${crossPostId}, platform=${platform}, model=${result.modelUsed}`,
-      );
-    });
+    // Step 6: Notify — real-time notification via websocket/SSE (future V2 enhancement)
+    // Skipped: no notification channel implemented yet
 
     return {
       status: "completed",
