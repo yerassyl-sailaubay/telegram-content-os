@@ -345,14 +345,69 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  // 3. We only care about channel_post (new posts in channels)
+  // 3. Handle new_chat_members (welcome messages)
+  const message = update.message;
+  if (message?.new_chat_members && message.new_chat_members.length > 0) {
+    try {
+      const { handleNewChatMember } = await import("@/lib/telegram/welcome");
+      const { getTelegramClient } = await import("@/lib/telegram/client");
+      const db = await getDb();
+      const { welcomeTemplates, telegramChannels } = await getSchema();
+      const eq = await getEq();
+
+      await handleNewChatMember(message, {
+        getTemplate: async (telegramChatId: string) => {
+          const { and: andOp } = await import("drizzle-orm");
+          const rows = await db
+            .select({
+              templateText: welcomeTemplates.templateText,
+              channelTitle: telegramChannels.title,
+              memberCount: telegramChannels.memberCount,
+              botToken: telegramChannels.botTokenEncrypted,
+              telegramChatId: telegramChannels.telegramChatId,
+            })
+            .from(welcomeTemplates)
+            .innerJoin(
+              telegramChannels,
+              eq(welcomeTemplates.channelId, telegramChannels.id),
+            )
+            .where(
+              andOp(
+                eq(telegramChannels.telegramChatId, telegramChatId),
+                eq(welcomeTemplates.isEnabled, true),
+              ),
+            )
+            .limit(1);
+
+          const row = rows[0];
+          if (!row) return null;
+
+          return {
+            templateText: row.templateText,
+            channelTitle: row.channelTitle ?? "",
+            memberCount: row.memberCount ?? 0,
+            botToken: row.botToken ?? process.env.TELEGRAM_BOT_TOKEN ?? null,
+          };
+        },
+        sendMessage: async (botToken, chatId, text, options) => {
+          const client = getTelegramClient(botToken);
+          await client.sendMessage(chatId, text, options);
+        },
+      });
+    } catch (error) {
+      console.error("Error handling new chat members:", error);
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // 4. We only care about channel_post (new posts in channels)
   const channelPost = update.channel_post;
   if (!channelPost) {
     // Acknowledge but ignore non-channel-post updates
     return NextResponse.json({ ok: true });
   }
 
-  // 4. Look up the channel in our DB
+  // 5. Look up the channel in our DB
   const telegramChatId = String(channelPost.chat.id);
 
   try {

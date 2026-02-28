@@ -40,3 +40,7 @@ export {
   analyticsSyncLog,
   analyticsSyncLogRelations,
 } from "./analytics-sync-log";
+export {
+  welcomeTemplates,
+  welcomeTemplatesRelations,
+} from "./welcome-templates";

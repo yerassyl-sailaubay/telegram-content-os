@@ -212,3 +212,107 @@
 - `bun run test` — 430 tests pass (15 test files), 0 failures
 - `bun run build` — clean, 26 routes
 - Zero TS diagnostics on all new files
+
+
+## Task 22: Stripe Billing Integration + Subscription Tiers
+
+### Architecture
+- **Billing module**: `src/lib/billing/` — 7 files (types, plans, stripe client, checkout, portal, webhook, barrel export).
+- **Plan tiers**: Free ($0, default), Plus ($19/mo), Pro ($49/mo). Stripe Price IDs from env vars.
+- **Stripe Checkout hosted page** — no custom payment forms. Monthly only in V1.
+- **Dynamic imports in webhook handlers**: Each handler uses `const { db } = await import("@/server/db")` to avoid build-time DB connection.
+- **Webhook dispatcher**: handles 4 event types (checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed). Returns `{handled, eventType, error?}` — never throws.
+
+### Stripe SDK v20 (API 2026-02-25.clover) Breaking Change
+- **CRITICAL**: `current_period_end` and `current_period_start` moved from `Subscription` to `SubscriptionItem` level.
+- Must read from `sub.items.data[0].current_period_end` instead of `sub.current_period_end`.
+- `stripe.subscriptions.retrieve()` returns `Response<Subscription>` — access period dates via items.
+
+### Mocking Stripe in Tests
+- `vi.mock("stripe")` with a class-based mock, NOT `vi.fn().mockImplementation()`. The Stripe SDK uses `new Stripe()` constructor — arrow functions are not constructable.
+- Correct pattern: `class StripeMock { checkout = {...}; constructor(_key, _opts) {} }` then `return { default: StripeMock }`.
+- DB mocking for dynamic imports: `vi.mock("@/server/db")`, `vi.mock("@/server/db/schema")`, `vi.mock("drizzle-orm")` at module level works because vitest resolves these the same way as dynamic `import()` calls.
+
+### UI Components
+- `PricingCard`: shows plan features, current plan indicator, popular badge.
+- `UsageMeter`: progress bar with warning/exceeded states, unlimited support.
+- `BillingClient`: client component orchestrating pricing cards grid, usage meters, manage subscription button, checkout flow.
+- Server page (`billing/page.tsx`) fetches subscription + usage data, renders `PageHeader + BillingClient`.
+
+### i18n JSON Editing Lessons
+- **ALWAYS validate JSON after editing** with `node -e "JSON.parse(fs.readFileSync(...))"`.
+- When appending a new top-level namespace to JSON, ensure the previous closing brace gets a trailing comma.
+- The `"nav"` key must stay as a nested object — never flatten it.
+
+### Build Stats After Task 22
+- `bun run test` — 524 tests pass (18 test files), 0 failures
+- `bun run build` — clean, 31 routes (including `/api/billing/checkout`, `/api/billing/portal`, `/api/billing/webhook`, `/dashboard/billing`)
+- 26 billing-specific tests covering: plan definitions, tier resolution, Stripe client singleton, checkout session, portal session, webhook signature verification, all 4 webhook event handlers, error handling, barrel exports
+## Task 23 — Usage Tracking + Tier Enforcement (enforce.ts + tests)
+
+### vi.hoisted() pattern for DB mock symbols
+When `vi.mock` factory callbacks reference module-level variables (like `Symbol()`), those variables must be created via `vi.hoisted()` — not as plain `const`. `vi.mock` factories are hoisted above ALL `const` declarations in the file, causing temporal dead zone errors.
+
+**Wrong:**
+```ts
+const mockTable = Symbol("table"); // TDZ error inside factory
+vi.mock("@/server/db/schema", () => ({ table: mockTable }));
+```
+
+**Correct:**
+```ts
+const { mockTable } = vi.hoisted(() => ({ mockTable: Symbol("table") }));
+vi.mock("@/server/db/schema", () => ({ table: mockTable }));
+```
+
+### buildSelectChain utility
+Test helper that builds a chainable DB select mock (`.select().from().where().limit()`) returning a resolved value. Must be defined as a plain `function` (hoisted) or `const` at module scope — NOT inside `vi.hoisted` (which only runs once at hoist time, not per-call).
+
+### enforceQuota / withQuotaCheck design
+- `enforceQuota` is a "never throws" function returning a discriminated union
+- `withQuotaCheck` throws `QuotaExceededError` (extends `Error` with `used`, `limit`, `upgradeUrl` properties)
+- When a user exceeds quota, `enforceQuota` calls both `canCrossPost` AND `getRemainingQuota` — so the DB select mock needs 4 call slots (2 for canCrossPost, 2 for getRemainingQuota)
+
+### DB mock call counting pattern
+For functions that internally make multiple DB select calls, track `callCount` per test:
+```ts
+let callCount = 0;
+mockSelect.mockImplementation(() => {
+  callCount++;
+  if (callCount === 1) return buildSelectChain([{ plan: "free" }]);
+  return buildSelectChain([{ crossPostsCount: 5 }]);
+});
+```
+
+## Task 21 — Analytics Dashboard UI (2026-02-28)
+
+### Component Architecture
+- Server component page.tsx calls server action and passes `initialData` to client `AnalyticsDashboard`
+- Client dashboard holds dateRange/channelId state and re-fetches on user interaction
+- Each sub-component (metrics-card, engagement-chart, etc.) is pure — accepts props, renders UI
+- All charts wrapped in their own `Card` with `data-testid` attributes
+
+### Recharts in Tests
+- Must mock recharts entirely in vitest/happy-dom — `ResizeObserver` doesn't exist in happy-dom
+- Mock `ResponsiveContainer` as a plain div, `LineChart`/`BarChart` as plain divs too
+- Pattern: `vi.mock("recharts", () => ({ ResponsiveContainer: ({children}) => <div>{children}</div>, ... }))`
+
+### i18n JSON Editing Safety
+- When adding a new namespace to en.json/ru.json, the last key of the previous namespace must end with `},` not `}`
+- The stray closing brace issue from previous agents: using Edit to replace the last `}` + `}` pair with single `},` 
+- Always validate with: `node -e "require('./src/messages/en.json'); console.log('valid')"`
+
+### toLocaleString() in Tests
+- `(1250).toLocaleString()` renders as `"1 250"` (non-breaking space) in some locales (Node.js test env)
+- Use regex matchers: `screen.getByText(/1[,\s]?250/)` to handle locale differences
+
+### Heatmap Pattern
+- CSS grid approach: 7 rows (days) × 24 cols (hours) implemented as nested flex
+- Opacity-based color intensity using Tailwind `bg-primary/X` classes (15/30/50/70/90)
+- TooltipProvider wraps the whole grid; each cell has a Tooltip
+- Day labels (Mon-Sun) on left column, hour markers (every 3h) above as absolute-positioned spans
+
+### Empty State Pattern
+- All chart components check if data is empty/all-zero and show centered message
+- `data.every((d) => d.total === 0)` for line chart, `data.length === 0` for bar/table
+- Consistent message: noDataYet + noDataDescription i18n keys

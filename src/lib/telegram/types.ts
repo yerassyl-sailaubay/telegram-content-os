@@ -118,6 +118,7 @@ export interface TelegramMessage {
   forward_from_chat?: TelegramChat;
   views?: number;
   forwards?: number;
+  new_chat_members?: TelegramUser[];
 }
 
 // ---------------------------------------------------------------------------

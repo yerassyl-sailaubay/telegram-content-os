@@ -17,3 +17,18 @@ export type {
   WebhookEventResult,
   BillingUsage,
 } from "./types";
+export {
+  getCurrentMonth,
+  getUserTier,
+  getCurrentUsage,
+  canCrossPost,
+  getRemainingQuota,
+  incrementUsage,
+} from "./usage";
+export type { QuotaInfo } from "./usage";
+export {
+  enforceQuota,
+  withQuotaCheck,
+  QuotaExceededError,
+} from "./enforce";
+export type { QuotaCheckResult } from "./enforce";
