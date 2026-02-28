@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TimezoneSelect } from "./timezone-select";
-import { Calendar, Clock, Loader2 } from "lucide-react";
+import { Calendar, Clock, Loader2, Repeat } from "lucide-react";
 
 type ScheduleDialogProps = {
   open: boolean;
@@ -31,11 +31,7 @@ type ScheduleDialogProps = {
   initialHour?: number;
   timezone: string;
   onTimezoneChange: (tz: string) => void;
-  onSubmit: (data: {
-    platform: string;
-    scheduledAt: Date;
-    timezone: string;
-  }) => Promise<void>;
+  onSubmit: (data: { platform: string; scheduledAt: Date; timezone: string }) => Promise<void>;
 };
 
 export function ScheduleDialog({
@@ -55,9 +51,7 @@ export function ScheduleDialog({
     initialDate ? format(initialDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
   );
   const [time, setTime] = React.useState<string>(
-    initialHour !== undefined
-      ? `${String(initialHour).padStart(2, "0")}:00`
-      : "12:00",
+    initialHour !== undefined ? `${String(initialHour).padStart(2, "0")}:00` : "12:00",
   );
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -138,51 +132,39 @@ export function ScheduleDialog({
                 <Calendar className="h-3.5 w-3.5" />
                 {t("selectDate")}
               </Label>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
                 {t("selectTime")}
               </Label>
-              <Input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                required
-              />
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
             </div>
           </div>
 
           {/* Timezone */}
           <div className="space-y-2">
             <Label>{t("timezone")}</Label>
-            <TimezoneSelect
-              value={timezone}
-              onValueChange={onTimezoneChange}
-            />
-            <p className="text-xs text-muted-foreground">
-              {t("timezoneDescription")}
-            </p>
+            <TimezoneSelect value={timezone} onValueChange={onTimezoneChange} />
+            <p className="text-muted-foreground text-xs">{t("timezoneDescription")}</p>
+          </div>
+
+          {/* Recurrence */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Repeat className="h-3.5 w-3.5" />
+              {t("recurrence")}
+            </Label>
+            <p className="text-muted-foreground text-xs">{t("recurrenceHint")}</p>
           </div>
 
           {error && (
-            <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">
-              {error}
-            </p>
+            <p className="bg-destructive/10 text-destructive rounded-md p-2 text-sm">{error}</p>
           )}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {tCommon("cancel")}
             </Button>
             <Button type="submit" disabled={loading}>

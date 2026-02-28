@@ -12,7 +12,9 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
-    "inngest-dev": "bunx inngest-cli@latest dev"
+    "inngest-dev": "bunx inngest-cli@latest dev",
+    "prepare": "husky",
+    "test:smoke": "bash scripts/smoke-test.sh"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.8.0",
@@ -35,6 +37,7 @@
     "react-dom": "19.2.3",
     "react-dropzone": "^15.0.0",
     "recharts": "^3.7.0",
+    "sonner": "^2.0.7",
     "stripe": "^20.4.0",
     "tailwind-merge": "^3.5.0"
   },
@@ -55,6 +58,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "happy-dom": "^20.7.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "shadcn": "^3.8.5",
@@ -70,5 +75,13 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "bun lint --fix"
+    ],
+    "*.{ts,tsx,js,jsx,json,md}": [
+      "prettier --write"
+    ]
+  }
 }

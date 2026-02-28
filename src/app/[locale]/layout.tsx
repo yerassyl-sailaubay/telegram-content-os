@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -44,9 +45,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html lang={locale} dir="ltr">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider>
           <ThemeProvider
             attribute="class"
@@ -55,6 +54,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             disableTransitionOnChange
           >
             {children}
+            <Toaster />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

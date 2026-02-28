@@ -55,9 +55,7 @@ export type ScheduleCrossPostInput = {
   timezone: string;
 };
 
-export type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+export type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -121,19 +119,17 @@ export async function listTelegramPostsForCrosspost(input?: {
 
     // Build where clause
     const whereConditions = [
-      sql`${telegramPosts.channelId} = ANY(ARRAY[${sql.join(channelIds.map((id) => sql`${id}::uuid`), sql`, `)}])`,
+      sql`${telegramPosts.channelId} = ANY(ARRAY[${sql.join(
+        channelIds.map((id) => sql`${id}::uuid`),
+        sql`, `,
+      )}])`,
     ];
 
     if (input?.search?.trim()) {
-      whereConditions.push(
-        ilike(telegramPosts.contentRaw, `%${input.search.trim()}%`),
-      );
+      whereConditions.push(ilike(telegramPosts.contentRaw, `%${input.search.trim()}%`));
     }
 
-    const whereClause =
-      whereConditions.length === 1
-        ? whereConditions[0]
-        : and(...whereConditions);
+    const whereClause = whereConditions.length === 1 ? whereConditions[0] : and(...whereConditions);
 
     const [countResult] = await db
       .select({ count: sql<number>`count(*)::int` })
@@ -173,8 +169,7 @@ export async function listTelegramPostsForCrosspost(input?: {
       },
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to list posts";
+    const message = error instanceof Error ? error.message : "Failed to list posts";
     return { success: false, error: message };
   }
 }
@@ -182,9 +177,7 @@ export async function listTelegramPostsForCrosspost(input?: {
 /**
  * Get current month's cross-post usage for the user.
  */
-export async function getCrossPostUsage(): Promise<
-  ActionResult<CrossPostUsage>
-> {
+export async function getCrossPostUsage(): Promise<ActionResult<CrossPostUsage>> {
   try {
     const userId = await getCurrentUserId();
     const month = getCurrentMonth();
@@ -192,12 +185,7 @@ export async function getCrossPostUsage(): Promise<
     const [usage] = await db
       .select()
       .from(usageTracking)
-      .where(
-        and(
-          eq(usageTracking.userId, userId),
-          eq(usageTracking.month, month),
-        ),
-      )
+      .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)))
       .limit(1);
 
     return {
@@ -209,8 +197,7 @@ export async function getCrossPostUsage(): Promise<
       },
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get usage";
+    const message = error instanceof Error ? error.message : "Failed to get usage";
     return { success: false, error: message };
   }
 }
@@ -244,12 +231,7 @@ export async function triggerAdaptContent(
     const [channel] = await db
       .select({ id: telegramChannels.id })
       .from(telegramChannels)
-      .where(
-        and(
-          eq(telegramChannels.id, post.channelId),
-          eq(telegramChannels.userId, userId),
-        ),
-      )
+      .where(and(eq(telegramChannels.id, post.channelId), eq(telegramChannels.userId, userId)))
       .limit(1);
 
     if (!channel) {
@@ -297,8 +279,7 @@ export async function triggerAdaptContent(
 
     return { success: true, data: { crossPostId: crossPost.id } };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to trigger adaptation";
+    const message = error instanceof Error ? error.message : "Failed to trigger adaptation";
     return { success: false, error: message };
   }
 }
@@ -306,21 +287,14 @@ export async function triggerAdaptContent(
 /**
  * Get a cross-post record by ID (polls for AI completion status).
  */
-export async function getCrossPost(
-  crossPostId: string,
-): Promise<ActionResult<CrossPost>> {
+export async function getCrossPost(crossPostId: string): Promise<ActionResult<CrossPost>> {
   try {
     const userId = await getCurrentUserId();
 
     const [crossPost] = await db
       .select()
       .from(crossPosts)
-      .where(
-        and(
-          eq(crossPosts.id, crossPostId),
-          eq(crossPosts.userId, userId),
-        ),
-      )
+      .where(and(eq(crossPosts.id, crossPostId), eq(crossPosts.userId, userId)))
       .limit(1);
 
     if (!crossPost) {
@@ -329,8 +303,7 @@ export async function getCrossPost(
 
     return { success: true, data: crossPost };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get cross-post";
+    const message = error instanceof Error ? error.message : "Failed to get cross-post";
     return { success: false, error: message };
   }
 }
@@ -355,12 +328,7 @@ export async function updateAdaptedContent(input: {
         adaptedContent: input.adaptedContent,
         updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(crossPosts.id, input.crossPostId),
-          eq(crossPosts.userId, userId),
-        ),
-      )
+      .where(and(eq(crossPosts.id, input.crossPostId), eq(crossPosts.userId, userId)))
       .returning();
 
     if (!updated) {
@@ -369,8 +337,7 @@ export async function updateAdaptedContent(input: {
 
     return { success: true, data: updated };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to update content";
+    const message = error instanceof Error ? error.message : "Failed to update content";
     return { success: false, error: message };
   }
 }
@@ -392,12 +359,7 @@ export async function postCrossPostNow(
     const [crossPost] = await db
       .select()
       .from(crossPosts)
-      .where(
-        and(
-          eq(crossPosts.id, input.crossPostId),
-          eq(crossPosts.userId, userId),
-        ),
-      )
+      .where(and(eq(crossPosts.id, input.crossPostId), eq(crossPosts.userId, userId)))
       .limit(1);
 
     if (!crossPost) {
@@ -430,9 +392,7 @@ export async function postCrossPostNow(
     // Send platform-specific Inngest event
     const { inngest } = await import("@/lib/inngest/client");
     const eventName =
-      crossPost.platform === "linkedin"
-        ? "platform/linkedin.post"
-        : "platform/twitter.post";
+      crossPost.platform === "linkedin" ? "platform/linkedin.post" : "platform/twitter.post";
 
     await inngest.send({
       name: eventName,
@@ -449,8 +409,7 @@ export async function postCrossPostNow(
 
     return { success: true, data: { crossPostId: input.crossPostId } };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to post";
+    const message = error instanceof Error ? error.message : "Failed to post";
     return { success: false, error: message };
   }
 }
@@ -472,12 +431,7 @@ export async function scheduleCrossPost(
     const [crossPost] = await db
       .select({ id: crossPosts.id, adaptedContent: crossPosts.adaptedContent })
       .from(crossPosts)
-      .where(
-        and(
-          eq(crossPosts.id, input.crossPostId),
-          eq(crossPosts.userId, userId),
-        ),
-      )
+      .where(and(eq(crossPosts.id, input.crossPostId), eq(crossPosts.userId, userId)))
       .limit(1);
 
     if (!crossPost) {
@@ -514,8 +468,7 @@ export async function scheduleCrossPost(
 
     return { success: true, data: { scheduleId: result.scheduleId! } };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to schedule";
+    const message = error instanceof Error ? error.message : "Failed to schedule";
     return { success: false, error: message };
   }
 }
@@ -523,9 +476,7 @@ export async function scheduleCrossPost(
 /**
  * Get connected platforms for the current user.
  */
-export async function getConnectedPlatforms(): Promise<
-  ActionResult<Platform[]>
-> {
+export async function getConnectedPlatforms(): Promise<ActionResult<Platform[]>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -538,8 +489,47 @@ export async function getConnectedPlatforms(): Promise<
 
     return { success: true, data: platforms };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get platforms";
+    const message = error instanceof Error ? error.message : "Failed to get platforms";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Create a multi-platform broadcast.
+ * Creates cross-post records for each selected platform and triggers
+ * the Inngest broadcast function for parallel adaptation + posting.
+ */
+export async function createBroadcastAction(input: {
+  postId: string;
+  platforms: Platform[];
+  channelId?: string;
+  scheduledAt?: string;
+  timezone?: string;
+}): Promise<ActionResult<{ broadcastId: string }>> {
+  try {
+    const userId = await getCurrentUserId();
+
+    const { createBroadcast, createDefaultDeps } = await import("@/lib/broadcast");
+    const deps = await createDefaultDeps();
+
+    const result = await createBroadcast(
+      {
+        postId: input.postId,
+        userId,
+        platforms: input.platforms,
+        channelId: input.channelId,
+        scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
+        timezone: input.timezone,
+      },
+      deps,
+    );
+
+    revalidatePath("/dashboard/crosspost");
+    revalidatePath("/dashboard/crosspost/broadcast");
+
+    return { success: true, data: { broadcastId: result.broadcastId } };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to create broadcast";
     return { success: false, error: message };
   }
 }

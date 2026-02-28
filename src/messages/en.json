@@ -38,7 +38,29 @@
   "dashboard": {
     "title": "Dashboard",
     "welcomeMessage": "Welcome to Telegram Content OS",
-    "quickActions": "Quick Actions"
+    "quickActions": "Quick Actions",
+    "welcomeBack": "Welcome back, {name}",
+    "welcomeFallbackName": "there",
+    "statCrossPosts": "Cross-Posts",
+    "statScheduled": "Scheduled",
+    "statWeeklyEngagement": "Weekly Engagement",
+    "statConnectedPlatforms": "Connected Platforms",
+    "actionNewCrossPost": "New Cross-Post",
+    "actionQuickBroadcast": "Quick Broadcast",
+    "actionViewSchedule": "View Schedule",
+    "activityFeedTitle": "Recent Activity",
+    "activityEmpty": "No activity yet",
+    "activityEmptyDescription": "Your cross-post activity will appear here.",
+    "activityType_adapted": "adapted",
+    "activityType_scheduled": "scheduled",
+    "activityType_published": "published",
+    "activityType_failed": "failed",
+    "upcomingPostsTitle": "Upcoming Posts",
+    "upcomingEmpty": "No upcoming posts",
+    "upcomingEmptyDescription": "Schedule a post to see it here.",
+    "sparklineTitle": "7-Day Engagement",
+    "sparklineEmpty": "No engagement data yet",
+    "sparklineLabel": "Engagement"
   },
   "content": {
     "title": "Content Library",
@@ -119,7 +141,40 @@
     "scheduleCancelled": "Schedule cancelled",
     "scheduleUpdated": "Schedule updated",
     "linkedin": "LinkedIn",
-    "twitter": "Twitter / X"
+    "twitter": "Twitter / X",
+    "recurrence": "Recurrence",
+    "recurrenceHint": "Set up a recurring schedule to automatically create posts on a regular basis."
+  },
+  "scheduling": {
+    "recurring": {
+      "title": "Recurring Schedule",
+      "description": "Automatically schedule posts on a recurring basis",
+      "frequency": "Frequency",
+      "selectFrequency": "Select frequency",
+      "frequencyNone": "None (one-time)",
+      "frequencyDaily": "Daily",
+      "frequencyWeekly": "Weekly",
+      "frequencyMonthly": "Monthly",
+      "dayOfWeek": "Day of Week",
+      "dayOfMonth": "Day of Month",
+      "dayOfMonthHint": "If the month has fewer days, the last day will be used.",
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "createRecurring": "Create Recurring Schedule",
+      "pause": "Pause",
+      "resume": "Resume",
+      "statusActive": "Active",
+      "statusPaused": "Paused",
+      "recurringCreated": "Recurring schedule created",
+      "recurringPaused": "Schedule paused",
+      "recurringResumed": "Schedule resumed",
+      "repeatIcon": "Recurring"
+    }
   },
   "media": {
     "title": "Media Library",
@@ -259,6 +314,24 @@
     "postNowDescription": "Publish immediately to {platform}",
     "scheduleDescription": "Pick a date and time to post later"
   },
+  "broadcast": {
+    "title": "Broadcast",
+    "description": "Send your content to multiple platforms at once",
+    "selectPlatforms": "Select target platforms",
+    "notConnected": "not connected",
+    "platformCount": "{count} platforms selected",
+    "continue": "Continue",
+    "confirmTitle": "Confirm Broadcast",
+    "confirmDescription": "Review and confirm your multi-platform broadcast.",
+    "sourcePost": "Source Post",
+    "targetPlatforms": "Target Platforms",
+    "scheduleForLater": "Schedule for later",
+    "broadcastNow": "Broadcast Now",
+    "broadcasting": "Broadcasting...",
+    "broadcastStarted": "Broadcast started!",
+    "broadcastStartedDescription": "Your content is being adapted and posted to {count} platforms.",
+    "newBroadcast": "New Broadcast"
+  },
   "billing": {
     "title": "Billing",
     "description": "Manage your subscription and billing",
@@ -337,5 +410,103 @@
     "var_name": "Member's full name",
     "var_channel_name": "Channel name",
     "var_member_count": "Current member count"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your profile, connections, and preferences",
+    "tabs": {
+      "profile": "Profile",
+      "connections": "Connected Accounts",
+      "billing": "Billing",
+      "aiPreferences": "AI Preferences"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Update your display name, timezone, and language",
+      "nameLabel": "Display Name",
+      "namePlaceholder": "Your name",
+      "emailLabel": "Email Address",
+      "emailReadonly": "Email is managed by your authentication provider and cannot be changed here.",
+      "timezoneLabel": "Timezone",
+      "languageLabel": "Language",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "savedSuccess": "Profile saved successfully"
+    },
+    "connections": {
+      "title": "Connected Accounts",
+      "description": "Manage your platform connections for cross-posting",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "expiringSoon": "Expiring Soon",
+      "disconnect": "Disconnect",
+      "tokenExpiresAt": "Token expires on {date}",
+      "connectNote": "Connect platforms via the Cross-Post flow or platform OAuth settings."
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "View your current plan and manage your subscription",
+      "upgradeHint": "Upgrade your plan to unlock more features. Visit the Billing page for pricing details."
+    },
+    "aiPreferences": {
+      "title": "AI Preferences",
+      "description": "Customize the AI model and tone used for content adaptation",
+      "modelLabel": "AI Model",
+      "modelDescription": "Choose which AI model to use when adapting your content.",
+      "toneLabel": "Adaptation Tone",
+      "toneDescription": "Set the default tone for AI-adapted content.",
+      "save": "Save Preferences",
+      "saving": "Saving...",
+      "savedSuccess": "Preferences saved successfully"
+    }
+  },
+  "uxStates": {
+    "error": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again.",
+      "retry": "Try again"
+    },
+    "empty": {
+      "posts": {
+        "title": "No posts yet",
+        "description": "Create your first post to start publishing content across platforms.",
+        "action": "Create Post"
+      },
+      "channels": {
+        "title": "No channels connected",
+        "description": "Connect your first Telegram channel to start importing and cross-posting content.",
+        "action": "Connect Channel"
+      },
+      "media": {
+        "title": "No media files yet",
+        "description": "Upload images, videos, and other media to use in your posts.",
+        "action": "Upload Files"
+      },
+      "schedule": {
+        "title": "Nothing scheduled",
+        "description": "Schedule posts to automatically publish at the best times for your audience.",
+        "action": "Schedule Post"
+      },
+      "analytics": {
+        "title": "No analytics data yet",
+        "description": "Cross-post your first content to start tracking engagement and performance.",
+        "action": "Create Cross-Post"
+      },
+      "crosspost": {
+        "title": "Ready to cross-post",
+        "description": "Adapt your Telegram posts for LinkedIn and Twitter with AI-powered content optimization.",
+        "action": "Start Cross-Posting"
+      },
+      "billing": {
+        "title": "No billing information",
+        "description": "You are on the Free plan. Upgrade to unlock more cross-posts and features.",
+        "action": "View Plans"
+      },
+      "settings": {
+        "title": "Configure your workspace",
+        "description": "Set up your profile, connect accounts, and customize your preferences.",
+        "action": "Get Started"
+      }
+    }
   }
 }

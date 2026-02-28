@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { Send } from "lucide-react";
 import { StepSelectPost } from "./step-select-post";
 import { StepAdapt } from "./step-adapt";
 import { StepEdit } from "./step-edit";
@@ -37,6 +39,7 @@ export function CrossPostWizard({ initialUsage }: CrossPostWizardProps) {
     crossPost: null,
     adaptedContent: "",
   });
+  const t = useTranslations();
 
   function resetWizard() {
     setState({
@@ -86,33 +89,41 @@ export function CrossPostWizard({ initialUsage }: CrossPostWizardProps) {
         platform={state.selectedPlatform ?? undefined}
       />
 
-      {/* Step content */}
+      {/* Broadcast banner — shown on step 1 */}
       {state.step === 1 && (
-        <StepSelectPost onNext={handleStep1Next} />
+        <Link
+          href="/dashboard/crosspost/broadcast"
+          className="border-primary/40 bg-primary/5 hover:bg-primary/10 flex items-center gap-3 rounded-lg border border-dashed p-4 transition-colors"
+        >
+          <Send className="text-primary h-5 w-5" />
+          <div>
+            <p className="text-sm font-medium">{t("broadcast.title")}</p>
+            <p className="text-muted-foreground text-xs">{t("broadcast.description")}</p>
+          </div>
+        </Link>
       )}
 
-      {state.step === 2 &&
-        state.selectedPost &&
-        state.selectedPlatform && (
-          <StepAdapt
-            post={state.selectedPost}
-            platform={state.selectedPlatform}
-            onNext={handleStep2Next}
-            onBack={() => setState((prev) => ({ ...prev, step: 1 }))}
-          />
-        )}
+      {/* Step content */}
+      {state.step === 1 && <StepSelectPost onNext={handleStep1Next} />}
 
-      {state.step === 3 &&
-        state.crossPost &&
-        state.selectedPlatform && (
-          <StepEdit
-            crossPost={state.crossPost}
-            originalContent={state.selectedPost?.contentRaw ?? ""}
-            platform={state.selectedPlatform}
-            onNext={handleStep3Next}
-            onBack={() => setState((prev) => ({ ...prev, step: 2 }))}
-          />
-        )}
+      {state.step === 2 && state.selectedPost && state.selectedPlatform && (
+        <StepAdapt
+          post={state.selectedPost}
+          platform={state.selectedPlatform}
+          onNext={handleStep2Next}
+          onBack={() => setState((prev) => ({ ...prev, step: 1 }))}
+        />
+      )}
+
+      {state.step === 3 && state.crossPost && state.selectedPlatform && (
+        <StepEdit
+          crossPost={state.crossPost}
+          originalContent={state.selectedPost?.contentRaw ?? ""}
+          platform={state.selectedPlatform}
+          onNext={handleStep3Next}
+          onBack={() => setState((prev) => ({ ...prev, step: 2 }))}
+        />
+      )}
 
       {state.step === 4 && state.selectedPlatform && (
         <StepPreview
@@ -123,16 +134,14 @@ export function CrossPostWizard({ initialUsage }: CrossPostWizardProps) {
         />
       )}
 
-      {state.step === 5 &&
-        state.crossPost &&
-        state.selectedPlatform && (
-          <StepAction
-            crossPost={state.crossPost}
-            platform={state.selectedPlatform}
-            usage={initialUsage ?? null}
-            onStartOver={resetWizard}
-          />
-        )}
+      {state.step === 5 && state.crossPost && state.selectedPlatform && (
+        <StepAction
+          crossPost={state.crossPost}
+          platform={state.selectedPlatform}
+          usage={initialUsage ?? null}
+          onStartOver={resetWizard}
+        />
+      )}
     </div>
   );
 }

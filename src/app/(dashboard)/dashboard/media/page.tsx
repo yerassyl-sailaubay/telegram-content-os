@@ -1,16 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/layout/page-header";
+import { MediaEmptyState } from "@/components/media/media-empty-state";
 
 export default async function MediaPage() {
   const t = await getTranslations("nav");
-  const tCommon = await getTranslations("common");
 
   return (
     <>
       <PageHeader title={t("media")} />
-      <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed">
-        <p className="text-sm text-muted-foreground">{tCommon("comingSoon")}</p>
-      </div>
+      <MediaEmptyState />
     </>
   );
 }

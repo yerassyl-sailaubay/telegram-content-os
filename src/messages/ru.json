@@ -38,7 +38,29 @@
   "dashboard": {
     "title": "Дашборд",
     "welcomeMessage": "Добро пожаловать в Telegram Content OS",
-    "quickActions": "Быстрые действия"
+    "quickActions": "Быстрые действия",
+    "welcomeBack": "С возвращением, {name}",
+    "welcomeFallbackName": "пользователь",
+    "statCrossPosts": "Кросс-посты",
+    "statScheduled": "Запланировано",
+    "statWeeklyEngagement": "Вовлечённость за неделю",
+    "statConnectedPlatforms": "Платформы",
+    "actionNewCrossPost": "Новый кросс-пост",
+    "actionQuickBroadcast": "Быстрый эфир",
+    "actionViewSchedule": "Расписание",
+    "activityFeedTitle": "Последние действия",
+    "activityEmpty": "Действий пока нет",
+    "activityEmptyDescription": "Здесь появится история ваших кросс-постов.",
+    "activityType_adapted": "адаптирован",
+    "activityType_scheduled": "запланирован",
+    "activityType_published": "опубликован",
+    "activityType_failed": "ошибка",
+    "upcomingPostsTitle": "Предстоящие посты",
+    "upcomingEmpty": "Нет запланированных постов",
+    "upcomingEmptyDescription": "Запланируйте пост, чтобы он появился здесь.",
+    "sparklineTitle": "Вовлечённость за 7 дней",
+    "sparklineEmpty": "Данных о вовлечённости пока нет",
+    "sparklineLabel": "Вовлечённость"
   },
   "content": {
     "title": "Библиотека контента",
@@ -119,7 +141,40 @@
     "scheduleCancelled": "Расписание отменено",
     "scheduleUpdated": "Расписание обновлено",
     "linkedin": "LinkedIn",
-    "twitter": "Twitter / X"
+    "twitter": "Twitter / X",
+    "recurrence": "Повторение",
+    "recurrenceHint": "Настройте повторяющееся расписание для автоматического создания публикаций."
+  },
+  "scheduling": {
+    "recurring": {
+      "title": "Повторяющееся расписание",
+      "description": "Автоматическое планирование публикаций на регулярной основе",
+      "frequency": "Частота",
+      "selectFrequency": "Выберите частоту",
+      "frequencyNone": "Нет (разовая)",
+      "frequencyDaily": "Ежедневно",
+      "frequencyWeekly": "Еженедельно",
+      "frequencyMonthly": "Ежемесячно",
+      "dayOfWeek": "День недели",
+      "dayOfMonth": "День месяца",
+      "dayOfMonthHint": "Если в месяце меньше дней, будет использован последний день.",
+      "sunday": "Воскресенье",
+      "monday": "Понедельник",
+      "tuesday": "Вторник",
+      "wednesday": "Среда",
+      "thursday": "Четверг",
+      "friday": "Пятница",
+      "saturday": "Суббота",
+      "createRecurring": "Создать повторяющееся расписание",
+      "pause": "Пауза",
+      "resume": "Возобновить",
+      "statusActive": "Активно",
+      "statusPaused": "Приостановлено",
+      "recurringCreated": "Повторяющееся расписание создано",
+      "recurringPaused": "Расписание приостановлено",
+      "recurringResumed": "Расписание возобновлено",
+      "repeatIcon": "Повторяющееся"
+    }
   },
   "media": {
     "title": "Медиатека",
@@ -259,6 +314,24 @@
     "postNowDescription": "Опубликовать немедленно на {platform}",
     "scheduleDescription": "Выберите дату и время для публикации позже"
   },
+  "broadcast": {
+    "title": "Рассылка",
+    "description": "Отправьте контент на несколько платформ одновременно",
+    "selectPlatforms": "Выберите целевые платформы",
+    "notConnected": "не подключена",
+    "platformCount": "Выбрано платформ: {count}",
+    "continue": "Продолжить",
+    "confirmTitle": "Подтверждение рассылки",
+    "confirmDescription": "Проверьте и подтвердите рассылку на несколько платформ.",
+    "sourcePost": "Исходный пост",
+    "targetPlatforms": "Целевые платформы",
+    "scheduleForLater": "Запланировать на позже",
+    "broadcastNow": "Отправить сейчас",
+    "broadcasting": "Отправка...",
+    "broadcastStarted": "Рассылка запущена!",
+    "broadcastStartedDescription": "Ваш контент адаптируется и публикуется на {count} платформах.",
+    "newBroadcast": "Новая рассылка"
+  },
   "billing": {
     "title": "Биллинг",
     "description": "Управляйте подпиской и оплатой",
@@ -337,5 +410,103 @@
     "var_name": "Полное имя участника",
     "var_channel_name": "Название канала",
     "var_member_count": "Текущее число участников"
+  },
+  "settings": {
+    "title": "Настройки",
+    "description": "Управляйте профилем, подключениями и предпочтениями",
+    "tabs": {
+      "profile": "Профиль",
+      "connections": "Подключённые аккаунты",
+      "billing": "Подписка",
+      "aiPreferences": "Настройки ИИ"
+    },
+    "profile": {
+      "title": "Профиль",
+      "description": "Обновите имя, часовой пояс и язык",
+      "nameLabel": "Отображаемое имя",
+      "namePlaceholder": "Ваше имя",
+      "emailLabel": "Электронная почта",
+      "emailReadonly": "Почта управляется поставщиком аутентификации и не может быть изменена здесь.",
+      "timezoneLabel": "Часовой пояс",
+      "languageLabel": "Язык",
+      "save": "Сохранить изменения",
+      "saving": "Сохранение...",
+      "savedSuccess": "Профиль успешно сохранён"
+    },
+    "connections": {
+      "title": "Подключённые аккаунты",
+      "description": "Управляйте подключёнными платформами для кросс-постинга",
+      "connected": "Подключён",
+      "disconnected": "Отключён",
+      "expiringSoon": "Скоро истекает",
+      "disconnect": "Отключить",
+      "tokenExpiresAt": "Токен истекает {date}",
+      "connectNote": "Подключите платформы через поток кросс-постинга или настройки OAuth платформы."
+    },
+    "billing": {
+      "title": "Подписка",
+      "description": "Просматривайте текущий план и управляйте подпиской",
+      "upgradeHint": "Обновите план, чтобы разблокировать больше функций. Перейдите на страницу Подписки для ознакомления с ценами."
+    },
+    "aiPreferences": {
+      "title": "Настройки ИИ",
+      "description": "Настройте модель ИИ и тон для адаптации контента",
+      "modelLabel": "Модель ИИ",
+      "modelDescription": "Выберите модель ИИ для адаптации контента.",
+      "toneLabel": "Тон адаптации",
+      "toneDescription": "Укажите тон по умолчанию для адаптированного контента.",
+      "save": "Сохранить настройки",
+      "saving": "Сохранение...",
+      "savedSuccess": "Настройки успешно сохранены"
+    }
+  },
+  "uxStates": {
+    "error": {
+      "title": "Что-то пошло не так",
+      "description": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова.",
+      "retry": "Попробовать снова"
+    },
+    "empty": {
+      "posts": {
+        "title": "Публикаций пока нет",
+        "description": "Создайте первую публикацию, чтобы начать распространять контент на разных платформах.",
+        "action": "Создать публикацию"
+      },
+      "channels": {
+        "title": "Каналы не подключены",
+        "description": "Подключите первый Telegram-канал, чтобы начать импорт и кросс-постинг контента.",
+        "action": "Подключить канал"
+      },
+      "media": {
+        "title": "Медиафайлов пока нет",
+        "description": "Загрузите изображения, видео и другие медиафайлы для использования в публикациях.",
+        "action": "Загрузить файлы"
+      },
+      "schedule": {
+        "title": "Ничего не запланировано",
+        "description": "Запланируйте публикации для автоматической отправки в лучшее время для вашей аудитории.",
+        "action": "Запланировать публикацию"
+      },
+      "analytics": {
+        "title": "Данных аналитики пока нет",
+        "description": "Создайте первый кросс-пост, чтобы начать отслеживать вовлечённость и эффективность.",
+        "action": "Создать кросс-пост"
+      },
+      "crosspost": {
+        "title": "Готовы к кросс-постингу",
+        "description": "Адаптируйте посты Telegram для LinkedIn и Twitter с помощью ИИ-оптимизации контента.",
+        "action": "Начать кросс-постинг"
+      },
+      "billing": {
+        "title": "Нет данных о подписке",
+        "description": "Вы на бесплатном плане. Обновитесь, чтобы разблокировать больше кросс-постов и функций.",
+        "action": "Посмотреть тарифы"
+      },
+      "settings": {
+        "title": "Настройте рабочее пространство",
+        "description": "Настройте профиль, подключите аккаунты и персонализируйте предпочтения.",
+        "action": "Начать настройку"
+      }
+    }
   }
 }
