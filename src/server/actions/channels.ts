@@ -21,9 +21,7 @@ export type ConnectChannelInput = {
   username: string;
 };
 
-export type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+export type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -46,9 +44,7 @@ function normalizeUsername(username: string): string {
 
 // ─── Server Actions ──────────────────────────────────────────────────────────
 
-export async function listChannels(): Promise<
-  ActionResult<ChannelWithPostCount[]>
-> {
+export async function listChannels(): Promise<ActionResult<ChannelWithPostCount[]>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -78,17 +74,14 @@ export async function listChannels(): Promise<
 
     return { success: true, data: channelsWithCounts };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to list channels";
+    const message = error instanceof Error ? error.message : "Failed to list channels";
     return { success: false, error: message };
   }
 }
 
 export async function getChannelDetails(
   id: string,
-): Promise<
-  ActionResult<ChannelWithPostCount & { recentPosts: Post[] }>
-> {
+): Promise<ActionResult<ChannelWithPostCount & { recentPosts: Post[] }>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -99,9 +92,7 @@ export async function getChannelDetails(
     const [channel] = await db
       .select()
       .from(telegramChannels)
-      .where(
-        and(eq(telegramChannels.id, id), eq(telegramChannels.userId, userId)),
-      )
+      .where(and(eq(telegramChannels.id, id), eq(telegramChannels.userId, userId)))
       .limit(1);
 
     if (!channel) {
@@ -133,15 +124,12 @@ export async function getChannelDetails(
       },
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get channel details";
+    const message = error instanceof Error ? error.message : "Failed to get channel details";
     return { success: false, error: message };
   }
 }
 
-export async function connectChannel(
-  input: ConnectChannelInput,
-): Promise<ActionResult<Channel>> {
+export async function connectChannel(input: ConnectChannelInput): Promise<ActionResult<Channel>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -164,8 +152,7 @@ export async function connectChannel(
     } catch {
       return {
         success: false,
-        error:
-          "Bot is not an admin of this channel. Please add the bot as an admin first.",
+        error: "Bot is not an admin of this channel. Please add the bot as an admin first.",
       };
     }
 
@@ -192,10 +179,46 @@ export async function connectChannel(
       .limit(1);
 
     if (existing.length > 0) {
-      return {
-        success: false,
-        error: "This channel is already connected to your account.",
-      };
+      // Channel already connected — update its info (reconnect flow)
+      const existingChannel = existing[0];
+      let memberCount = 0;
+      try {
+        memberCount = await tgClient.getChatMemberCount(`@${username}`);
+      } catch {
+        // Non-critical
+      }
+
+      // Re-register webhook
+      const webhookBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+      if (webhookBaseUrl) {
+        try {
+          await tgClient.setWebhook(`${webhookBaseUrl}/api/telegram/webhook`, {
+            allowed_updates: ["channel_post", "edited_channel_post"],
+            secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
+          });
+        } catch {
+          // Non-critical
+        }
+      }
+
+      const [updated] = await db
+        .update(telegramChannels)
+        .set({
+          title: chatInfo.title ?? existingChannel.title,
+          username: chatInfo.username ?? username,
+          description: chatInfo.description ?? existingChannel.description,
+          memberCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(telegramChannels.id, existingChannel.id))
+        .returning();
+
+      revalidatePath("/ru/dashboard/channels");
+      revalidatePath("/en/dashboard/channels");
+      revalidatePath(`/ru/dashboard/channels/${existingChannel.id}`);
+      revalidatePath(`/en/dashboard/channels/${existingChannel.id}`);
+
+      return { success: true, data: updated };
     }
 
     // Get member count (non-critical)
@@ -206,12 +229,13 @@ export async function connectChannel(
       // Non-critical — proceed with 0
     }
 
-    // Set webhook (non-critical)
+    // Set webhook with secret token for verification
     const webhookBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
     if (webhookBaseUrl) {
       try {
         await tgClient.setWebhook(`${webhookBaseUrl}/api/telegram/webhook`, {
           allowed_updates: ["channel_post", "edited_channel_post"],
+          secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
         });
       } catch {
         // Non-critical — channel will still be stored
@@ -232,19 +256,17 @@ export async function connectChannel(
       })
       .returning();
 
-    revalidatePath("/dashboard/channels");
+    revalidatePath("/ru/dashboard/channels");
+    revalidatePath("/en/dashboard/channels");
 
     return { success: true, data: channel };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to connect channel";
+    const message = error instanceof Error ? error.message : "Failed to connect channel";
     return { success: false, error: message };
   }
 }
 
-export async function disconnectChannel(
-  id: string,
-): Promise<ActionResult<{ id: string }>> {
+export async function disconnectChannel(id: string): Promise<ActionResult<{ id: string }>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -256,47 +278,37 @@ export async function disconnectChannel(
     const [channel] = await db
       .select()
       .from(telegramChannels)
-      .where(
-        and(eq(telegramChannels.id, id), eq(telegramChannels.userId, userId)),
-      )
+      .where(and(eq(telegramChannels.id, id), eq(telegramChannels.userId, userId)))
       .limit(1);
 
     if (!channel) {
       return { success: false, error: "Channel not found" };
     }
 
-    // Remove webhook (non-critical)
-    try {
-      const tgClient = getTelegramClient();
-      await tgClient.deleteWebhook();
-    } catch {
-      // Non-critical — proceed with deletion
-    }
+    // NOTE: We do NOT call deleteWebhook() here because the bot uses a single
+    // global webhook URL shared across all channels. Deleting it would break
+    // webhook delivery for all other connected channels.
 
     const deleted = await db
       .delete(telegramChannels)
-      .where(
-        and(eq(telegramChannels.id, id), eq(telegramChannels.userId, userId)),
-      )
+      .where(and(eq(telegramChannels.id, id), eq(telegramChannels.userId, userId)))
       .returning({ id: telegramChannels.id });
 
     if (deleted.length === 0) {
       return { success: false, error: "Channel not found" };
     }
 
-    revalidatePath("/dashboard/channels");
+    revalidatePath("/ru/dashboard/channels");
+    revalidatePath("/en/dashboard/channels");
 
     return { success: true, data: { id: deleted[0].id } };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to disconnect channel";
+    const message = error instanceof Error ? error.message : "Failed to disconnect channel";
     return { success: false, error: message };
   }
 }
 
-export async function updateChannelSettings(input: {
-  id: string;
-}): Promise<ActionResult<Channel>> {
+export async function updateChannelSettings(input: { id: string }): Promise<ActionResult<Channel>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -307,12 +319,7 @@ export async function updateChannelSettings(input: {
     const [channel] = await db
       .select()
       .from(telegramChannels)
-      .where(
-        and(
-          eq(telegramChannels.id, input.id),
-          eq(telegramChannels.userId, userId),
-        ),
-      )
+      .where(and(eq(telegramChannels.id, input.id), eq(telegramChannels.userId, userId)))
       .limit(1);
 
     if (!channel) {
@@ -322,30 +329,22 @@ export async function updateChannelSettings(input: {
     const [updated] = await db
       .update(telegramChannels)
       .set({ updatedAt: new Date() })
-      .where(
-        and(
-          eq(telegramChannels.id, input.id),
-          eq(telegramChannels.userId, userId),
-        ),
-      )
+      .where(and(eq(telegramChannels.id, input.id), eq(telegramChannels.userId, userId)))
       .returning();
 
-    revalidatePath("/dashboard/channels");
-    revalidatePath(`/dashboard/channels/${input.id}`);
+    revalidatePath("/ru/dashboard/channels");
+    revalidatePath("/en/dashboard/channels");
+    revalidatePath(`/ru/dashboard/channels/${input.id}`);
+    revalidatePath(`/en/dashboard/channels/${input.id}`);
 
     return { success: true, data: updated };
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to update channel settings";
+    const message = error instanceof Error ? error.message : "Failed to update channel settings";
     return { success: false, error: message };
   }
 }
 
-export async function refreshChannelProfile(
-  channelId: string,
-): Promise<ActionResult> {
+export async function refreshChannelProfile(channelId: string): Promise<ActionResult> {
   try {
     const userId = await getCurrentUserId();
 
@@ -357,9 +356,7 @@ export async function refreshChannelProfile(
     const [channel] = await db
       .select({ id: telegramChannels.id })
       .from(telegramChannels)
-      .where(
-        and(eq(telegramChannels.id, channelId), eq(telegramChannels.userId, userId)),
-      )
+      .where(and(eq(telegramChannels.id, channelId), eq(telegramChannels.userId, userId)))
       .limit(1);
 
     if (!channel) {
@@ -375,10 +372,7 @@ export async function refreshChannelProfile(
 
     return { success: true, data: undefined };
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to refresh channel profile";
+    const message = error instanceof Error ? error.message : "Failed to refresh channel profile";
     return { success: false, error: message };
   }
 }

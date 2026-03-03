@@ -33,7 +33,8 @@
     "analytics": "Analytics",
     "media": "Media",
     "settings": "Settings",
-    "billing": "Billing"
+    "billing": "Billing",
+    "telegramPost": "New Post"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -276,7 +277,7 @@
     "postedAt": "Posted",
     "continueToAdapt": "Adapt with AI",
     "adaptingHeading": "Adapting content with AI...",
-    "adaptingDescription": "Our AI is translating and reformatting your post for {platform}. This takes about 10\u201320 seconds.",
+    "adaptingDescription": "Our AI is translating and reformatting your post for {platform}. This takes about 10–20 seconds.",
     "adaptationComplete": "Adaptation complete!",
     "adaptationFailed": "Adaptation failed",
     "retryAdaptation": "Retry",
@@ -508,5 +509,66 @@
         "action": "Get Started"
       }
     }
+  },
+  "telegramPost": {
+    "pageTitle": "Post to Telegram",
+    "pageDescription": "Create and publish posts directly to your Telegram channels",
+    "title": "New Telegram Post",
+    "description": "Compose a message and publish it to your connected Telegram channels",
+    "selectChannel": "Select Channel",
+    "selectChannelPlaceholder": "Choose a channel...",
+    "content": "Content",
+    "contentPlaceholder": "Write your post here...",
+    "formatting": "Formatting",
+    "plainText": "Plain Text",
+    "preview": "Preview",
+    "previewDescription": "See how your post will look in Telegram",
+    "previewChannelName": "Channel Name",
+    "previewSubscribers": "1,234 subscribers",
+    "previewPlaceholder": "Your message will appear here...",
+    "subscribers": "subscribers",
+    "postToTelegram": "Post to Telegram",
+    "posting": "Posting...",
+    "postSuccess": "Post published successfully!",
+    "noChannels": "No channels connected",
+    "connectChannelFirst": "Connect a Telegram channel first to start posting",
+    "untitledChannel": "Untitled Channel",
+    "image": "Image",
+    "addImage": "Add Image",
+    "uploading": "Uploading...",
+    "cancel": "Cancel"
+  },
+  "aiWriter": {
+    "generateWithAI": "Generate with AI",
+    "dialogTitle": "AI Post Generator",
+    "dialogDescription": "Generate a post in your channel's unique voice using AI",
+    "channelProfile": "Channel Voice Profile",
+    "noProfileYet": "No voice profile yet. Analyze your channel first to generate posts in your style.",
+    "analyzeFirst": "Analyze channel voice",
+    "analyzeChannel": "Analyze Channel Voice",
+    "analyzing": "Analyzing...",
+    "topicLabel": "What should the post be about?",
+    "topicPlaceholder": "e.g., Tips for productivity, New product announcement...",
+    "toneLabel": "Tone adjustment",
+    "tonePlaceholder": "e.g., More energetic, Professional, Casual...",
+    "optional": "optional",
+    "generate": "Generate Post",
+    "generating": "Generating...",
+    "generatedSuccess": "Post generated successfully! Review and edit before posting."
+  },
+  "posts": {
+    "editPost": "Edit Post",
+    "editDescription": "Edit this post on Telegram",
+    "content": "Content",
+    "formatting": "Formatting",
+    "plainText": "Plain Text",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "editSuccess": "Post edited successfully!",
+    "deleteConfirmTitle": "Delete this post?",
+    "deleteConfirmDescription": "This will delete the post from Telegram and cannot be undone.",
+    "delete": "Delete",
+    "deleting": "Deleting..."
   }
 }

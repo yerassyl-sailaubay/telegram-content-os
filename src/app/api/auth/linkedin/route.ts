@@ -14,6 +14,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import * as crypto from "crypto";
 
+export const runtime = "nodejs";
+
 // Lazy imports to avoid build-time failures
 async function getLinkedIn() {
   const linkedin = await import("@/lib/platforms/linkedin");
@@ -23,18 +25,12 @@ async function getLinkedIn() {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const clientId = process.env.LINKEDIN_CLIENT_ID;
   if (!clientId) {
-    return NextResponse.json(
-      { error: "LINKEDIN_CLIENT_ID is not configured" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "LINKEDIN_CLIENT_ID is not configured" }, { status: 500 });
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (!appUrl) {
-    return NextResponse.json(
-      { error: "NEXT_PUBLIC_APP_URL is not configured" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "NEXT_PUBLIC_APP_URL is not configured" }, { status: 500 });
   }
 
   const redirectUri = `${appUrl}/api/auth/linkedin/callback`;

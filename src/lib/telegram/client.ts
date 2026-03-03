@@ -1,21 +1,5 @@
-/**
- * Telegram Bot API client wrapper.
- *
- * Uses native fetch — no external Telegram SDK dependencies.
- * Includes exponential backoff retry logic for transient failures.
- */
-
-import type {
-  TelegramApiResponse,
-  TelegramChat,
-  TelegramUser,
-  TelegramSentMessage,
-} from "./types";
+import type { TelegramApiResponse, TelegramChat, TelegramUser, TelegramSentMessage } from "./types";
 import { TelegramApiError } from "./types";
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
 
 const TELEGRAM_API_BASE = "https://api.telegram.org";
 
@@ -26,10 +10,6 @@ const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_BASE_DELAY_MS = 1000;
 
-// ---------------------------------------------------------------------------
-// Retry helper
-// ---------------------------------------------------------------------------
-
 export interface RetryOptions {
   maxRetries?: number;
   baseDelayMs?: number;
@@ -39,10 +19,7 @@ export interface RetryOptions {
  * Executes `fn` with exponential backoff retries on retryable errors.
  * Respects Telegram's `retry_after` header when present.
  */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {},
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
   const baseDelayMs = options.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
 
@@ -55,8 +32,7 @@ export async function withRetry<T>(
       lastError = error;
 
       const isRetryable =
-        error instanceof TelegramApiError &&
-        RETRYABLE_STATUS_CODES.has(error.statusCode);
+        error instanceof TelegramApiError && RETRYABLE_STATUS_CODES.has(error.statusCode);
 
       if (!isRetryable || attempt === maxRetries) {
         throw error;
@@ -76,18 +52,11 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// ---------------------------------------------------------------------------
-// Client
-// ---------------------------------------------------------------------------
-
 export class TelegramClient {
   private readonly apiBase: string;
   private readonly retryOptions: RetryOptions;
 
-  constructor(
-    botToken: string,
-    options?: { retryOptions?: RetryOptions },
-  ) {
+  constructor(botToken: string, options?: { retryOptions?: RetryOptions }) {
     if (!botToken) {
       throw new Error("TELEGRAM_BOT_TOKEN is required");
     }
@@ -101,10 +70,7 @@ export class TelegramClient {
    * Calls a Telegram Bot API method and returns the parsed result.
    * Automatically retries on transient failures.
    */
-  async request<T>(
-    method: string,
-    params?: Record<string, unknown>,
-  ): Promise<T> {
+  async request<T>(method: string, params?: Record<string, unknown>): Promise<T> {
     return withRetry(async () => {
       const url = `${this.apiBase}/${method}`;
 
@@ -158,6 +124,22 @@ export class TelegramClient {
     });
   }
 
+  /** Sends a photo with optional caption. */
+  async sendPhoto(
+    chatId: string | number,
+    photo: string, // URL or file_id
+    options?: {
+      caption?: string;
+      parse_mode?: "HTML" | "MarkdownV2";
+    },
+  ): Promise<TelegramSentMessage> {
+    return this.request<TelegramSentMessage>("sendPhoto", {
+      chat_id: chatId,
+      photo,
+      ...options,
+    });
+  }
+
   /** Registers a webhook URL with Telegram. */
   async setWebhook(
     url: string,
@@ -176,6 +158,29 @@ export class TelegramClient {
       drop_pending_updates: dropPendingUpdates,
     });
   }
+
+  /** Edits a message text. */
+  async editMessageText(
+    chatId: string | number,
+    messageId: number,
+    text: string,
+    options?: { parse_mode?: "HTML" | "MarkdownV2" },
+  ): Promise<TelegramSentMessage> {
+    return this.request<TelegramSentMessage>("editMessageText", {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      ...options,
+    });
+  }
+
+  /** Deletes a message. */
+  async deleteMessage(chatId: string | number, messageId: number): Promise<boolean> {
+    return this.request<boolean>("deleteMessage", {
+      chat_id: chatId,
+      message_id: messageId,
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -191,9 +196,7 @@ const clients = new Map<string, TelegramClient>();
 export function getTelegramClient(botToken?: string): TelegramClient {
   const token = botToken ?? process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
-    throw new Error(
-      "Bot token not provided and TELEGRAM_BOT_TOKEN env var is not set",
-    );
+    throw new Error("Bot token not provided and TELEGRAM_BOT_TOKEN env var is not set");
   }
 
   let client = clients.get(token);

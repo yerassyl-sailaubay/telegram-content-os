@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronsUpDown,
   Send,
+  MessageSquare,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -39,16 +40,26 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logout } from "@/server/actions/auth";
 
 type NavItem = {
-  key: "dashboard" | "posts" | "channels" | "schedule" | "analytics" | "media" | "crosspost" | "billing" | "settings";
+  key:
+    | "dashboard"
+    | "posts"
+    | "channels"
+    | "telegramPost"
+    | "schedule"
+    | "analytics"
+    | "media"
+    | "crosspost"
+    | "billing"
+    | "settings";
   icon: React.ComponentType<{ className?: string }>;
   href: string;
 };
 
 const navItems: NavItem[] = [
-
   { key: "dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { key: "posts", icon: FileText, href: "/dashboard/posts" },
   { key: "channels", icon: Radio, href: "/dashboard/channels" },
+  { key: "telegramPost", icon: MessageSquare, href: "/dashboard/telegram-post" },
   { key: "crosspost", icon: Send, href: "/dashboard/crosspost" },
   { key: "schedule", icon: Calendar, href: "/dashboard/schedule" },
   { key: "analytics", icon: BarChart3, href: "/dashboard/analytics" },
@@ -66,20 +77,18 @@ export function AppSidebar({ userEmail }: AppSidebarProps) {
   const tAuth = useTranslations("auth");
   const pathname = usePathname();
 
-  const initials = userEmail
-    ? userEmail.slice(0, 2).toUpperCase()
-    : "U";
+  const initials = userEmail ? userEmail.slice(0, 2).toUpperCase() : "U";
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
+      <SidebarHeader className="border-sidebar-border border-b px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-lg">
             <Radio className="size-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold leading-none">Content OS</span>
-            <span className="text-xs text-muted-foreground">Telegram</span>
+            <span className="text-sm leading-none font-semibold">Content OS</span>
+            <span className="text-muted-foreground text-xs">Telegram</span>
           </div>
         </div>
       </SidebarHeader>
@@ -97,11 +106,7 @@ export function AppSidebar({ userEmail }: AppSidebarProps) {
 
                 return (
                   <SidebarMenuItem key={item.key}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={t(item.key)}
-                    >
+                    <SidebarMenuButton asChild isActive={isActive} tooltip={t(item.key)}>
                       <Link href={item.href}>
                         <item.icon className={cn("size-4")} />
                         <span>{t(item.key)}</span>
@@ -115,7 +120,7 @@ export function AppSidebar({ userEmail }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
+      <SidebarFooter className="border-sidebar-border border-t">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -125,17 +130,11 @@ export function AppSidebar({ userEmail }: AppSidebarProps) {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="size-8 rounded-lg">
-                    <AvatarFallback className="rounded-lg text-xs">
-                      {initials}
-                    </AvatarFallback>
+                    <AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">
-                      {userEmail ?? "User"}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {userEmail}
-                    </span>
+                    <span className="truncate font-medium">{userEmail ?? "User"}</span>
+                    <span className="text-muted-foreground truncate text-xs">{userEmail}</span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4" />
                 </SidebarMenuButton>
@@ -157,7 +156,7 @@ export function AppSidebar({ userEmail }: AppSidebarProps) {
                   <form>
                     <button
                       formAction={logout}
-                      className="flex w-full items-center gap-2 text-destructive"
+                      className="text-destructive flex w-full items-center gap-2"
                     >
                       <LogOut className="size-4" />
                       {tAuth("logout")}

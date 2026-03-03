@@ -58,10 +58,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {},
-): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
   const baseDelayMs = options.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
 
@@ -73,8 +70,7 @@ async function withRetry<T>(
     } catch (error) {
       lastError = error;
 
-      const isRetryable =
-        error instanceof AIProviderError && error.retryable;
+      const isRetryable = error instanceof AIProviderError && error.retryable;
 
       if (!isRetryable || attempt === maxRetries) {
         throw error;
@@ -125,8 +121,7 @@ export class OpenRouterClient implements AIProvider {
     const key = process.env.OPENROUTER_API_KEY;
     if (!key) {
       throw new AIProviderError(
-        "OPENROUTER_API_KEY environment variable is not set. " +
-          "Add it to your .env.local file.",
+        "OPENROUTER_API_KEY environment variable is not set. " + "Add it to your .env.local file.",
         0,
         false,
       );
@@ -157,7 +152,9 @@ export class OpenRouterClient implements AIProvider {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
-            "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+            "HTTP-Referer":
+              process.env.NEXT_PUBLIC_APP_URL ??
+              `https://${process.env.VERCEL_URL ?? "localhost:3000"}`,
             "X-Title": "Telegram Content OS",
           },
           body: JSON.stringify(request),
@@ -200,11 +197,7 @@ export class OpenRouterClient implements AIProvider {
 
         // Handle AbortError (timeout)
         if (error instanceof DOMException && error.name === "AbortError") {
-          throw new AIProviderError(
-            `Request timed out after ${timeoutMs}ms`,
-            408,
-            true,
-          );
+          throw new AIProviderError(`Request timed out after ${timeoutMs}ms`, 408, true);
         }
 
         // Network errors are retryable
@@ -242,10 +235,7 @@ export class OpenRouterClient implements AIProvider {
           if (fallbackModel.id === request.model) continue;
 
           try {
-            return await this.complete(
-              { ...request, model: fallbackModel.id },
-              options,
-            );
+            return await this.complete({ ...request, model: fallbackModel.id }, options);
           } catch {
             // Try next fallback
             continue;
@@ -317,14 +307,10 @@ export class OpenRouterClient implements AIProvider {
       modelUsed: adaptResult.model,
       tokenUsage: {
         promptTokens:
-          translationResult.tokenUsage.promptTokens +
-          adaptResult.tokenUsage.promptTokens,
+          translationResult.tokenUsage.promptTokens + adaptResult.tokenUsage.promptTokens,
         completionTokens:
-          translationResult.tokenUsage.completionTokens +
-          adaptResult.tokenUsage.completionTokens,
-        totalTokens:
-          translationResult.tokenUsage.totalTokens +
-          adaptResult.tokenUsage.totalTokens,
+          translationResult.tokenUsage.completionTokens + adaptResult.tokenUsage.completionTokens,
+        totalTokens: translationResult.tokenUsage.totalTokens + adaptResult.tokenUsage.totalTokens,
       },
     };
   }

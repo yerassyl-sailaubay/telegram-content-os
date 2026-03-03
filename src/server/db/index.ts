@@ -21,11 +21,14 @@ function getDb() {
   if (!globalForDb.db) {
     const url = process.env.DATABASE_URL;
     if (!url) {
-      throw new Error(
-        "DATABASE_URL is not set. Please set it in your environment variables.",
-      );
+      throw new Error("DATABASE_URL is not set. Please set it in your environment variables.");
     }
-    const connection = postgres(url, { prepare: false });
+    const connection = postgres(url, {
+      prepare: false,
+      max: 1,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    });
     globalForDb.db = drizzle(connection, { schema });
   }
   return globalForDb.db;

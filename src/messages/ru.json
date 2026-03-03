@@ -33,7 +33,8 @@
     "analytics": "Аналитика",
     "media": "Медиа",
     "settings": "Настройки",
-    "billing": "Биллинг"
+    "billing": "Биллинг",
+    "telegramPost": "Новый пост"
   },
   "dashboard": {
     "title": "Дашборд",
@@ -276,7 +277,7 @@
     "postedAt": "Опубликовано",
     "continueToAdapt": "Адаптировать с ИИ",
     "adaptingHeading": "Адаптация контента с помощью ИИ...",
-    "adaptingDescription": "ИИ переводит и форматирует ваш пост для {platform}. Это займёт около 10\u201320 секунд.",
+    "adaptingDescription": "ИИ переводит и форматирует ваш пост для {platform}. Это займёт около 10–20 секунд.",
     "adaptationComplete": "Адаптация завершена!",
     "adaptationFailed": "Адаптация не удалась",
     "retryAdaptation": "Повторить",
@@ -508,5 +509,66 @@
         "action": "Начать настройку"
       }
     }
+  },
+  "telegramPost": {
+    "pageTitle": "Пост в Telegram",
+    "pageDescription": "Создавайте и публикуйте посты прямо в ваши Telegram каналы",
+    "title": "Новый пост в Telegram",
+    "description": "Напишите сообщение и опубликуйте его в подключенные Telegram каналы",
+    "selectChannel": "Выберите канал",
+    "selectChannelPlaceholder": "Выберите канал...",
+    "content": "Содержание",
+    "contentPlaceholder": "Напишите ваш пост здесь...",
+    "formatting": "Форматирование",
+    "plainText": "Обычный текст",
+    "preview": "Предпросмотр",
+    "previewDescription": "Посмотрите, как ваш пост будет выглядеть в Telegram",
+    "previewChannelName": "Название канала",
+    "previewSubscribers": "1 234 подписчика",
+    "previewPlaceholder": "Ваше сообщение появится здесь...",
+    "subscribers": "подписчиков",
+    "postToTelegram": "Опубликовать в Telegram",
+    "posting": "Публикация...",
+    "postSuccess": "Пост успешно опубликован!",
+    "noChannels": "Нет подключенных каналов",
+    "connectChannelFirst": "Сначала подключите Telegram канал, чтобы начать публикацию",
+    "untitledChannel": "Канал без названия",
+    "image": "Изображение",
+    "addImage": "Добавить изображение",
+    "uploading": "Загрузка...",
+    "cancel": "Отмена"
+  },
+  "aiWriter": {
+    "generateWithAI": "Сгенерировать с AI",
+    "dialogTitle": "AI Генератор Постов",
+    "dialogDescription": "Создайте пост в уникальном стиле вашего канала с помощью AI",
+    "channelProfile": "Профиль Голоса Канала",
+    "noProfileYet": "Профиль еще не создан. Сначала проанализируйте канал, чтобы генерировать посты в вашем стиле.",
+    "analyzeFirst": "Анализировать голос канала",
+    "analyzeChannel": "Анализировать Голос Канала",
+    "analyzing": "Анализ...",
+    "topicLabel": "О чем должен быть пост?",
+    "topicPlaceholder": "например, Советы по продуктивности, Анонс нового продукта...",
+    "toneLabel": "Настройка тона",
+    "tonePlaceholder": "например, Более энергичный, Профессиональный, Неформальный...",
+    "optional": "опционально",
+    "generate": "Сгенерировать Пост",
+    "generating": "Генерация...",
+    "generatedSuccess": "Пост успешно сгенерирован! Просмотрите и отредактируйте перед публикацией."
+  },
+  "posts": {
+    "editPost": "Редактировать пост",
+    "editDescription": "Редактировать этот пост в Telegram",
+    "content": "Содержание",
+    "formatting": "Форматирование",
+    "plainText": "Обычный текст",
+    "cancel": "Отмена",
+    "saving": "Сохранение...",
+    "saveChanges": "Сохранить изменения",
+    "editSuccess": "Пост успешно отредактирован!",
+    "deleteConfirmTitle": "Удалить этот пост?",
+    "deleteConfirmDescription": "Это удалит пост из Telegram и не может быть отменено.",
+    "delete": "Удалить",
+    "deleting": "Удаление..."
   }
 }

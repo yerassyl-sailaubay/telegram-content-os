@@ -5,17 +5,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  saveWelcomeTemplate,
-  testWelcomeMessage,
-} from "@/server/actions/welcome";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { saveWelcomeTemplate, testWelcomeMessage } from "@/server/actions/welcome";
 import type { WelcomeTemplate } from "@/server/actions/welcome";
 import { renderTemplate } from "@/lib/telegram/welcome";
 
@@ -48,19 +39,14 @@ const DEFAULT_TEMPLATE =
 // Component
 // ---------------------------------------------------------------------------
 
-export function TemplateEditor({
-  channelId,
-  initialTemplate,
-}: TemplateEditorProps) {
+export function TemplateEditor({ channelId, initialTemplate }: TemplateEditorProps) {
   const t = useTranslations("welcome");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [templateText, setTemplateText] = useState(
     initialTemplate?.templateText ?? DEFAULT_TEMPLATE,
   );
-  const [isEnabled, setIsEnabled] = useState(
-    initialTemplate?.isEnabled ?? false,
-  );
+  const [isEnabled, setIsEnabled] = useState(initialTemplate?.isEnabled ?? false);
   const [saveMessage, setSaveMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -102,11 +88,7 @@ export function TemplateEditor({
   function handleSave() {
     setSaveMessage(null);
     startSaveTransition(async () => {
-      const result = await saveWelcomeTemplate(
-        channelId,
-        templateText,
-        isEnabled,
-      );
+      const result = await saveWelcomeTemplate(channelId, templateText, isEnabled);
       if (result.success) {
         setSaveMessage({ type: "success", text: t("saveSuccess") });
       } else {
@@ -132,7 +114,7 @@ export function TemplateEditor({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2" data-testid="welcome-editor">
       {/* Editor Panel */}
       <Card>
         <CardHeader>
@@ -141,12 +123,13 @@ export function TemplateEditor({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Enable/Disable Toggle */}
-          <div className="flex items-center justify-between rounded-lg border p-3">
+          <div
+            className="flex items-center justify-between rounded-lg border p-3"
+            data-testid="welcome-toggle"
+          >
             <div className="space-y-0.5">
               <Label className="text-sm font-medium">{t("enableLabel")}</Label>
-              <p className="text-xs text-muted-foreground">
-                {t("enableDescription")}
-              </p>
+              <p className="text-muted-foreground text-xs">{t("enableDescription")}</p>
             </div>
             <Button
               variant={isEnabled ? "default" : "outline"}
@@ -174,9 +157,7 @@ export function TemplateEditor({
 
           {/* Variable insertion buttons */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">
-              {t("variablesLabel")}
-            </Label>
+            <Label className="text-muted-foreground text-xs">{t("variablesLabel")}</Label>
             <div className="flex flex-wrap gap-2">
               {TEMPLATE_VARIABLES.map((v) => (
                 <Button
@@ -197,12 +178,7 @@ export function TemplateEditor({
             <Button onClick={handleSave} disabled={isSaving} size="sm">
               {isSaving ? t("saving") : t("save")}
             </Button>
-            <Button
-              variant="outline"
-              onClick={handleTest}
-              disabled={isTesting}
-              size="sm"
-            >
+            <Button variant="outline" onClick={handleTest} disabled={isTesting} size="sm">
               {isTesting ? t("testing") : t("testButton")}
             </Button>
           </div>
@@ -228,28 +204,24 @@ export function TemplateEditor({
       </Card>
 
       {/* Live Preview Panel */}
-      <Card>
+      <Card data-testid="welcome-preview">
         <CardHeader>
           <CardTitle className="text-base">{t("previewTitle")}</CardTitle>
           <CardDescription>{t("previewDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border bg-muted/30 p-4">
+          <div className="bg-muted/30 rounded-lg border p-4">
             <div className="mb-2 flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30" />
               <div>
                 <p className="text-sm font-medium">John Doe</p>
-                <p className="text-xs text-muted-foreground">
-                  {t("previewJoinedLabel")}
-                </p>
+                <p className="text-muted-foreground text-xs">{t("previewJoinedLabel")}</p>
               </div>
             </div>
-            <div className="mt-3 rounded-lg border bg-background p-3">
-              <p className="whitespace-pre-wrap text-sm">
+            <div className="bg-background mt-3 rounded-lg border p-3">
+              <p className="text-sm whitespace-pre-wrap">
                 {preview || (
-                  <span className="italic text-muted-foreground">
-                    {t("previewEmpty")}
-                  </span>
+                  <span className="text-muted-foreground italic">{t("previewEmpty")}</span>
                 )}
               </p>
             </div>
@@ -257,15 +229,11 @@ export function TemplateEditor({
 
           {/* Variable reference */}
           <div className="mt-4 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">
-              {t("variableReference")}
-            </p>
-            <div className="space-y-1 text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs font-medium">{t("variableReference")}</p>
+            <div className="text-muted-foreground space-y-1 text-xs">
               {TEMPLATE_VARIABLES.map((v) => (
                 <div key={v.key} className="flex items-center gap-2">
-                  <code className="rounded bg-muted px-1 py-0.5 font-mono">
-                    {v.key}
-                  </code>
+                  <code className="bg-muted rounded px-1 py-0.5 font-mono">{v.key}</code>
                   <span>&mdash; {t(`var_${v.key.replace(/[{}]/g, "")}`)}</span>
                 </div>
               ))}

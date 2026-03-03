@@ -22,9 +22,7 @@ export async function middleware(request: NextRequest) {
   // to check auth rules
   const localePattern = /^\/(en|ru)(\/|$)/;
   const match = pathname.match(localePattern);
-  const pathWithoutLocale = match
-    ? pathname.replace(localePattern, "/")
-    : pathname;
+  const pathWithoutLocale = match ? pathname.replace(localePattern, "/") : pathname;
   const effectivePath = pathWithoutLocale === "" ? "/" : pathWithoutLocale;
 
   // For auth-protected routes, run Supabase session check
@@ -34,6 +32,11 @@ export async function middleware(request: NextRequest) {
     effectivePath === "/signup";
 
   if (needsAuthCheck) {
+    // If intl middleware wants to redirect (e.g., adding locale prefix), do that first
+    if (intlResponse.status === 307 || intlResponse.status === 308) {
+      return intlResponse;
+    }
+
     const { user, supabaseResponse } = await updateSession(request);
 
     // Copy any cookies set by intl middleware to supabase response
@@ -50,10 +53,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Redirect authenticated users away from auth pages
-    if (
-      user &&
-      (effectivePath === "/login" || effectivePath === "/signup")
-    ) {
+    if (user && (effectivePath === "/login" || effectivePath === "/signup")) {
       const locale = match?.[1] || routing.defaultLocale;
       const url = request.nextUrl.clone();
       url.pathname = `/${locale}/dashboard`;

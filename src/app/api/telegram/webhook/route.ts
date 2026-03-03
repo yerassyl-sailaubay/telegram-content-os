@@ -15,6 +15,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { TelegramUpdate, TelegramMessage } from "@/lib/telegram/types";
 
+export const runtime = "nodejs";
+
 // ---------------------------------------------------------------------------
 // Lazy imports — avoid eager DB connection at build time
 // ---------------------------------------------------------------------------
@@ -164,10 +166,7 @@ async function findChannelByTelegramChatId(
 /**
  * Store a single (non-album) channel post.
  */
-async function storeSinglePost(
-  channelDbId: string,
-  message: TelegramMessage,
-): Promise<string> {
+async function storeSinglePost(channelDbId: string, message: TelegramMessage): Promise<string> {
   const db = await getDb();
   const { telegramPosts } = await getSchema();
 
@@ -209,9 +208,7 @@ async function flushMediaGroup(groupId: string): Promise<void> {
   const inngest = await getInngest();
 
   // Sort messages by message_id to preserve order
-  const sorted = [...batch.messages].sort(
-    (a, b) => a.message_id - b.message_id,
-  );
+  const sorted = [...batch.messages].sort((a, b) => a.message_id - b.message_id);
   const first = sorted[0]!;
 
   // Merge text/captions — typically only one message has a caption
@@ -265,10 +262,7 @@ async function flushMediaGroup(groupId: string): Promise<void> {
  * Process a channel_post message: either queue into a media-group batch
  * or store directly and fire an Inngest event.
  */
-async function processChannelPost(
-  message: TelegramMessage,
-  channelDbId: string,
-): Promise<void> {
+async function processChannelPost(message: TelegramMessage, channelDbId: string): Promise<void> {
   const telegramChatId = String(message.chat.id);
 
   // Media-group batching
@@ -280,16 +274,10 @@ async function processChannelPost(
       // Add to existing batch and reset the timer
       clearTimeout(existing.timer);
       existing.messages.push(message);
-      existing.timer = setTimeout(
-        () => void flushMediaGroup(groupId),
-        MEDIA_GROUP_WINDOW_MS,
-      );
+      existing.timer = setTimeout(() => void flushMediaGroup(groupId), MEDIA_GROUP_WINDOW_MS);
     } else {
       // Start new batch
-      const timer = setTimeout(
-        () => void flushMediaGroup(groupId),
-        MEDIA_GROUP_WINDOW_MS,
-      );
+      const timer = setTimeout(() => void flushMediaGroup(groupId), MEDIA_GROUP_WINDOW_MS);
       mediaGroupBatches.set(groupId, {
         timer,
         channelDbId,
@@ -327,10 +315,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   if (!expectedSecret) {
     console.error("TELEGRAM_WEBHOOK_SECRET env var is not set");
-    return NextResponse.json(
-      { error: "Server misconfiguration" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
 
   if (!secretHeader || !timingSafeCompare(secretHeader, expectedSecret)) {
@@ -367,10 +352,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               telegramChatId: telegramChannels.telegramChatId,
             })
             .from(welcomeTemplates)
-            .innerJoin(
-              telegramChannels,
-              eq(welcomeTemplates.channelId, telegramChannels.id),
-            )
+            .innerJoin(telegramChannels, eq(welcomeTemplates.channelId, telegramChannels.id))
             .where(
               andOp(
                 eq(telegramChannels.telegramChatId, telegramChatId),
@@ -400,14 +382,37 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: true });
   }
 
-  // 4. We only care about channel_post (new posts in channels)
+  // 4. Handle edited channel posts (updates to existing posts)
+  const editedChannelPost = update.edited_channel_post;
+  if (editedChannelPost) {
+    const telegramChatId = String(editedChannelPost.chat.id);
+
+    try {
+      const channel = await findChannelByTelegramChatId(telegramChatId);
+
+      if (!channel) {
+        console.warn(`Received edit webhook for unknown channel: ${telegramChatId}`);
+        return NextResponse.json({ ok: true });
+      }
+
+      // Update the existing post
+      await updateExistingPost(channel.id, editedChannelPost);
+
+      return NextResponse.json({ ok: true });
+    } catch (error) {
+      console.error("Error processing edited post:", error);
+      return NextResponse.json({ ok: true });
+    }
+  }
+
+  // 5. We only care about channel_post (new posts in channels)
   const channelPost = update.channel_post;
   if (!channelPost) {
     // Acknowledge but ignore non-channel-post updates
     return NextResponse.json({ ok: true });
   }
 
-  // 5. Look up the channel in our DB
+  // 6. Look up the channel in our DB
   const telegramChatId = String(channelPost.chat.id);
 
   try {
@@ -415,13 +420,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!channel) {
       // Unknown channel — acknowledge to stop Telegram from retrying
-      console.warn(
-        `Received webhook for unknown channel: ${telegramChatId}`,
-      );
+      console.warn(`Received webhook for unknown channel: ${telegramChatId}`);
       return NextResponse.json({ ok: true });
     }
 
-    // 5. Process the post (store + fire event)
+    // 6. Process the post (store + fire event)
     await processChannelPost(channelPost, channel.id);
 
     return NextResponse.json({ ok: true });
@@ -430,5 +433,39 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Return 200 to prevent Telegram from retrying on app-level errors.
     // The error is logged and can be investigated asynchronously.
     return NextResponse.json({ ok: true });
+  }
+}
+
+/**
+ * Update an existing post when it's edited on Telegram.
+ */
+async function updateExistingPost(channelDbId: string, message: TelegramMessage): Promise<void> {
+  const db = await getDb();
+  const { telegramPosts } = await getSchema();
+  const eq = await getEq();
+
+  const contentRaw = message.text ?? message.caption ?? "";
+  const mediaUrls = extractMediaUrls(message);
+  const contentParsed = buildContentParsed(message);
+
+  // Try to update existing post
+  const result = await db
+    .update(telegramPosts)
+    .set({
+      contentRaw,
+      contentParsed,
+      mediaUrls,
+      views: message.views ?? 0,
+      forwards: message.forwards ?? 0,
+    })
+    .where(eq(telegramPosts.telegramMessageId, message.message_id))
+    .returning({ id: telegramPosts.id });
+
+  // If no post was updated, it might be a new post we missed
+  if (result.length === 0) {
+    console.log(`Edited post not found, storing as new: ${message.message_id}`);
+    await storeSinglePost(channelDbId, message);
+  } else {
+    console.log(`Updated edited post: ${result[0]!.id}`);
   }
 }

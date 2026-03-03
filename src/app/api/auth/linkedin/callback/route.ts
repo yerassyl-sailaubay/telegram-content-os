@@ -16,6 +16,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+export const runtime = "nodejs";
+
 // ---------------------------------------------------------------------------
 // Lazy imports — avoid eager DB connection at build time
 // ---------------------------------------------------------------------------
@@ -52,10 +54,7 @@ async function getEncryption() {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (!appUrl) {
-    return NextResponse.json(
-      { error: "NEXT_PUBLIC_APP_URL is not configured" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "NEXT_PUBLIC_APP_URL is not configured" }, { status: 500 });
   }
 
   const clientId = process.env.LINKEDIN_CLIENT_ID;
@@ -85,10 +84,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   if (!code || !state) {
-    return NextResponse.json(
-      { error: "Missing code or state parameter" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Missing code or state parameter" }, { status: 400 });
   }
 
   // Validate state against cookie (CSRF protection)
@@ -148,10 +144,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .select({ id: platformConnections.id })
       .from(platformConnections)
       .where(
-        and(
-          eq(platformConnections.userId, userId),
-          eq(platformConnections.platform, "linkedin"),
-        ),
+        and(eq(platformConnections.userId, userId), eq(platformConnections.platform, "linkedin")),
       )
       .limit(1);
 

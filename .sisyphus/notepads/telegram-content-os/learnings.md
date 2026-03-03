@@ -332,6 +332,13 @@ mockSelect.mockImplementation(() => {
 });
 ```
 
+### Build Stats After Task 23
+
+- `bun run test` — 44 new usage/enforcement tests pass; 749 total pass (2 pre-existing failures in channels.test.ts, 1 failing suite ux-states.test.tsx — all unrelated to this task)
+- `npx tsc --noEmit` — zero TS errors in billing files; 9 pre-existing errors in other test files (crosspost-wizard, settings, ux-states, welcome)
+- `bun run build` — Turbopack panic (pre-existing Next.js 16 infrastructure issue, not caused by our changes)
+- Files: `usage.ts` (146 lines), `enforce.ts` (82 lines), updated `index.ts` (34 lines), `usage.test.ts` (~650 lines, 44 tests)
+
 ## Task 21 — Analytics Dashboard UI (2026-02-28)
 
 ### Component Architecture
@@ -513,3 +520,80 @@ mockSelect.mockImplementation(() => {
 - `bun run test` — 756 tests pass (27 test files), 0 failures
 - `bun run build` — clean, 32 routes
 - Zero LSP errors across all new/modified files
+
+## Task 21: Analytics Dashboard UI (completed 2026-03-01)
+
+### Architecture
+
+- **Server action** (`src/server/actions/analytics.ts`): single `getAnalyticsDashboard(range, channelId?)` action fetches all data in one pass — 1 cross-posts+analytics JOIN, 1 channel lookup. Data aggregation (engagement over time, platform comparison, heatmap grid) happens in-memory from that single result set.
+- **Server page** (`src/app/[locale]/(dashboard)/dashboard/analytics/page.tsx`): thin server component, fetches initial data via `getAnalyticsDashboard("30d")`, passes to `<AnalyticsDashboard initialData=... />`.
+- **`AnalyticsDashboard` client component**: manages state (dateRange, channelId), calls server action on filter changes, composes all sub-components.
+
+### Recharts in happy-dom Tests
+
+- Recharts uses `ResizeObserver` which is not available in happy-dom — must mock the entire `recharts` module.
+- Correct pattern: mock each export (`LineChart`, `BarChart`, `Bar`, `Line`, `ResponsiveContainer`, etc.) with simple `div` wrappers or `null`.
+- Tests import components AFTER `vi.mock("recharts", ...)` declaration.
+
+### Heatmap Implementation
+
+- Pure CSS grid — 7 rows (Mon–Sun) × 24 columns (hours) using Tailwind flexbox with `gap-px`.
+- Intensity mapping via `bg-primary/{opacity}` classes — 6 levels based on `value / maxValue` ratio.
+- `TooltipProvider` from shadcn wraps the whole grid, each cell is a `TooltipTrigger`.
+- Day index conversion: JS `getDay()` returns 0=Sun — convert with `(date.getDay() + 6) % 7` to get Mon=0.
+
+### PostsTable Sorting
+
+- Client-side sort only (data is already limited to 20 rows from server).
+- Sort state: `sortKey` ("postedAt" | "impressions" | "totalEngagement") + `sortDir` ("asc" | "desc").
+- Platform filter via `<Select>` — "all" | "linkedin" | "twitter".
+
+### i18n Notes
+
+- All analytics keys live under `"analytics"` namespace in both `en.json` and `ru.json`.
+- `engagementCount` uses `{count}` interpolation.
+- Chart range buttons use `range_7d`, `range_30d`, `range_90d` keys (not dot notation).
+
+## Task 24 — Welcome Message Template Editor (2026-03-01)
+
+### Architecture
+
+- **DB schema**: `welcome_templates` table (`src/server/db/schema/welcome-templates.ts`) — UUID PK, channelId FK (cascade), userId FK (cascade), templateText (text), isEnabled (boolean, default false), createdAt/updatedAt (timestamptz).
+- **Server actions** (`src/server/actions/welcome.ts`): `getWelcomeTemplate`, `saveWelcomeTemplate` (upsert pattern), `testWelcomeMessage` (renders with sample data + sends via TelegramClient).
+- **Bot handler** (`src/lib/telegram/welcome.ts`): `renderTemplate` (variable substitution), `buildTemplateVars`, `handleNewChatMember` with dependency injection (`WelcomeHandlerDeps` interface) and in-memory rate limiting (24h TTL, lazy cleanup at 10k entries).
+- **Webhook integration**: `new_chat_members` handler in webhook route (lines 350-403) with lazy imports to avoid build-time DB connection.
+- **UI**: Server page at `[id]/welcome/page.tsx` + client `TemplateEditor` component with live preview, variable insertion buttons, enable/disable toggle.
+
+### Template Variables
+
+- `{name}` — Member's full name (first + last, fallback "New Member")
+- `{channel_name}` — Channel title (fallback "this channel")
+- `{member_count}` — Current member count as string
+
+### JSON Fixing Pattern
+
+- Both `en.json` and `ru.json` had garbage lines (duplicate closing braces, stray comma, `posts` namespace outside root object) appended after line 559.
+- Fix: identify valid JSON boundary with `json.loads(first_N_lines)`, then replace from the corruption point with properly structured content.
+- Python validation: `json.loads(content)` catches `Extra data` error at exact line/column of corruption.
+
+### Pre-existing Test Failures
+
+- `ux-states.test.tsx` — fails importing `@/app/(dashboard)/dashboard/error` (file doesn't exist at that path).
+- `channels.test.ts` — 2 failures: "already connected" error message mismatch + webhook deletion mock not called. Both pre-existing, not caused by welcome feature.
+
+### No Switch Component
+
+- shadcn/ui in this project has 23 components but no `Switch`. Used `Button` with `variant={isEnabled ? 'default' : 'outline'}` as toggle instead.
+
+### Build Stats After Task 24
+
+- `bun run test` — 23 new welcome tests pass; 749 total pass (2 pre-existing failures in channels.test.ts, 1 pre-existing suite failure in ux-states.test.tsx)
+- `bun run build` — clean, 32 routes including `/[locale]/dashboard/channels/[id]/welcome`
+- Zero TS diagnostics on all new/modified files
+
+### Build Stats After Task 21
+
+- `bun run test` — 33 new analytics tests pass; 734 total pass (2 pre-existing failures in channels.test.ts and ux-states.test.tsx unrelated to this task)
+- `bun run build` — clean, 32 routes including `/[locale]/dashboard/analytics`
+- Zero TS diagnostics on all new files
+- `recharts@3.7.0` installed

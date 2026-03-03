@@ -5,21 +5,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // so every value used in a factory must come from vi.hoisted().
 // ---------------------------------------------------------------------------
 
-const {
-  mockSelect,
-  mockInsert,
-  mockUpdate,
-  mockUsageTrackingTable,
-  mockSubscriptionsTable,
-} = vi.hoisted(() => ({
-  mockSelect: vi.fn(),
-  mockInsert: vi.fn(),
-  mockUpdate: vi.fn(),
-  mockUsageTrackingTable: Symbol("usageTracking"),
-  mockSubscriptionsTable: Symbol("subscriptions"),
-    }));
+const { mockSelect, mockInsert, mockUpdate, mockUsageTrackingTable, mockSubscriptionsTable } =
+  vi.hoisted(() => ({
+    mockSelect: vi.fn(),
+    mockInsert: vi.fn(),
+    mockUpdate: vi.fn(),
+    mockUsageTrackingTable: Symbol("usageTracking"),
+    mockSubscriptionsTable: Symbol("subscriptions"),
+  }));
 
-    vi.mock("@/server/db", () => ({
+vi.mock("@/server/db", () => ({
   db: {
     get select() {
       return mockSelect;
@@ -31,12 +26,12 @@ const {
       return mockUpdate;
     },
   },
-  }));
+}));
 
 vi.mock("@/server/db/schema", () => ({
   usageTracking: mockUsageTrackingTable,
   subscriptions: mockSubscriptionsTable,
-  }));
+}));
 
 vi.mock("drizzle-orm", () => ({
   eq: vi.fn((col: unknown, val: unknown) => ({ col, val })),
@@ -142,18 +137,14 @@ describe("getCurrentUsage", () => {
   });
 
   it("returns the correct cross-post count from existing row", async () => {
-    mockSelect.mockReturnValue(
-      buildSelectChain([{ crossPostsCount: 3 }]),
-    );
+    mockSelect.mockReturnValue(buildSelectChain([{ crossPostsCount: 3 }]));
 
     const usage = await getCurrentUsage("user_with_3");
     expect(usage).toBe(3);
   });
 
   it("returns 0 when crossPostsCount is null (defensive)", async () => {
-    mockSelect.mockReturnValue(
-      buildSelectChain([{ crossPostsCount: null }]),
-    );
+    mockSelect.mockReturnValue(buildSelectChain([{ crossPostsCount: null }]));
 
     const usage = await getCurrentUsage("user_null_count");
     expect(usage).toBe(0);
@@ -324,9 +315,7 @@ describe("incrementUsage", () => {
 
   it("increments count for existing row", async () => {
     // First select → existing row with count 3
-    mockSelect.mockReturnValue(
-      buildSelectChain([{ id: "row_1", crossPostsCount: 3 }]),
-    );
+    mockSelect.mockReturnValue(buildSelectChain([{ id: "row_1", crossPostsCount: 3 }]));
 
     const mockWhere = vi.fn().mockResolvedValue(undefined);
     const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
@@ -335,9 +324,7 @@ describe("incrementUsage", () => {
     await incrementUsage("existing_user");
 
     expect(mockUpdate).toHaveBeenCalledWith(mockUsageTrackingTable);
-    expect(mockSet).toHaveBeenCalledWith(
-      expect.objectContaining({ crossPostsCount: 4 }),
-    );
+    expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ crossPostsCount: 4 }));
   });
 
   it("creates new row with correct month", async () => {
@@ -349,9 +336,7 @@ describe("incrementUsage", () => {
     await incrementUsage("user_month_check");
 
     const expectedMonth = getCurrentMonth();
-    expect(mockValues).toHaveBeenCalledWith(
-      expect.objectContaining({ month: expectedMonth }),
-    );
+    expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({ month: expectedMonth }));
   });
 });
 
@@ -437,9 +422,7 @@ describe("withQuotaCheck", () => {
 
     const action = vi.fn().mockResolvedValue("should_not_run");
 
-    await expect(withQuotaCheck("user_over_quota", action)).rejects.toThrow(
-      QuotaExceededError,
-    );
+    await expect(withQuotaCheck("user_over_quota", action)).rejects.toThrow(QuotaExceededError);
     expect(action).not.toHaveBeenCalled();
   });
 
@@ -482,5 +465,185 @@ describe("withQuotaCheck", () => {
 
     await expect(withQuotaCheck("blocked_user", action)).rejects.toThrow();
     expect(action).not.toHaveBeenCalled();
+  });
+});
+
+// ===========================================================================
+// Edge cases & scenarios from requirements
+// ===========================================================================
+
+describe("edge cases", () => {
+  it("no subscription record defaults to Free tier (limit 5)", async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([]); // no subscription
+      return buildSelectChain([{ crossPostsCount: 5 }]);
+    });
+
+    const result = await canCrossPost("user_no_subscription");
+    expect(result).toBe(false);
+  });
+
+  it("no subscription + no usage = allowed (brand new user)", async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([]); // no subscription → free
+      return buildSelectChain([]); // no usage → 0
+    });
+
+    const result = await canCrossPost("brand_new_user");
+    expect(result).toBe(true);
+  });
+
+  it("Free user over limit (7/5) is still denied", async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([{ plan: "free" }]);
+      return buildSelectChain([{ crossPostsCount: 7 }]);
+    });
+
+    expect(await canCrossPost("free_over")).toBe(false);
+  });
+
+  it("remaining never goes negative (capped at 0)", async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([{ plan: "free" }]);
+      return buildSelectChain([{ crossPostsCount: 8 }]);
+    });
+
+    const quota = await getRemainingQuota("free_over_limit");
+    expect(quota.remaining).toBe(0);
+    expect(quota.used).toBe(8);
+    expect(quota.limit).toBe(5);
+  });
+});
+
+// ===========================================================================
+// Month boundary reset
+// ===========================================================================
+
+describe("month boundary reset", () => {
+  it("new month returns 0 usage (no row for current month)", async () => {
+    // Simulate: user had usage last month, but getCurrentUsage queries
+    // the current month which has no row → 0
+    mockSelect.mockReturnValue(buildSelectChain([]));
+
+    const usage = await getCurrentUsage("user_new_month");
+    expect(usage).toBe(0);
+  });
+
+  it("new month allows cross-posting even if last month was at limit", async () => {
+    // The key: getCurrentMonth() generates current month string.
+    // DB query with that month finds no row → 0 usage → under limit.
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([{ plan: "free" }]);
+      return buildSelectChain([]); // no row for this month = 0 usage
+    });
+
+    expect(await canCrossPost("user_fresh_month")).toBe(true);
+  });
+
+  it("getRemainingQuota shows full quota on fresh month", async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([{ plan: "free" }]);
+      return buildSelectChain([]); // no row
+    });
+
+    const quota = await getRemainingQuota("user_fresh_month");
+    expect(quota).toEqual({
+      used: 0,
+      limit: 5,
+      remaining: 5,
+      tier: "free",
+    });
+  });
+});
+
+// ===========================================================================
+// Tier upgrade mid-month
+// ===========================================================================
+
+describe("tier upgrade mid-month", () => {
+  it("upgrading from Free to Plus immediately grants new limit", async () => {
+    // User used 4 cross-posts on Free, then upgraded to Plus (limit 50).
+    // Subscription table now says 'plus'. Same month usage stays at 4.
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([{ plan: "plus" }]);
+      return buildSelectChain([{ crossPostsCount: 4 }]);
+    });
+
+    expect(await canCrossPost("upgraded_user")).toBe(true);
+  });
+
+  it("upgrading to Plus shows new remaining quota", async () => {
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([{ plan: "plus" }]);
+      return buildSelectChain([{ crossPostsCount: 4 }]);
+    });
+
+    const quota = await getRemainingQuota("upgraded_user");
+    expect(quota).toEqual({
+      used: 4,
+      limit: 50,
+      remaining: 46,
+      tier: "plus",
+    });
+  });
+
+  it("upgrading from Free (at limit) to Plus allows posting again", async () => {
+    // Was at 5/5 on Free. Upgraded to Plus (limit 50).
+    let callCount = 0;
+    mockSelect.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return buildSelectChain([{ plan: "plus" }]);
+      return buildSelectChain([{ crossPostsCount: 5 }]);
+    });
+
+    expect(await canCrossPost("upgraded_from_limit")).toBe(true);
+  });
+
+  it("upgrading to Pro always allows posting", async () => {
+    mockSelect.mockReturnValue(buildSelectChain([{ plan: "pro" }]));
+
+    expect(await canCrossPost("pro_upgraded_user")).toBe(true);
+  });
+});
+
+// ===========================================================================
+// QuotaExceededError class
+// ===========================================================================
+
+describe("QuotaExceededError", () => {
+  it("is an instance of Error", () => {
+    const err = new QuotaExceededError(5, 5);
+    expect(err).toBeInstanceOf(Error);
+  });
+
+  it("has name QuotaExceededError", () => {
+    const err = new QuotaExceededError(3, 5);
+    expect(err.name).toBe("QuotaExceededError");
+  });
+
+  it("includes used/limit in message", () => {
+    const err = new QuotaExceededError(10, 5);
+    expect(err.message).toContain("10/5");
+  });
+
+  it("has upgradeUrl pointing to billing page", () => {
+    const err = new QuotaExceededError(5, 5);
+    expect(err.upgradeUrl).toBe("/dashboard/billing");
   });
 });

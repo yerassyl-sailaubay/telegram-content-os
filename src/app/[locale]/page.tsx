@@ -1,14 +1,23 @@
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
+import { redirect } from "next/navigation";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ error?: string; error_description?: string; message?: string }>;
 };
 
-export default async function Home({ params }: Props) {
+export default async function Home({ params, searchParams }: Props) {
   const { locale } = await params;
+  const searchParamsResolved = await searchParams;
   setRequestLocale(locale);
+
+  // If there are auth error params from Supabase, redirect to login with them
+  if (searchParamsResolved.error || searchParamsResolved.error_description) {
+    const error = searchParamsResolved.error_description || searchParamsResolved.error;
+    redirect(`/${locale}/login?error=${encodeURIComponent(error || "Authentication error")}`);
+  }
 
   return <HomeContent />;
 }
@@ -20,7 +29,7 @@ function HomeContent() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between px-16 py-32 sm:items-start">
         <div className="flex w-full items-center justify-between">
-          <h1 className="text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+          <h1 className="text-3xl leading-10 font-semibold tracking-tight text-black dark:text-zinc-50">
             {t("title")}
           </h1>
           <LanguageSwitcher />
@@ -29,7 +38,7 @@ function HomeContent() {
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
             {t("welcomeMessage")}
           </p>
-          <p className="text-sm text-muted-foreground">{t("quickActions")}</p>
+          <p className="text-muted-foreground text-sm">{t("quickActions")}</p>
         </div>
       </main>
     </div>
