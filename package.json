@@ -17,6 +17,7 @@
     "test:smoke": "bash scripts/smoke-test.sh"
   },
   "dependencies": {
+    "@extractus/article-extractor": "^8.0.20",
     "@stripe/stripe-js": "^8.8.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.98.0",
@@ -39,7 +40,8 @@
     "recharts": "^3.7.0",
     "sonner": "^2.0.7",
     "stripe": "^20.4.0",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "youtube-transcript-plus": "^1.2.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

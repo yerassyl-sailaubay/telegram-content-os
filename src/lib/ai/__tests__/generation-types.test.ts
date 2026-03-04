@@ -7,7 +7,7 @@ import type {
   GenerationResult,
   CalendarFillSuggestion,
 } from "../types";
-import type { GenerationEngine } from "../generation-engine";
+import { GenerationEngine } from "../generation-engine";
 
 describe("AI Generation Types", () => {
   describe("GenerationType", () => {
@@ -104,18 +104,10 @@ describe("AI Generation Types", () => {
     });
   });
 
-  describe("GenerationEngine interface", () => {
-    it("defines generate method shape", () => {
-      // Type check only — verify the interface is importable and has correct shape
-      const mockEngine: GenerationEngine = {
-        generate: async (request: GenerationRequest) => ({
-          content: "result",
-          type: request.type,
-          modelUsed: "test",
-          tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
-        }),
-      };
-      expect(mockEngine.generate).toBeDefined();
+  describe("GenerationEngine class", () => {
+    it("exports GenerationEngine as a class with generate method", () => {
+      expect(GenerationEngine).toBeDefined();
+      expect(GenerationEngine.prototype.generate).toBeDefined();
     });
   });
 });

@@ -43,9 +43,28 @@ export type ListContentResult = {
   totalPages: number;
 };
 
-export type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+export type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
+
+export type ContentSourceType =
+  | "telegram_import"
+  | "idea"
+  | "repurposed"
+  | "external_source"
+  | "ai_generated";
+
+export type ContentStatus = "draft" | "published" | "archived" | "scheduled";
+
+export type CreateContentItemInput = {
+  title: string;
+  content?: string;
+  sourceType?: ContentSourceType;
+  status?: ContentStatus;
+  channelId?: string;
+  sourceUrl?: string;
+  sourceMetadata?: Record<string, unknown>;
+  category?: string;
+  tags?: string[];
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -64,9 +83,7 @@ async function getCurrentUserId(): Promise<string> {
 
 // ─── Server Actions ──────────────────────────────────────────────────────────
 
-export async function createContent(
-  input: CreateContentInput,
-): Promise<ActionResult<ContentItem>> {
+export async function createContent(input: CreateContentInput): Promise<ActionResult<ContentItem>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -88,15 +105,12 @@ export async function createContent(
 
     return { success: true, data: item };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to create content";
+    const message = error instanceof Error ? error.message : "Failed to create content";
     return { success: false, error: message };
   }
 }
 
-export async function updateContent(
-  input: UpdateContentInput,
-): Promise<ActionResult<ContentItem>> {
+export async function updateContent(input: UpdateContentInput): Promise<ActionResult<ContentItem>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -108,9 +122,7 @@ export async function updateContent(
     const existing = await db
       .select()
       .from(contentLibrary)
-      .where(
-        and(eq(contentLibrary.id, input.id), eq(contentLibrary.userId, userId)),
-      )
+      .where(and(eq(contentLibrary.id, input.id), eq(contentLibrary.userId, userId)))
       .limit(1);
 
     if (existing.length === 0) {
@@ -128,31 +140,24 @@ export async function updateContent(
       updateData.title = input.title.trim();
     }
     if (input.content !== undefined) updateData.content = input.content;
-    if (input.category !== undefined)
-      updateData.category = input.category?.trim() || null;
-    if (input.tags !== undefined)
-      updateData.tags = input.tags.map((t) => t.trim()).filter(Boolean);
+    if (input.category !== undefined) updateData.category = input.category?.trim() || null;
+    if (input.tags !== undefined) updateData.tags = input.tags.map((t) => t.trim()).filter(Boolean);
     if (input.isTemplate !== undefined) updateData.isTemplate = input.isTemplate;
 
     const [item] = await db
       .update(contentLibrary)
       .set(updateData)
-      .where(
-        and(eq(contentLibrary.id, input.id), eq(contentLibrary.userId, userId)),
-      )
+      .where(and(eq(contentLibrary.id, input.id), eq(contentLibrary.userId, userId)))
       .returning();
 
     return { success: true, data: item };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to update content";
+    const message = error instanceof Error ? error.message : "Failed to update content";
     return { success: false, error: message };
   }
 }
 
-export async function deleteContent(
-  id: string,
-): Promise<ActionResult<{ id: string }>> {
+export async function deleteContent(id: string): Promise<ActionResult<{ id: string }>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -162,9 +167,7 @@ export async function deleteContent(
 
     const deleted = await db
       .delete(contentLibrary)
-      .where(
-        and(eq(contentLibrary.id, id), eq(contentLibrary.userId, userId)),
-      )
+      .where(and(eq(contentLibrary.id, id), eq(contentLibrary.userId, userId)))
       .returning({ id: contentLibrary.id });
 
     if (deleted.length === 0) {
@@ -173,24 +176,19 @@ export async function deleteContent(
 
     return { success: true, data: { id: deleted[0].id } };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to delete content";
+    const message = error instanceof Error ? error.message : "Failed to delete content";
     return { success: false, error: message };
   }
 }
 
-export async function getContent(
-  id: string,
-): Promise<ActionResult<ContentItem>> {
+export async function getContent(id: string): Promise<ActionResult<ContentItem>> {
   try {
     const userId = await getCurrentUserId();
 
     const [item] = await db
       .select()
       .from(contentLibrary)
-      .where(
-        and(eq(contentLibrary.id, id), eq(contentLibrary.userId, userId)),
-      )
+      .where(and(eq(contentLibrary.id, id), eq(contentLibrary.userId, userId)))
       .limit(1);
 
     if (!item) {
@@ -199,8 +197,7 @@ export async function getContent(
 
     return { success: true, data: item };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get content";
+    const message = error instanceof Error ? error.message : "Failed to get content";
     return { success: false, error: message };
   }
 }
@@ -223,18 +220,13 @@ export async function listContent(
 
     if (input.tag) {
       // Filter by tag using jsonb contains
-      conditions.push(
-        sql`${contentLibrary.tags}::jsonb @> ${JSON.stringify([input.tag])}::jsonb`,
-      );
+      conditions.push(sql`${contentLibrary.tags}::jsonb @> ${JSON.stringify([input.tag])}::jsonb`);
     }
 
     if (input.search?.trim()) {
       const searchTerm = `%${input.search.trim()}%`;
       conditions.push(
-        or(
-          ilike(contentLibrary.title, searchTerm),
-          ilike(contentLibrary.content, searchTerm),
-        )!,
+        or(ilike(contentLibrary.title, searchTerm), ilike(contentLibrary.content, searchTerm))!,
       );
     }
 
@@ -242,9 +234,7 @@ export async function listContent(
 
     // Sort
     const orderBy =
-      input.sort === "oldest"
-        ? asc(contentLibrary.createdAt)
-        : desc(contentLibrary.createdAt);
+      input.sort === "oldest" ? asc(contentLibrary.createdAt) : desc(contentLibrary.createdAt);
 
     // Count total matching items
     const [countResult] = await db
@@ -274,15 +264,12 @@ export async function listContent(
       },
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to list content";
+    const message = error instanceof Error ? error.message : "Failed to list content";
     return { success: false, error: message };
   }
 }
 
-export async function searchContent(
-  query: string,
-): Promise<ActionResult<ContentItem[]>> {
+export async function searchContent(query: string): Promise<ActionResult<ContentItem[]>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -313,8 +300,7 @@ export async function searchContent(
 
     return { success: true, data: items };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to search content";
+    const message = error instanceof Error ? error.message : "Failed to search content";
     return { success: false, error: message };
   }
 }
@@ -334,14 +320,11 @@ export async function getUserCategories(): Promise<ActionResult<string[]>> {
       )
       .orderBy(asc(contentLibrary.category));
 
-    const categories = result
-      .map((r) => r.category)
-      .filter((c): c is string => c !== null);
+    const categories = result.map((r) => r.category).filter((c): c is string => c !== null);
 
     return { success: true, data: categories };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get categories";
+    const message = error instanceof Error ? error.message : "Failed to get categories";
     return { success: false, error: message };
   }
 }
@@ -360,25 +343,17 @@ export async function renameCategory(
     const result = await db
       .update(contentLibrary)
       .set({ category: newName.trim(), updatedAt: new Date() })
-      .where(
-        and(
-          eq(contentLibrary.userId, userId),
-          eq(contentLibrary.category, oldName.trim()),
-        ),
-      )
+      .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.category, oldName.trim())))
       .returning({ id: contentLibrary.id });
 
     return { success: true, data: { count: result.length } };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to rename category";
+    const message = error instanceof Error ? error.message : "Failed to rename category";
     return { success: false, error: message };
   }
 }
 
-export async function deleteCategory(
-  name: string,
-): Promise<ActionResult<{ count: number }>> {
+export async function deleteCategory(name: string): Promise<ActionResult<{ count: number }>> {
   try {
     const userId = await getCurrentUserId();
 
@@ -390,18 +365,181 @@ export async function deleteCategory(
     const result = await db
       .update(contentLibrary)
       .set({ category: null, updatedAt: new Date() })
-      .where(
-        and(
-          eq(contentLibrary.userId, userId),
-          eq(contentLibrary.category, name.trim()),
-        ),
-      )
+      .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.category, name.trim())))
       .returning({ id: contentLibrary.id });
 
     return { success: true, data: { count: result.length } };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to delete category";
+    const message = error instanceof Error ? error.message : "Failed to delete category";
+    return { success: false, error: message };
+  }
+}
+
+// ─── Content Library Pivot Actions ───────────────────────────────────────────
+
+const VALID_STATUS_TRANSITIONS: Record<ContentStatus, ContentStatus[]> = {
+  draft: ["published", "scheduled", "archived"],
+  published: ["archived"],
+  scheduled: ["draft", "published", "archived"],
+  archived: ["draft"],
+};
+
+export async function createContentItem(
+  input: CreateContentItemInput,
+): Promise<ActionResult<ContentItem>> {
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!input.title?.trim()) {
+      return { success: false, error: "Title is required" };
+    }
+
+    const [item] = await db
+      .insert(contentLibrary)
+      .values({
+        userId,
+        title: input.title.trim(),
+        content: input.content ?? "",
+        sourceType: input.sourceType ?? null,
+        status: input.status ?? "draft",
+        channelId: input.channelId ?? null,
+        sourceUrl: input.sourceUrl ?? null,
+        sourceMetadata: input.sourceMetadata ?? null,
+        category: input.category?.trim() || null,
+        tags: input.tags?.map((t) => t.trim()).filter(Boolean) ?? [],
+        isTemplate: false,
+      })
+      .returning();
+
+    return { success: true, data: item };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to create content item";
+    return { success: false, error: message };
+  }
+}
+
+export async function updateContentStatus(
+  id: string,
+  status: ContentStatus,
+): Promise<ActionResult<ContentItem>> {
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!id) {
+      return { success: false, error: "Content ID is required" };
+    }
+
+    const [existing] = await db
+      .select()
+      .from(contentLibrary)
+      .where(and(eq(contentLibrary.id, id), eq(contentLibrary.userId, userId)))
+      .limit(1);
+
+    if (!existing) {
+      return { success: false, error: "Content not found" };
+    }
+
+    const currentStatus = existing.status as ContentStatus | null;
+    const allowedTransitions = VALID_STATUS_TRANSITIONS[currentStatus ?? "draft"];
+
+    if (!allowedTransitions.includes(status)) {
+      return {
+        success: false,
+        error: `Invalid status transition from ${currentStatus ?? "draft"} to ${status}`,
+      };
+    }
+
+    const [item] = await db
+      .update(contentLibrary)
+      .set({ status, updatedAt: new Date() })
+      .where(and(eq(contentLibrary.id, id), eq(contentLibrary.userId, userId)))
+      .returning();
+
+    return { success: true, data: item };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to update content status";
+    return { success: false, error: message };
+  }
+}
+
+export async function getContentByStatus(
+  status: ContentStatus,
+  opts?: { limit?: number; offset?: number },
+): Promise<ActionResult<ContentItem[]>> {
+  try {
+    const userId = await getCurrentUserId();
+
+    const limit = opts?.limit ?? 50;
+    const offset = opts?.offset ?? 0;
+
+    const items = await db
+      .select()
+      .from(contentLibrary)
+      .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.status, status)))
+      .orderBy(desc(contentLibrary.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return { success: true, data: items };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to get content by status";
+    return { success: false, error: message };
+  }
+}
+
+export async function getContentByChannel(
+  channelId: string,
+  opts?: { limit?: number; offset?: number },
+): Promise<ActionResult<ContentItem[]>> {
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!channelId) {
+      return { success: false, error: "Channel ID is required" };
+    }
+
+    const limit = opts?.limit ?? 50;
+    const offset = opts?.offset ?? 0;
+
+    const items = await db
+      .select()
+      .from(contentLibrary)
+      .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.channelId, channelId)))
+      .orderBy(desc(contentLibrary.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return { success: true, data: items };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to get content by channel";
+    return { success: false, error: message };
+  }
+}
+
+export async function getDraftsAndIdeas(): Promise<
+  ActionResult<{ drafts: ContentItem[]; ideas: ContentItem[] }>
+> {
+  try {
+    const userId = await getCurrentUserId();
+
+    const [drafts, ideas] = await Promise.all([
+      db
+        .select()
+        .from(contentLibrary)
+        .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.status, "draft")))
+        .orderBy(desc(contentLibrary.createdAt))
+        .limit(50),
+      db
+        .select()
+        .from(contentLibrary)
+        .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.sourceType, "idea")))
+        .orderBy(desc(contentLibrary.createdAt))
+        .limit(50),
+    ]);
+
+    return { success: true, data: { drafts, ideas } };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to get drafts and ideas";
     return { success: false, error: message };
   }
 }

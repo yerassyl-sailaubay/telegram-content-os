@@ -110,6 +110,11 @@ import {
   getUserCategories,
   renameCategory,
   deleteCategory,
+  createContentItem,
+  updateContentStatus,
+  getContentByStatus,
+  getContentByChannel,
+  getDraftsAndIdeas,
 } from "../content";
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -300,9 +305,7 @@ describe("getContent", () => {
   });
 
   it("returns content when found", async () => {
-    selectResults.push([
-      { id: "content-1", userId: "user-123", title: "Test", content: "body" },
-    ]);
+    selectResults.push([{ id: "content-1", userId: "user-123", title: "Test", content: "body" }]);
 
     const result = await getContent("content-1");
     expect(result.success).toBe(true);
@@ -398,10 +401,7 @@ describe("searchContent", () => {
 
 describe("getUserCategories", () => {
   it("returns distinct categories", async () => {
-    selectResults.push([
-      { category: "Blog" },
-      { category: "Tutorial" },
-    ]);
+    selectResults.push([{ category: "Blog" }, { category: "Tutorial" }]);
 
     const result = await getUserCategories();
     expect(result.success).toBe(true);
@@ -411,10 +411,7 @@ describe("getUserCategories", () => {
   });
 
   it("filters out null categories", async () => {
-    selectResults.push([
-      { category: "Blog" },
-      { category: null },
-    ]);
+    selectResults.push([{ category: "Blog" }, { category: null }]);
 
     const result = await getUserCategories();
     expect(result.success).toBe(true);
@@ -468,6 +465,239 @@ describe("deleteCategory", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.count).toBe(1);
+    }
+  });
+});
+
+// ─── New Content Library Pivot Actions ───────────────────────────────────────
+
+describe("createContentItem", () => {
+  it("creates content item with all new fields", async () => {
+    const mockItem = {
+      id: "content-new-1",
+      userId: "user-123",
+      title: "My Idea",
+      content: "Some content",
+      sourceType: "idea",
+      status: "draft",
+      channelId: "channel-1",
+      sourceUrl: "https://example.com",
+      sourceMetadata: { key: "value" },
+      category: "Blog",
+      tags: ["tag1"],
+      isTemplate: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockReturning.mockResolvedValueOnce([mockItem]);
+
+    const result = await createContentItem({
+      title: "My Idea",
+      content: "Some content",
+      sourceType: "idea",
+      status: "draft",
+      channelId: "channel-1",
+      sourceUrl: "https://example.com",
+      sourceMetadata: { key: "value" },
+      category: "Blog",
+      tags: ["tag1"],
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.title).toBe("My Idea");
+      expect(result.data.sourceType).toBe("idea");
+      expect(result.data.status).toBe("draft");
+      expect(result.data.channelId).toBe("channel-1");
+    }
+    expect(mockInsert).toHaveBeenCalled();
+  });
+
+  it("defaults status to draft when not provided", async () => {
+    const mockItem = {
+      id: "content-new-2",
+      userId: "user-123",
+      title: "Quick Note",
+      content: "",
+      sourceType: null,
+      status: "draft",
+      channelId: null,
+      sourceUrl: null,
+      sourceMetadata: null,
+      category: null,
+      tags: [],
+      isTemplate: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockReturning.mockResolvedValueOnce([mockItem]);
+
+    const result = await createContentItem({ title: "Quick Note" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.status).toBe("draft");
+    }
+    expect(mockInsert).toHaveBeenCalled();
+  });
+
+  it("returns error when title is empty", async () => {
+    const result = await createContentItem({ title: "" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBe("Title is required");
+    }
+  });
+});
+
+describe("updateContentStatus", () => {
+  it("transitions from draft to published", async () => {
+    // First select: ownership check returns existing item with draft status
+    selectResults.push([{ id: "content-1", userId: "user-123", status: "draft" }]);
+
+    const updatedItem = {
+      id: "content-1",
+      userId: "user-123",
+      status: "published",
+      updatedAt: new Date(),
+    };
+    mockReturning.mockResolvedValueOnce([updatedItem]);
+
+    const result = await updateContentStatus("content-1", "published");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.status).toBe("published");
+    }
+    expect(mockUpdate).toHaveBeenCalled();
+  });
+
+  it("rejects invalid transition from published to draft", async () => {
+    selectResults.push([{ id: "content-1", userId: "user-123", status: "published" }]);
+
+    const result = await updateContentStatus("content-1", "draft");
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBe("Invalid status transition from published to draft");
+    }
+  });
+
+  it("rejects invalid transition from published to scheduled", async () => {
+    selectResults.push([{ id: "content-1", userId: "user-123", status: "published" }]);
+
+    const result = await updateContentStatus("content-1", "scheduled");
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBe("Invalid status transition from published to scheduled");
+    }
+  });
+
+  it("allows archived to draft (unarchive)", async () => {
+    selectResults.push([{ id: "content-1", userId: "user-123", status: "archived" }]);
+
+    const updatedItem = {
+      id: "content-1",
+      userId: "user-123",
+      status: "draft",
+      updatedAt: new Date(),
+    };
+    mockReturning.mockResolvedValueOnce([updatedItem]);
+
+    const result = await updateContentStatus("content-1", "draft");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.status).toBe("draft");
+    }
+  });
+
+  it("returns error when content not found", async () => {
+    selectResults.push([]);
+
+    const result = await updateContentStatus("nonexistent", "published");
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBe("Content not found");
+    }
+  });
+});
+
+describe("getContentByStatus", () => {
+  it("returns items filtered by status with pagination", async () => {
+    const items = [
+      { id: "1", title: "Draft 1", status: "draft" },
+      { id: "2", title: "Draft 2", status: "draft" },
+    ];
+    selectResults.push(items);
+
+    const result = await getContentByStatus("draft", { limit: 10, offset: 0 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(2);
+    }
+    expect(mockSelect).toHaveBeenCalled();
+  });
+
+  it("uses default pagination when opts not provided", async () => {
+    selectResults.push([]);
+
+    const result = await getContentByStatus("published");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(0);
+    }
+  });
+});
+
+describe("getContentByChannel", () => {
+  it("returns items filtered by channel", async () => {
+    const items = [
+      { id: "1", title: "Post 1", channelId: "channel-1" },
+      { id: "2", title: "Post 2", channelId: "channel-1" },
+    ];
+    selectResults.push(items);
+
+    const result = await getContentByChannel("channel-1", { limit: 20, offset: 0 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(2);
+    }
+    expect(mockSelect).toHaveBeenCalled();
+  });
+
+  it("returns error when channelId is empty", async () => {
+    const result = await getContentByChannel("");
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toBe("Channel ID is required");
+    }
+  });
+});
+
+describe("getDraftsAndIdeas", () => {
+  it("returns both drafts and ideas", async () => {
+    // First select: drafts query
+    selectResults.push([
+      { id: "1", title: "Draft 1", status: "draft" },
+      { id: "2", title: "Draft 2", status: "draft" },
+    ]);
+    // Second select: ideas query
+    selectResults.push([{ id: "3", title: "Idea 1", sourceType: "idea" }]);
+
+    const result = await getDraftsAndIdeas();
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.drafts).toHaveLength(2);
+      expect(result.data.ideas).toHaveLength(1);
+    }
+  });
+
+  it("returns empty arrays when no drafts or ideas exist", async () => {
+    selectResults.push([]);
+    selectResults.push([]);
+
+    const result = await getDraftsAndIdeas();
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.drafts).toEqual([]);
+      expect(result.data.ideas).toEqual([]);
     }
   });
 });
