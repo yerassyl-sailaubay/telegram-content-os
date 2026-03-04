@@ -19,6 +19,7 @@ const {
 
 vi.mock("../prompts/generate-from-source", () => ({
   buildGenerateFromSourcePrompt: mockBuildGenerateFromSourcePrompt,
+  POSTS_PER_SOURCE: 3,
 }));
 
 vi.mock("../prompts/repurpose-telegram", () => ({
@@ -39,7 +40,11 @@ vi.mock("../google", () => ({
   })),
 }));
 
-import { GenerationEngine, getModelTierForType } from "../generation-engine";
+import {
+  GenerationEngine,
+  getModelTierForType,
+  parseMultiPostResponse,
+} from "../generation-engine";
 
 const defaultTokenUsage: TokenUsage = {
   promptTokens: 120,
@@ -250,7 +255,25 @@ describe("GenerationEngine", () => {
       expect(result.tokenUsage).toEqual(defaultTokenUsage);
     });
 
-    it("maps CompletionResult to GenerationResult correctly", async () => {
+    it("returns string[] for source_to_telegram via parseMultiPostResponse", async () => {
+      mockCompleteWithFallback.mockResolvedValue({
+        content: "Post 1\n---POST_SEPARATOR---\nPost 2\n---POST_SEPARATOR---\nPost 3",
+        model: "gemini-3-flash-preview",
+        tokenUsage: defaultTokenUsage,
+      });
+
+      const engine = new GenerationEngine(createMockClient());
+      const result = await engine.generate({
+        type: "source_to_telegram",
+        sourceContent: "content",
+        channelProfile: { niche: "tech", tone: "casual", topTopics: [], language: "ru" },
+      });
+
+      expect(result.content).toEqual(["Post 1", "Post 2", "Post 3"]);
+      expect(result.type).toBe("source_to_telegram");
+    });
+
+    it("returns string (not array) for repurpose type", async () => {
       mockCompleteWithFallback.mockResolvedValue({
         content: "Generated post about AI.",
         model: "gemini-3-pro-preview",
@@ -336,5 +359,32 @@ describe("getModelTierForType", () => {
 
   it("returns 'pro' for calendar_fill", () => {
     expect(getModelTierForType("calendar_fill")).toBe("pro");
+  });
+});
+
+describe("parseMultiPostResponse", () => {
+  it("splits response by POST_SEPARATOR delimiter", () => {
+    const raw = "Post one\n---POST_SEPARATOR---\nPost two\n---POST_SEPARATOR---\nPost three";
+    expect(parseMultiPostResponse(raw)).toEqual(["Post one", "Post two", "Post three"]);
+  });
+
+  it("trims whitespace from each post", () => {
+    const raw = "  Post one  \n---POST_SEPARATOR---\n  Post two  ";
+    expect(parseMultiPostResponse(raw)).toEqual(["Post one", "Post two"]);
+  });
+
+  it("filters out empty segments", () => {
+    const raw = "Post one\n---POST_SEPARATOR---\n\n---POST_SEPARATOR---\nPost three";
+    expect(parseMultiPostResponse(raw)).toEqual(["Post one", "Post three"]);
+  });
+
+  it("returns single-element array when no separator present", () => {
+    const raw = "Just a single post with no separator";
+    expect(parseMultiPostResponse(raw)).toEqual(["Just a single post with no separator"]);
+  });
+
+  it("returns trimmed raw as fallback when all segments are empty", () => {
+    const raw = "   some content   ";
+    expect(parseMultiPostResponse(raw)).toEqual(["some content"]);
   });
 });

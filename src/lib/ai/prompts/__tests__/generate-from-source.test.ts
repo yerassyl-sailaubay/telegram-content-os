@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildGenerateFromSourcePrompt } from "../generate-from-source";
+import { buildGenerateFromSourcePrompt, POSTS_PER_SOURCE } from "../generate-from-source";
 import type { ChannelProfile } from "../../types";
 import type { SourceType } from "@/lib/sources/types";
 
@@ -11,6 +11,10 @@ const defaultProfile: ChannelProfile = {
 };
 
 describe("buildGenerateFromSourcePrompt", () => {
+  it("POSTS_PER_SOURCE defaults to 3", () => {
+    expect(POSTS_PER_SOURCE).toBe(3);
+  });
+
   it("builds correct prompt for YouTube source", () => {
     const messages = buildGenerateFromSourcePrompt({
       sourceContent: "This is a YouTube transcript about building AI agents.",
@@ -22,10 +26,7 @@ describe("buildGenerateFromSourcePrompt", () => {
     expect(messages[0].role).toBe("system");
     expect(messages[1].role).toBe("user");
 
-    // System prompt must mention Telegram
     expect(messages[0].content).toContain("Telegram channel content creator");
-
-    // User prompt must label source type
     expect(messages[1].content).toContain("Source (youtube):");
     expect(messages[1].content).toContain("This is a YouTube transcript about building AI agents.");
   });
@@ -42,6 +43,32 @@ describe("buildGenerateFromSourcePrompt", () => {
     expect(messages[1].content).toContain("An in-depth article about React Server Components.");
   });
 
+  it("requests multiple posts in system prompt (default POSTS_PER_SOURCE)", () => {
+    const messages = buildGenerateFromSourcePrompt({
+      sourceContent: "Content",
+      sourceType: "article",
+      channelProfile: defaultProfile,
+    });
+
+    const systemContent = messages[0].content;
+    expect(systemContent).toContain(`${POSTS_PER_SOURCE} DIFFERENT`);
+    expect(systemContent).toContain("POST_SEPARATOR");
+    expect(systemContent).toContain(`EXACTLY ${POSTS_PER_SOURCE} posts`);
+  });
+
+  it("accepts custom numPosts via options", () => {
+    const messages = buildGenerateFromSourcePrompt({
+      sourceContent: "Content",
+      sourceType: "article",
+      channelProfile: defaultProfile,
+      options: { numPosts: 5 },
+    });
+
+    const systemContent = messages[0].content;
+    expect(systemContent).toContain("5 DIFFERENT");
+    expect(systemContent).toContain("EXACTLY 5 posts");
+  });
+
   it("truncates source content exceeding 15,000 characters", () => {
     const longContent = "A".repeat(16_000);
 
@@ -52,11 +79,8 @@ describe("buildGenerateFromSourcePrompt", () => {
     });
 
     const userContent = messages[1].content;
-    // Should contain truncation marker
     expect(userContent).toContain("... [truncated]");
-    // The source portion should not contain the full 16,000 chars
     expect(userContent).not.toContain("A".repeat(16_000));
-    // Should contain exactly 15,000 A's before truncation
     expect(userContent).toContain("A".repeat(15_000));
   });
 
@@ -130,5 +154,17 @@ describe("buildGenerateFromSourcePrompt", () => {
 
     const userContent = messages[1].content;
     expect(userContent).toContain("2000");
+  });
+
+  it("instructs variety across posts", () => {
+    const messages = buildGenerateFromSourcePrompt({
+      sourceContent: "Content",
+      sourceType: "article",
+      channelProfile: defaultProfile,
+    });
+
+    const systemContent = messages[0].content;
+    expect(systemContent).toContain("unique angle");
+    expect(systemContent).toContain("VARIETY");
   });
 });

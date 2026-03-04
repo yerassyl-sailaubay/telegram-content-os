@@ -222,6 +222,7 @@ export interface GenerationOptions {
   maxLength?: number;
   numVariations?: number;
   repurposeMode?: RepurposeMode;
+  sourceType?: "youtube" | "article" | "unknown";
 }
 
 export interface GenerationResult {

@@ -1,4 +1,5 @@
 import { inngest } from "@/lib/inngest/client";
+import { POSTS_PER_SOURCE } from "@/lib/ai/prompts/generate-from-source";
 
 interface GenerateFromSourceEvent {
   data: {
@@ -38,6 +39,7 @@ export const generateFromSource = inngest.createFunction(
         content: row.content,
         title: row.title,
         channelId: row.channelId,
+        sourceUrl: row.sourceUrl,
       };
     });
 
@@ -76,36 +78,52 @@ export const generateFromSource = inngest.createFunction(
     const result = await step.run("generate", async () => {
       const { GoogleClient } = await import("@/lib/ai/google");
       const { GenerationEngine } = await import("@/lib/ai/generation-engine");
+      const { parseUrl } = await import("@/lib/sources/url-parser");
 
       const client = new GoogleClient();
       const engine = new GenerationEngine(client);
+
+      const sourceType = contentItem.sourceUrl ? parseUrl(contentItem.sourceUrl).type : "article";
 
       return engine.generate({
         type: "source_to_telegram",
         sourceContent: contentItem.content ?? "",
         channelProfile: channelProfile ?? undefined,
-        options: {},
+        options: { sourceType, numVariations: POSTS_PER_SOURCE },
       });
     });
 
-    await step.run("store-result", async () => {
+    const childIds = await step.run("store-children", async () => {
       const { db } = await import("@/server/db");
       const { contentLibrary } = await import("@/server/db/schema");
       const { eq } = await import("drizzle-orm");
 
-      const generatedContent = Array.isArray(result.content)
-        ? result.content.join("\n\n")
-        : result.content;
+      const posts = Array.isArray(result.content) ? result.content : [result.content];
+
+      const childRows = posts.map((postContent, index) => ({
+        userId,
+        parentId: contentItemId,
+        title: `${contentItem.title ?? "Generated"} #${index + 1}`,
+        content: postContent,
+        sourceType: "ai_generated" as const,
+        status: "draft" as const,
+        channelId: contentItem.channelId,
+        sourceUrl: contentItem.sourceUrl,
+      }));
+
+      const inserted = await db.insert(contentLibrary).values(childRows).returning({
+        id: contentLibrary.id,
+      });
 
       await db
         .update(contentLibrary)
         .set({
-          content: generatedContent,
-          status: "draft",
+          status: "archived",
           updatedAt: new Date(),
         })
-        .where(eq(contentLibrary.id, contentItemId))
-        .returning({ id: contentLibrary.id });
+        .where(eq(contentLibrary.id, contentItemId));
+
+      return inserted.map((row) => row.id);
     });
 
     await step.run("track-usage", async () => {
@@ -116,6 +134,7 @@ export const generateFromSource = inngest.createFunction(
     return {
       status: "completed",
       contentItemId,
+      childIds,
       modelUsed: result.modelUsed,
       tokenUsage: result.tokenUsage,
     };

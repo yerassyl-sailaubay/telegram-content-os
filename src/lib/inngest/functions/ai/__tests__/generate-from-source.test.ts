@@ -7,27 +7,33 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const {
   mockDbSelect,
   mockDbUpdate,
+  mockDbInsert,
   mockDbFrom,
   mockDbWhere,
   mockDbSet,
   mockDbLimit,
+  mockDbValues,
   mockDbReturning,
   mockEnforceAiQuota,
   mockIncrementAiUsage,
   mockGenerationEngineGenerate,
+  mockParseUrl,
 } = vi.hoisted(() => {
   const mockGenerationEngineGenerate = vi.fn();
   return {
     mockDbSelect: vi.fn(),
     mockDbUpdate: vi.fn(),
+    mockDbInsert: vi.fn(),
     mockDbFrom: vi.fn(),
     mockDbWhere: vi.fn(),
     mockDbSet: vi.fn(),
     mockDbLimit: vi.fn(),
+    mockDbValues: vi.fn(),
     mockDbReturning: vi.fn(),
     mockEnforceAiQuota: vi.fn(),
     mockIncrementAiUsage: vi.fn(),
     mockGenerationEngineGenerate: mockGenerationEngineGenerate,
+    mockParseUrl: vi.fn(),
   };
 });
 
@@ -35,25 +41,35 @@ const {
 // Module mocks
 // ---------------------------------------------------------------------------
 
+// Chain object shared across the mock — methods are re-wired in beforeEach
+// after vi.clearAllMocks() to keep the fluent API intact.
+const dbChain = {
+  select: mockDbSelect,
+  update: mockDbUpdate,
+  insert: mockDbInsert,
+  from: mockDbFrom,
+  where: mockDbWhere,
+  set: mockDbSet,
+  limit: mockDbLimit,
+  values: mockDbValues,
+  returning: mockDbReturning,
+};
+
+function rewireDbChain() {
+  mockDbSelect.mockReturnValue(dbChain);
+  mockDbUpdate.mockReturnValue(dbChain);
+  mockDbInsert.mockReturnValue(dbChain);
+  mockDbFrom.mockReturnValue(dbChain);
+  mockDbWhere.mockReturnValue(dbChain);
+  mockDbSet.mockReturnValue(dbChain);
+  mockDbLimit.mockReturnValue(dbChain);
+  mockDbValues.mockReturnValue(dbChain);
+  mockDbReturning.mockReturnValue(dbChain);
+}
+
 vi.mock("@/server/db", () => {
-  const chain = {
-    select: mockDbSelect,
-    update: mockDbUpdate,
-    from: mockDbFrom,
-    where: mockDbWhere,
-    set: mockDbSet,
-    limit: mockDbLimit,
-    returning: mockDbReturning,
-  };
-  // Each chain method returns the chain itself for fluent API
-  mockDbSelect.mockReturnValue(chain);
-  mockDbUpdate.mockReturnValue(chain);
-  mockDbFrom.mockReturnValue(chain);
-  mockDbWhere.mockReturnValue(chain);
-  mockDbSet.mockReturnValue(chain);
-  mockDbLimit.mockReturnValue(chain);
-  mockDbReturning.mockReturnValue(chain);
-  return { db: chain };
+  rewireDbChain();
+  return { db: dbChain };
 });
 
 vi.mock("@/server/db/schema", () => ({
@@ -64,6 +80,7 @@ vi.mock("@/server/db/schema", () => ({
     status: "status",
     channelId: "channelId",
     sourceType: "sourceType",
+    parentId: "parentId",
   },
   channelProfiles: {
     id: "id",
@@ -104,6 +121,14 @@ vi.mock("@/lib/ai/generation-engine", () => ({
   GenerationEngine: class MockGenerationEngine {
     generate = mockGenerationEngineGenerate;
   },
+}));
+
+vi.mock("@/lib/ai/prompts/generate-from-source", () => ({
+  POSTS_PER_SOURCE: 3,
+}));
+
+vi.mock("@/lib/sources/url-parser", () => ({
+  parseUrl: mockParseUrl,
 }));
 
 // ---------------------------------------------------------------------------
@@ -171,8 +196,14 @@ const MOCK_CHANNEL_PROFILE = {
   language: "ru",
 };
 
+const MOCK_CHILD_IDS = ["child-uuid-1", "child-uuid-2", "child-uuid-3"];
+
 const MOCK_GENERATION_RESULT = {
-  content: "Generated Telegram post about AI technology",
+  content: [
+    "Generated post #1 about AI technology",
+    "Generated post #2 about AI technology",
+    "Generated post #3 about AI technology",
+  ],
   type: "source_to_telegram" as const,
   modelUsed: "openai/gpt-4.1-mini",
   tokenUsage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
@@ -184,11 +215,12 @@ const MOCK_GENERATION_RESULT = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  rewireDbChain();
 
-  // Default happy-path mocks
   mockEnforceAiQuota.mockResolvedValue({ allowed: true });
   mockIncrementAiUsage.mockResolvedValue(undefined);
   mockGenerationEngineGenerate.mockResolvedValue(MOCK_GENERATION_RESULT);
+  mockParseUrl.mockReturnValue({ type: "article" });
 });
 
 // ---------------------------------------------------------------------------
@@ -201,7 +233,7 @@ describe("generateFromSource", () => {
     expect((generateFromSource as unknown as InngestHandler).fn).toBeTypeOf("function");
   });
 
-  it("successful generation: load → quota check → profile → generate → store → track usage", async () => {
+  it("successful generation: load → quota → profile → generate → store-children → track usage", async () => {
     const event = createEvent();
     const step = createMockStep();
 
@@ -211,8 +243,8 @@ describe("generateFromSource", () => {
     // Step 3: load-channel-profile returns profile
     mockDbLimit.mockResolvedValueOnce([MOCK_CHANNEL_PROFILE]);
 
-    // Step 5: store-result (update) returns updated item
-    mockDbReturning.mockResolvedValueOnce([{ id: MOCK_CONTENT_ITEM.id }]);
+    // Step 5: store-children — insert returns child ids
+    mockDbReturning.mockResolvedValueOnce(MOCK_CHILD_IDS.map((id) => ({ id })));
 
     const result = await runHandler(event, step);
 
@@ -223,7 +255,7 @@ describe("generateFromSource", () => {
       "check-quota",
       "load-channel-profile",
       "generate",
-      "store-result",
+      "store-children",
       "track-usage",
     ]);
 
@@ -247,11 +279,12 @@ describe("generateFromSource", () => {
     // Verify usage was incremented
     expect(mockIncrementAiUsage).toHaveBeenCalledWith("user-uuid-1");
 
-    // Verify return value
+    // Verify return value includes childIds
     expect(result).toEqual(
       expect.objectContaining({
         status: "completed",
         contentItemId: MOCK_CONTENT_ITEM.id,
+        childIds: MOCK_CHILD_IDS,
         modelUsed: "openai/gpt-4.1-mini",
       }),
     );
@@ -307,8 +340,8 @@ describe("generateFromSource", () => {
     // Step 3: load-channel-profile returns empty (no profile)
     mockDbLimit.mockResolvedValueOnce([]);
 
-    // Step 5: store-result
-    mockDbReturning.mockResolvedValueOnce([{ id: MOCK_CONTENT_ITEM.id }]);
+    // Step 5: store-children
+    mockDbReturning.mockResolvedValueOnce(MOCK_CHILD_IDS.map((id) => ({ id })));
 
     const result = await runHandler(event, step);
 
@@ -346,8 +379,8 @@ describe("generateFromSource", () => {
     mockDbLimit.mockResolvedValueOnce([MOCK_CONTENT_ITEM]);
     // Step 3: load-channel-profile
     mockDbLimit.mockResolvedValueOnce([MOCK_CHANNEL_PROFILE]);
-    // Step 5: store-result
-    mockDbReturning.mockResolvedValueOnce([{ id: MOCK_CONTENT_ITEM.id }]);
+    // Step 5: store-children
+    mockDbReturning.mockResolvedValueOnce(MOCK_CHILD_IDS.map((id) => ({ id })));
 
     await runHandler(event, step);
 
@@ -356,7 +389,7 @@ describe("generateFromSource", () => {
     expect(mockIncrementAiUsage).toHaveBeenCalledWith("user-uuid-1");
   });
 
-  it("stores generated content back into content_library via DB update", async () => {
+  it("creates child rows via db.insert and archives parent", async () => {
     const event = createEvent();
     const step = createMockStep();
 
@@ -364,17 +397,48 @@ describe("generateFromSource", () => {
     mockDbLimit.mockResolvedValueOnce([MOCK_CONTENT_ITEM]);
     // Step 3: load-channel-profile
     mockDbLimit.mockResolvedValueOnce([MOCK_CHANNEL_PROFILE]);
-    // Step 5: store-result
-    mockDbReturning.mockResolvedValueOnce([{ id: MOCK_CONTENT_ITEM.id }]);
+    // Step 5: store-children — insert returns child ids
+    mockDbReturning.mockResolvedValueOnce(MOCK_CHILD_IDS.map((id) => ({ id })));
 
     await runHandler(event, step);
 
-    // Verify DB update was called (set is part of the chain)
+    // Verify db.insert was called for child creation
+    expect(mockDbInsert).toHaveBeenCalled();
+    expect(mockDbValues).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: "user-uuid-1",
+          parentId: MOCK_CONTENT_ITEM.id,
+          content: "Generated post #1 about AI technology",
+          sourceType: "ai_generated",
+          status: "draft",
+          channelId: MOCK_CONTENT_ITEM.channelId,
+        }),
+      ]),
+    );
+
+    // Verify parent was archived via db.update
     expect(mockDbUpdate).toHaveBeenCalled();
     expect(mockDbSet).toHaveBeenCalledWith(
       expect.objectContaining({
-        content: "Generated Telegram post about AI technology",
-        status: "draft",
+        status: "archived",
+      }),
+    );
+  });
+
+  it("returns childIds in the result", async () => {
+    const event = createEvent();
+    const step = createMockStep();
+
+    mockDbLimit.mockResolvedValueOnce([MOCK_CONTENT_ITEM]);
+    mockDbLimit.mockResolvedValueOnce([MOCK_CHANNEL_PROFILE]);
+    mockDbReturning.mockResolvedValueOnce(MOCK_CHILD_IDS.map((id) => ({ id })));
+
+    const result = await runHandler(event, step);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        childIds: MOCK_CHILD_IDS,
       }),
     );
   });

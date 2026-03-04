@@ -7,10 +7,25 @@ import type {
 } from "./types";
 import { AI_MODELS } from "./types";
 import type { GoogleClient } from "./google";
-import { buildGenerateFromSourcePrompt } from "./prompts/generate-from-source";
+import { buildGenerateFromSourcePrompt, POSTS_PER_SOURCE } from "./prompts/generate-from-source";
 import { buildRepurposePrompt } from "./prompts/repurpose-telegram";
 import { buildIdeaToDraftPrompt } from "./prompts/idea-to-draft";
 import { buildCalendarFillPrompt } from "./prompts/calendar-fill";
+
+const POST_SEPARATOR = "---POST_SEPARATOR---";
+
+export function parseMultiPostResponse(raw: string): string[] {
+  const posts = raw
+    .split(POST_SEPARATOR)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
+  if (posts.length === 0) {
+    return [raw.trim()];
+  }
+
+  return posts;
+}
 
 export function getModelTierForType(type: GenerationType): ModelTier {
   switch (type) {
@@ -41,8 +56,13 @@ export class GenerationEngine {
       undefined,
     );
 
+    const content =
+      request.type === "source_to_telegram"
+        ? parseMultiPostResponse(result.content)
+        : result.content;
+
     return {
-      content: result.content,
+      content,
       type: request.type,
       modelUsed: result.model,
       tokenUsage: result.tokenUsage,
@@ -54,14 +74,17 @@ export class GenerationEngine {
       case "source_to_telegram":
         return buildGenerateFromSourcePrompt({
           sourceContent: request.sourceContent,
-          sourceType: "article",
+          sourceType: request.options?.sourceType ?? "article",
           channelProfile: request.channelProfile ?? {
             niche: null,
             tone: null,
             topTopics: [],
             language: "ru",
           },
-          options: request.options ? { maxLength: request.options.maxLength } : undefined,
+          options: {
+            maxLength: request.options?.maxLength,
+            numPosts: request.options?.numVariations ?? POSTS_PER_SOURCE,
+          },
         });
 
       case "repurpose":
