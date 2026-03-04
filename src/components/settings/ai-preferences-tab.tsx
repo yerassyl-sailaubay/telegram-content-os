@@ -22,14 +22,14 @@ const AI_MODELS: Array<{
   description: string;
 }> = [
   {
-    value: "gpt-4o-mini",
-    label: "GPT-4.1 mini",
+    value: "gemini-flash",
+    label: "Gemini Flash",
     description: "Fast and cost-efficient",
   },
   {
-    value: "claude-haiku",
-    label: "Claude Haiku",
-    description: "Precise and nuanced",
+    value: "gemini-pro",
+    label: "Gemini Pro",
+    description: "Most capable, best quality",
   },
   {
     value: "auto",

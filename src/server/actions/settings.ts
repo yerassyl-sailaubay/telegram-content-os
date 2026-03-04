@@ -18,7 +18,7 @@ export type ProfileData = {
 };
 
 export type PreferencesData = {
-  aiModel: "gpt-4o-mini" | "claude-haiku" | "auto";
+  aiModel: "gemini-flash" | "gemini-pro" | "auto";
   adaptationTone: "professional" | "casual" | "match-original";
 };
 

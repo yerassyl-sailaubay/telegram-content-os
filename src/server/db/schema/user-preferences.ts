@@ -2,7 +2,7 @@ import { pgTable, pgEnum, uuid, varchar, timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
 
-export const aiModelEnum = pgEnum("ai_model", ["gpt-4o-mini", "claude-haiku", "auto"]);
+export const aiModelEnum = pgEnum("ai_model", ["gemini-flash", "gemini-pro", "auto"]);
 
 export const adaptationToneEnum = pgEnum("adaptation_tone", [
   "professional",

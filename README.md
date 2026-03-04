@@ -11,7 +11,7 @@ AI-powered content management and distribution system for Telegram creators.
 - **Database**: Supabase (Postgres)
 - **Background Jobs**: Inngest
 - **Payments**: Stripe
-- **AI**: OpenRouter
+- **AI**: Google Gemini
 
 ## Setup
 
@@ -38,15 +38,15 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Scripts
 
-| Command         | Description                              |
-|-----------------|------------------------------------------|
-| `bun dev`       | Start development server on port 3000    |
-| `bun build`     | Build production bundle                  |
-| `bun start`     | Start production server                  |
-| `bun lint`      | Run ESLint                               |
-| `bun format`    | Format code with Prettier                |
-| `bun test`      | Run unit tests (Jest/Vitest)             |
-| `bun test:e2e`  | Run end-to-end tests (Playwright)        |
+| Command        | Description                           |
+| -------------- | ------------------------------------- |
+| `bun dev`      | Start development server on port 3000 |
+| `bun build`    | Build production bundle               |
+| `bun start`    | Start production server               |
+| `bun lint`     | Run ESLint                            |
+| `bun format`   | Format code with Prettier             |
+| `bun test`     | Run unit tests (Jest/Vitest)          |
+| `bun test:e2e` | Run end-to-end tests (Playwright)     |
 
 ## Project Structure
 

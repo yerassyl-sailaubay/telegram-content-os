@@ -13,9 +13,7 @@ import * as schema from "./schema";
 async function seed() {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    console.log(
-      "⚠️  DATABASE_URL is not set. Skipping seed. Set it in .env.local to run seeds.",
-    );
+    console.log("⚠️  DATABASE_URL is not set. Skipping seed. Set it in .env.local to run seeds.");
     process.exit(0);
   }
 
@@ -127,7 +125,7 @@ async function seed() {
           "🚀 Next.js 16 just dropped — here's what's new!\n\nThe latest release brings major improvements...",
         originalLanguage: "ru",
         targetLanguage: "en",
-        aiModelUsed: "gpt-4o",
+        aiModelUsed: "gemini-3-flash-preview",
         status: "draft",
       })
       .returning();

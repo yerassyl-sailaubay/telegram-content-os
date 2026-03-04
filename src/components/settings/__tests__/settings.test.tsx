@@ -288,13 +288,13 @@ describe("updatePreferences", () => {
     selectResults.push([{ id: "pref-1" }]); // existing prefs
 
     const result = await updatePreferences({
-      aiModel: "claude-haiku",
+      aiModel: "gemini-pro",
       adaptationTone: "casual",
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.aiModel).toBe("claude-haiku");
+      expect(result.data.aiModel).toBe("gemini-pro");
       expect(result.data.adaptationTone).toBe("casual");
     }
     expect(mockUpdate).toHaveBeenCalled();
@@ -305,7 +305,7 @@ describe("updatePreferences", () => {
     selectResults.push([]); // no existing prefs
 
     const result = await updatePreferences({
-      aiModel: "gpt-4o-mini",
+      aiModel: "gemini-flash",
       adaptationTone: "match-original",
     });
 
