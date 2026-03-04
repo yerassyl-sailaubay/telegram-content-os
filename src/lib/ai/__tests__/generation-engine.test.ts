@@ -7,11 +7,13 @@ const {
   mockBuildGenerateFromSourcePrompt,
   mockBuildRepurposePrompt,
   mockBuildIdeaToDraftPrompt,
+  mockBuildCalendarFillPrompt,
   mockCompleteWithFallback,
 } = vi.hoisted(() => ({
   mockBuildGenerateFromSourcePrompt: vi.fn(),
   mockBuildRepurposePrompt: vi.fn(),
   mockBuildIdeaToDraftPrompt: vi.fn(),
+  mockBuildCalendarFillPrompt: vi.fn(),
   mockCompleteWithFallback: vi.fn(),
 }));
 
@@ -25,6 +27,10 @@ vi.mock("../prompts/repurpose-telegram", () => ({
 
 vi.mock("../prompts/idea-to-draft", () => ({
   buildIdeaToDraftPrompt: mockBuildIdeaToDraftPrompt,
+}));
+
+vi.mock("../prompts/calendar-fill", () => ({
+  buildCalendarFillPrompt: mockBuildCalendarFillPrompt,
 }));
 
 vi.mock("../openrouter", () => ({
@@ -64,6 +70,7 @@ beforeEach(() => {
   mockBuildGenerateFromSourcePrompt.mockReturnValue(defaultMessages);
   mockBuildRepurposePrompt.mockReturnValue(defaultMessages);
   mockBuildIdeaToDraftPrompt.mockReturnValue(defaultMessages);
+  mockBuildCalendarFillPrompt.mockReturnValue(defaultMessages);
   mockCompleteWithFallback.mockResolvedValue(defaultCompletionResult);
 });
 
@@ -117,17 +124,37 @@ describe("GenerationEngine", () => {
       expect(mockBuildRepurposePrompt).not.toHaveBeenCalled();
     });
 
-    it("throws descriptive error for calendar_fill type", async () => {
+    it("routes calendar_fill to buildCalendarFillPrompt", async () => {
       const engine = new GenerationEngine(createMockClient());
+      const calendarInput = {
+        gapDates: ["2026-03-10", "2026-03-12"],
+        existingContent: [{ date: "2026-03-09", title: "AI Trends" }],
+        recentTopics: ["AI"],
+      };
       const request: GenerationRequest = {
         type: "calendar_fill",
-        sourceContent: "Fill my calendar",
+        sourceContent: JSON.stringify(calendarInput),
+        channelProfile: {
+          niche: "tech",
+          tone: "casual",
+          topTopics: ["AI"],
+          language: "ru",
+        },
       };
 
-      await expect(engine.generate(request)).rejects.toThrow(
-        "Calendar fill generation is not yet implemented",
+      await engine.generate(request);
+
+      expect(mockBuildCalendarFillPrompt).toHaveBeenCalledOnce();
+      expect(mockBuildCalendarFillPrompt).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gapDates: ["2026-03-10", "2026-03-12"],
+          existingContent: [{ date: "2026-03-09", title: "AI Trends" }],
+          recentTopics: ["AI"],
+        }),
       );
-      expect(mockCompleteWithFallback).not.toHaveBeenCalled();
+      expect(mockBuildGenerateFromSourcePrompt).not.toHaveBeenCalled();
+      expect(mockBuildRepurposePrompt).not.toHaveBeenCalled();
+      expect(mockBuildIdeaToDraftPrompt).not.toHaveBeenCalled();
     });
   });
 
@@ -184,6 +211,22 @@ describe("GenerationEngine", () => {
         type: "idea_to_draft",
         sourceContent: "An idea",
         options: { modelTier: "pro" },
+      });
+
+      expect(mockCompleteWithFallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: AI_MODELS.pro.id,
+        }),
+        undefined,
+      );
+    });
+
+    it("uses 'pro' tier for calendar_fill", async () => {
+      const engine = new GenerationEngine(createMockClient());
+      await engine.generate({
+        type: "calendar_fill",
+        sourceContent: JSON.stringify({ gapDates: ["2026-03-10"], existingContent: [] }),
+        channelProfile: { niche: "tech", tone: "casual", topTopics: [], language: "ru" },
       });
 
       expect(mockCompleteWithFallback).toHaveBeenCalledWith(

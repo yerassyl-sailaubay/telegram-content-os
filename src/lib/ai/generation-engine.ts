@@ -10,6 +10,7 @@ import type { OpenRouterClient } from "./openrouter";
 import { buildGenerateFromSourcePrompt } from "./prompts/generate-from-source";
 import { buildRepurposePrompt } from "./prompts/repurpose-telegram";
 import { buildIdeaToDraftPrompt } from "./prompts/idea-to-draft";
+import { buildCalendarFillPrompt } from "./prompts/calendar-fill";
 
 export function getModelTierForType(type: GenerationType): ModelTier {
   switch (type) {
@@ -27,14 +28,7 @@ export class GenerationEngine {
   constructor(private readonly client: OpenRouterClient) {}
 
   async generate(request: GenerationRequest): Promise<GenerationResult> {
-    if (request.type === "calendar_fill") {
-      throw new Error("Calendar fill generation is not yet implemented. Coming in V1.5.");
-    }
-
-    const narrowed = request as GenerationRequest & {
-      type: Exclude<GenerationType, "calendar_fill">;
-    };
-    const messages = this.buildPrompt(narrowed);
+    const messages = this.buildPrompt(request);
     const tier = request.options?.modelTier ?? getModelTierForType(request.type);
     const model = AI_MODELS[tier];
 
@@ -55,9 +49,7 @@ export class GenerationEngine {
     };
   }
 
-  private buildPrompt(
-    request: GenerationRequest & { type: Exclude<GenerationType, "calendar_fill"> },
-  ): OpenRouterMessage[] {
+  private buildPrompt(request: GenerationRequest): OpenRouterMessage[] {
     switch (request.type) {
       case "source_to_telegram":
         return buildGenerateFromSourcePrompt({
@@ -95,6 +87,25 @@ export class GenerationEngine {
             language: "ru",
           },
         });
+
+      case "calendar_fill": {
+        const parsed = JSON.parse(request.sourceContent) as {
+          gapDates: string[];
+          existingContent: { date: string; title: string }[];
+          recentTopics?: string[];
+        };
+        return buildCalendarFillPrompt({
+          gapDates: parsed.gapDates,
+          existingContent: parsed.existingContent,
+          channelProfile: request.channelProfile ?? {
+            niche: null,
+            tone: null,
+            topTopics: [],
+            language: "ru",
+          },
+          recentTopics: parsed.recentTopics,
+        });
+      }
     }
   }
 }
