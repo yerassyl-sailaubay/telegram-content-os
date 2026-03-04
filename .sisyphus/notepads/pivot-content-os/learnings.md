@@ -276,3 +276,28 @@
 - i18n key access pattern for dynamic keys: try/catch around `t(dynamicKey)` to handle missing keys gracefully
 - `bun run build` (not `bun build`) to invoke Next.js build
 - Build verified: `/[locale]/dashboard/publish` route appears in route listing at exit code 0
+
+## T33: Enhanced Telegram Analytics UI (2026-03-04)
+
+- `HeatmapEntry` from `telegram-enhanced.ts` uses `{ hour: number, day: string, avgViews: number }` — `day` is a full day name ("Monday", not numeric). The existing `PostingHeatmap` uses `HeatmapCell` with `{ day: number, hour: number, value: number }` — completely different shapes.
+- Created `TelegramPostingHeatmap` as an inner component inside `telegram-analytics.tsx` (not a separate file) — avoids polluting the component barrel and keeps heatmap tightly coupled to its data type.
+- `fetchBestPostingTimes` does NOT take a dateRange — only `channelId`. The other two actions take `(channelId, dateRange)`.
+- `DateRange` from `telegram-enhanced.ts` is `{ start: Date, end: Date }` — must convert from "7d"/"30d"/"90d" string to actual Date objects in the client component.
+- Analytics page server component pattern: run `Promise.all([getTranslations(), getTranslations(), fetchData1(), fetchData2()])` for parallel fetching — same pattern as other dashboard pages.
+- Test baseline before T33: 447 pass / 250 fail. After T33: 450 pass / 247 fail (3 net improvement from i18n key fixes).
+- `useEffect` with empty deps array is acceptable for "load on mount" when you deliberately want to skip exhaustive-deps — just remove the eslint-disable comment to keep the file clean (the warning won't show in production builds).
+- `growthRate` i18n key uses `{rate}` param (numeric, already absolute-valued before passing). For negative trends, component shows TrendingDown icon + positive rate value.
+
+## T36: i18n Message Parity (2026-03-04)
+
+- Both `en.json` and `ru.json` were already in perfect parity (768 lines, 27 namespaces, same key structure)
+- No missing keys were found in either locale file after Wave 4-5 work
+- All checked Wave 4-5 components (growth-chart, content-performance-table, telegram-analytics, quick-capture, idea-card, upgrade-prompt, billing-client, sidebar, dashboard/page, analytics/page) correctly use `useTranslations()` / `getTranslations()` — no hardcoded user-facing strings
+- Sidebar has brand strings ("Content OS", "Telegram", "User") which are technical/brand names, not i18n candidates
+- Created `src/i18n/__tests__/message-parity.test.ts` with 4 tests:
+  1. Every key in en.json exists in ru.json
+  2. Every key in ru.json exists in en.json
+  3. Same top-level namespaces in both files
+  4. Same total number of leaf keys
+- Must use `/// <reference types="vitest/globals" />` triple-slash directive (NOT explicit imports) for vitest globals when `globals: true` is set in vitest.config.ts — this avoids LSP errors
+- All 4 parity tests pass, build passes

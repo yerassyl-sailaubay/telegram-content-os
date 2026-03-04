@@ -8,8 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PricingCard } from "./pricing-card";
 import { UsageMeter } from "./usage-meter";
+import { UpgradePrompt } from "./upgrade-prompt";
 import { getAllPlans, getPlan } from "@/lib/billing/plans";
 import type { PlanTier, SubscriptionStatus } from "@/lib/billing/types";
+
+const NEXT_PLAN: Record<PlanTier, PlanTier | null> = {
+  free: "plus",
+  plus: "pro",
+  pro: null,
+};
 
 type BillingClientProps = {
   plan: PlanTier;
@@ -36,6 +43,8 @@ export function BillingClient({
 
   const currentPlan = getPlan(plan);
   const allPlans = getAllPlans();
+  const nextPlanTier = NEXT_PLAN[plan];
+  const nextPlanName = nextPlanTier ? getPlan(nextPlanTier).name : "";
 
   async function handleSelectPlan(tier: PlanTier) {
     const planDef = getPlan(tier);
@@ -89,37 +98,41 @@ export function BillingClient({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CreditCard className="size-5" />
-              <CardTitle className="text-base">
-                {t("currentPlan")}
-              </CardTitle>
+              <CardTitle className="text-base">{t("currentPlan")}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={plan === "free" ? "secondary" : "default"}>
-                {currentPlan.name}
-              </Badge>
-              {cancelAtPeriodEnd && (
-                <Badge variant="destructive">{t("canceling")}</Badge>
-              )}
-              {status === "past_due" && (
-                <Badge variant="destructive">{t("pastDue")}</Badge>
-              )}
+              <Badge variant={plan === "free" ? "secondary" : "default"}>{currentPlan.name}</Badge>
+              {cancelAtPeriodEnd && <Badge variant="destructive">{t("canceling")}</Badge>}
+              {status === "past_due" && <Badge variant="destructive">{t("pastDue")}</Badge>}
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <UsageMeter
-            label={t("crossPostsUsage")}
-            used={crossPostsUsed}
-            limit={currentPlan.limits.crossPostsPerMonth}
-          />
-          <UsageMeter
             label={t("aiCallsUsage")}
             used={aiCallsUsed}
             limit={currentPlan.limits.aiCallsPerMonth}
           />
+          <div className="opacity-60">
+            <UsageMeter
+              label={t("crossPostsUsage")}
+              used={crossPostsUsed}
+              limit={currentPlan.limits.crossPostsPerMonth}
+            />
+          </div>
+
+          {nextPlanName && (
+            <UpgradePrompt
+              used={aiCallsUsed}
+              limit={currentPlan.limits.aiCallsPerMonth}
+              nextPlanName={nextPlanName}
+              onUpgrade={() => nextPlanTier && handleSelectPlan(nextPlanTier)}
+              loading={loading === nextPlanTier}
+            />
+          )}
 
           {currentPeriodEnd && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {cancelAtPeriodEnd
                 ? t("cancelingAt", {
                     date: new Date(currentPeriodEnd).toLocaleDateString(),

@@ -21,10 +21,12 @@ export const PLANS: Record<PlanTier, PlanDefinition> = {
     priceMonthly: 0,
     stripePriceId: null,
     features: [
+      "10 AI content generations / month",
+      "Create from URL",
+      "Quick ideas capture",
       "1 Telegram channel",
-      "5 cross-posts / month",
-      "10 AI calls / month",
       "Basic analytics",
+      "5 cross-posts / month",
     ],
     limits: {
       crossPostsPerMonth: 5,
@@ -38,10 +40,12 @@ export const PLANS: Record<PlanTier, PlanDefinition> = {
     priceMonthly: 19,
     stripePriceId: process.env.STRIPE_PLUS_PRICE_ID ?? null,
     features: [
+      "100 AI generations / month",
+      "Repurpose content (shorter, thread, poll)",
+      "Calendar AI suggestions",
       "5 Telegram channels",
+      "Enhanced analytics",
       "50 cross-posts / month",
-      "100 AI calls / month",
-      "Advanced analytics",
       "Priority support",
     ],
     limits: {
@@ -56,12 +60,13 @@ export const PLANS: Record<PlanTier, PlanDefinition> = {
     priceMonthly: 49,
     stripePriceId: process.env.STRIPE_PRO_PRICE_ID ?? null,
     features: [
+      "Unlimited AI generations",
+      "Priority AI models",
       "Unlimited channels",
-      "Unlimited cross-posts",
-      "Unlimited AI calls",
       "Advanced analytics",
-      "Priority support",
+      "Unlimited cross-posts",
       "Custom branding",
+      "Priority support",
     ],
     limits: {
       crossPostsPerMonth: Infinity,

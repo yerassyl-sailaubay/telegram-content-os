@@ -13,6 +13,7 @@ import {
   ChevronsUpDown,
   Send,
   MessageSquare,
+  Link2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -28,6 +29,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -39,43 +41,79 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logout } from "@/server/actions/auth";
 
+type NavItemKey =
+  | "dashboard"
+  | "create"
+  | "posts"
+  | "channels"
+  | "telegramPost"
+  | "schedule"
+  | "analytics"
+  | "media"
+  | "crosspost"
+  | "billing"
+  | "settings";
+
 type NavItem = {
-  key:
-    | "dashboard"
-    | "posts"
-    | "channels"
-    | "telegramPost"
-    | "schedule"
-    | "analytics"
-    | "media"
-    | "crosspost"
-    | "billing"
-    | "settings";
+  key: NavItemKey;
   icon: React.ComponentType<{ className?: string }>;
   href: string;
+  muted?: boolean;
 };
 
-const navItems: NavItem[] = [
+const primaryNavItems: NavItem[] = [
   { key: "dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { key: "create", icon: Link2, href: "/dashboard/create" },
   { key: "posts", icon: FileText, href: "/dashboard/posts" },
-  { key: "channels", icon: Radio, href: "/dashboard/channels" },
-  { key: "telegramPost", icon: MessageSquare, href: "/dashboard/telegram-post" },
-  { key: "crosspost", icon: Send, href: "/dashboard/crosspost" },
   { key: "schedule", icon: Calendar, href: "/dashboard/schedule" },
+  { key: "channels", icon: Radio, href: "/dashboard/channels" },
+];
+
+const secondaryNavItems: NavItem[] = [
+  { key: "crosspost", icon: Send, href: "/dashboard/crosspost", muted: true },
   { key: "analytics", icon: BarChart3, href: "/dashboard/analytics" },
   { key: "media", icon: ImageIcon, href: "/dashboard/media" },
   { key: "billing", icon: CreditCard, href: "/dashboard/billing" },
   { key: "settings", icon: Settings, href: "/dashboard/settings" },
+  { key: "telegramPost", icon: MessageSquare, href: "/dashboard/telegram-post" },
 ];
 
 type AppSidebarProps = {
   userEmail?: string | null;
 };
 
+function NavItemsList({ items, t }: { items: NavItem[]; t: (key: NavItemKey) => string }) {
+  const pathname = usePathname();
+
+  return (
+    <SidebarMenu>
+      {items.map((item) => {
+        const isActive =
+          item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
+
+        return (
+          <SidebarMenuItem key={item.key}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive}
+              tooltip={t(item.key)}
+              className={cn(item.muted && !isActive && "text-muted-foreground opacity-70")}
+            >
+              <Link href={item.href}>
+                <item.icon className={cn("size-4")} />
+                <span>{t(item.key)}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        );
+      })}
+    </SidebarMenu>
+  );
+}
+
 export function AppSidebar({ userEmail }: AppSidebarProps) {
   const t = useTranslations("nav");
   const tAuth = useTranslations("auth");
-  const pathname = usePathname();
 
   const initials = userEmail ? userEmail.slice(0, 2).toUpperCase() : "U";
 
@@ -97,25 +135,15 @@ export function AppSidebar({ userEmail }: AppSidebarProps) {
         <SidebarGroup>
           <SidebarGroupLabel>{t("dashboard")}</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => {
-                const isActive =
-                  item.href === "/dashboard"
-                    ? pathname === "/dashboard"
-                    : pathname.startsWith(item.href);
+            <NavItemsList items={primaryNavItems} t={t} />
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-                return (
-                  <SidebarMenuItem key={item.key}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={t(item.key)}>
-                      <Link href={item.href}>
-                        <item.icon className={cn("size-4")} />
-                        <span>{t(item.key)}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+        <SidebarSeparator />
+
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <NavItemsList items={secondaryNavItems} t={t} />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
