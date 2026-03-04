@@ -595,3 +595,287 @@ export const { GET, POST, PUT } = serve({ client: inngest, functions });
 - `bun run build` — clean, 0 TypeScript errors, 32 routes
 - Zero LSP diagnostics across all 15 new files and 6 modified files
 - 15 new files created, 6 existing files modified
+
+## T32 — Enhanced Telegram Analytics Backend (2026-03-04)
+
+- DB mock chain in tests: when mocking Drizzle's fluent API, the terminal mock in the chain must be the one that receives `mockResolvedValueOnce()`. In this case, `.orderBy()` returns `mockDbLimit()`, so `mockDbLimit` is the terminal mock to set resolved values on, NOT `mockDbOrderBy`.
+- `telegram_posts` table has `views`, `forwards`, `reactions` (jsonb) columns — perfect for analytics without needing cross-table joins for Telegram-specific metrics.
+- `channel_metrics.followerCountSnapshot` can be null — always filter before computing growth rate.
+- Growth rate: guard against division by zero when starting subscriber count is 0.
+- `reactions` column in `telegram_posts` stores emoji→count map as jsonb (e.g., `{"👍": 20, "❤️": 5}`). Sum values to get total reactions.
+- Server actions pattern: `"use server"` directive, `getCurrentUserId()` auth check first, try/catch wrapping, `ActionResult<T>` return type.
+
+## OpenRouter Client Architecture Analysis (2026-03-04)
+
+### Current AI Architecture Overview
+
+The codebase has TWO parallel AI systems:
+
+1. **Adaptation Pipeline** (existing): Translates Telegram posts (RU→EN) → Adapts for LinkedIn/Twitter
+2. **Generation Pipeline** (new): Creates fresh content from sources/ideas/calendar gaps
+
+Both systems use the SAME `OpenRouterClient` as the underlying provider.
+
+### OpenRouter Client Structure
+
+**File**: `src/lib/ai/openrouter.ts` (386 lines)
+
+**Key Features**:
+
+- Lazy API key validation: `OPENROUTER_API_KEY` checked at request time, not construction
+- Exponential backoff retry: 429, 500, 502, 503, 504 status codes (max 3 retries, jitter added)
+- Model fallback: On 502/503, falls back through tiers: default → fast (skips same model)
+- Timeout: 30s default via `AbortController`, configurable
+- Token tracking: Returns `promptTokens`, `completionTokens`, `totalTokens` per request
+
+**API Call Pattern**:
+
+```ts
+fetch("https://openrouter.ai/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+    "HTTP-Referer": appUrl,
+    "X-Title": "Telegram Content OS"
+  },
+  body: JSON.stringify({
+    model: "openai/gpt-4.1-mini",
+    messages: [{ role: "system", content: "..." }, { role: "user", content: "..." }],
+    temperature: 0.7,
+    max_tokens?: number
+  })
+})
+```
+
+### AIProvider Interface
+
+**File**: `src/lib/ai/provider.ts`
+
+**Contract Definition**:
+
+```ts
+export interface AIProvider {
+  adaptContent(request: AdaptationRequest, options?: AdaptationOptions): Promise<AdaptedContent>;
+  analyzeChannelProfile(
+    request: ChannelProfileRequest,
+    options?: AdaptationOptions,
+  ): Promise<ChannelProfileResult>;
+}
+```
+
+**Note**: The `AIProvider` interface is ONLY used by the adaptation pipeline (AdaptationEngine, ChannelProfiler). The GenerationEngine (`generation-engine.ts`) directly uses `OpenRouterClient` without going through the interface.
+
+### Model Configuration
+
+**File**: `src/lib/ai/types.ts`
+
+**Model Registry** (hardcoded):
+
+```ts
+export const AI_MODELS: Record<ModelTier, AIModel> = {
+  default: {
+    id: "openai/gpt-4.1-mini",
+    name: "GPT-4.1 Mini",
+    provider: "openai",
+    maxTokens: 128_000,
+    costPer1kInputTokens: 0.0004,
+    costPer1kOutputTokens: 0.0016,
+  },
+  fast: {
+    id: "anthropic/claude-3.5-haiku",
+    name: "Claude 3.5 Haiku",
+    provider: "anthropic",
+    maxTokens: 200_000,
+    costPer1kInputTokens: 0.0008,
+    costPer1kOutputTokens: 0.004,
+  },
+  pro: {
+    id: "openai/gpt-4.1",
+    name: "GPT-4.1",
+    provider: "openai",
+    maxTokens: 1_000_000,
+    costPer1kInputTokens: 0.002,
+    costPer1kOutputTokens: 0.008,
+  },
+} as const;
+```
+
+**Model Tier Mapping** (generation-engine.ts):
+
+- `idea_to_draft` → `fast` (Claude 3.5 Haiku)
+- `source_to_telegram` → `default` (GPT-4.1 Mini)
+- `repurpose` → `default` (GPT-4.1 Mini)
+- `calendar_fill` → `pro` (GPT-4.1)
+
+### Environment Variables
+
+**File**: `.env.example`
+
+**AI Configuration**:
+
+```
+OPENROUTER_API_KEY=sk-or-your_openrouter_api_key_here
+```
+
+No model-specific env vars. All models configured via `AI_MODELS` constant.
+
+### Prompt Architecture
+
+**Prompt Builder Pattern**:
+
+- All prompts are pure functions returning `OpenRouterMessage[]` (system + user messages)
+- Located in `src/lib/ai/prompts/` directory
+- OpenAI-compatible message format: `{ role: "system" | "user" | "assistant", content: string }`
+
+**Existing Prompt Builders**:
+
+- `buildTranslatePrompt` — Literal RU→EN translation (temp 0.3)
+- `buildLinkedInAdaptPrompt` — Professional LinkedIn post with engagement hooks
+- `buildTwitterAdaptPrompt` — Conversational Twitter with threading support
+- `buildChannelProfilePrompt` — Analyzes niche, tone, topics, language (JSON output)
+- `buildGenerateFromSourcePrompt` — Source → Telegram post (generation)
+- `buildRepurposePrompt` — Telegram → shorter/thread/poll (generation)
+- `buildIdeaToDraftPrompt` — Idea → draft (generation)
+- `buildCalendarFillPrompt` — Calendar gaps → suggestions (generation)
+
+### Adding Google Gemini Support — Requirements
+
+**What's Needed**:
+
+1. **Google AI Client** (`src/lib/ai/google.ts`):
+   - Must implement `AIProvider` interface (for adaptation pipeline)
+   - Must have `complete()` and `completeWithFallback()` methods matching OpenRouterClient signature
+   - Use Google's REST API or `@google/generative-ai` SDK
+   - Handle authentication via `GOOGLE_AI_API_KEY` env var
+   - Support exponential backoff retry (Google's 429 errors)
+   - Return same `CompletionResult` structure (content, model, tokenUsage)
+
+2. **Model Configuration Updates** (`src/lib/ai/types.ts`):
+   - Add Gemini models to `AI_MODELS` registry:
+     ```ts
+     default: { id: "google/gemini-2.0-flash-exp", ... }  // or use OpenRouter format
+     fast: { id: "google/gemini-2.5-flash-preview", ... }
+     pro: { id: "google/gemini-2.5-pro", ... }
+     ```
+   - OR add separate `GOOGLE_MODELS` registry if using direct Google API
+
+3. **Provider Selection Layer**:
+   - Currently: All code imports `OpenRouterClient` directly
+   - Need: Factory or config to switch between providers
+   - Options:
+     a. Environment variable: `AI_PROVIDER=openrouter|google`
+     b. Per-request: `AdaptationOptions.aiProvider?: 'openrouter' | 'google'`
+     c. Hybrid: Use OpenRouter as aggregator for Google models (simplest)
+
+4. **Response Format Alignment**:
+   - Google's API returns different structure than OpenAI/OpenRouter
+   - Need adapter to convert Google response → `CompletionResult` format
+   - Token tracking: Google returns `usageMetadata.promptTokenCount` vs OpenAI `prompt_tokens`
+
+5. **Integration Points** (12 files need updates):
+   - `src/server/actions/ai-writer.ts` — imports OpenRouterClient
+   - `src/lib/inngest/functions/ai/adapt-content.ts` — imports OpenRouterClient
+   - `src/lib/inngest/functions/ai/develop-idea.ts` — imports OpenRouterClient
+   - `src/lib/inngest/functions/ai/generate-from-source.ts` — imports OpenRouterClient
+   - `src/lib/inngest/functions/ai/profile-channel.ts` — imports OpenRouterClient
+   - `src/lib/inngest/functions/ai/repurpose-content.ts` — imports OpenRouterClient
+   - `src/lib/inngest/functions/ai/suggest-calendar-fill.ts` — imports OpenRouterClient
+   - `src/lib/inngest/functions/broadcast.ts` — imports OpenRouterClient
+   - `src/lib/ai/generation-engine.ts` — uses OpenRouterClient directly
+   - Test files need mock updates for new client
+
+6. **Test Coverage**:
+   - All AI tests use OpenRouterClient mocks → need parallel GoogleClient tests
+   - 46 OpenRouter tests → need similar coverage for Google client
+
+### Recommended Approach: Use OpenRouter as Aggregator
+
+**Simplest Path** (least code changes):
+
+OpenRouter already supports Google Gemini models:
+
+- `google/gemini-2.0-flash-exp`
+- `google/gemini-2.5-flash-exp`
+- `google/gemini-2.5-pro-exp-03-25`
+
+**Changes Required**:
+
+1. Update `AI_MODELS` in `src/lib/ai/types.ts` to use Google models
+2. No new client needed — OpenRouter handles API differences
+3. No changes to integration points
+4. Just add `OPENROUTER_API_KEY` and switch model IDs
+
+**Advantage**: 0 architectural changes, just model ID updates
+
+**Disadvantage**: Still goes through OpenRouter (not direct Google API connection)
+
+### Alternative: Native Google AI Integration
+
+**More Complex Path** (requires architecture changes):
+
+1. Create `src/lib/ai/google.ts` implementing `AIProvider`
+2. Add `AIProvider` interface to `GenerationEngine` (currently bypasses it)
+3. Create factory: `src/lib/ai/factory.ts` → `createAIProvider(type)`
+4. Update all 12 integration points to use factory
+5. Add `AI_PROVIDER` env var for default selection
+
+**Advantage**: Direct Google API, potential cost savings, faster responses
+
+**Disadvantage**: 200+ lines of new code, 12 file modifications, extensive testing
+
+### OpenRouter's Model ID Format vs Google's Native API
+
+**OpenRouter**: `google/gemini-2.0-flash-exp` (includes provider prefix)
+**Google Native API**: `gemini-2.0-flash-exp` (no prefix)
+
+This means the `AI_MODELS` registry format needs adjustment if going native:
+
+```ts
+// Current (OpenRouter format)
+id: "openai/gpt-4.1-mini";
+
+// Google native format would be
+id: "gemini-2.0-flash-exp";
+```
+
+### Token Usage Differences
+
+**OpenAI/OpenRouter**:
+
+```json
+{
+  "usage": {
+    "prompt_tokens": 100,
+    "completion_tokens": 50,
+    "total_tokens": 150
+  }
+}
+```
+
+**Google Generative AI**:
+
+```json
+{
+  "usageMetadata": {
+    "promptTokenCount": 100,
+    "candidatesTokenCount": 50,
+    "totalTokenCount": 150
+  }
+}
+```
+
+Need adapter to map field names.
+
+### Summary
+
+The codebase is well-architected for adding Google support, but requires significant work if going native:
+
+- Clean `AIProvider` interface exists (but GenerationEngine bypasses it)
+- Retry/fallback logic is well-tested and reusable
+- Model configuration is centralized (but hardcoded)
+- 12 integration points import OpenRouterClient directly (tight coupling)
+
+**Quick Win**: Switch to Google models via OpenRouter (update 3 model IDs in `AI_MODELS`)
+
+**Long-term**: Add native Google AI client with provider factory (requires factory pattern, 12 file updates, extensive testing)

@@ -2,7 +2,7 @@
  * AI provider type definitions.
  *
  * Covers models, requests, responses, and token usage tracking
- * for the OpenRouter-based content adaptation pipeline.
+ * for the Google Gemini content adaptation pipeline.
  */
 
 // ---------------------------------------------------------------------------
@@ -16,13 +16,13 @@ export type Platform = "linkedin" | "twitter";
 // AI Models
 // ---------------------------------------------------------------------------
 
-/** Configuration for an AI model accessible via OpenRouter. */
+/** Configuration for an AI model accessible via Google Gemini. */
 export interface AIModel {
-  /** OpenRouter model identifier (e.g., "openai/gpt-4.1-mini"). */
+  /** Model identifier (e.g., "gemini-3-flash-preview"). */
   id: string;
   /** Human-readable display name. */
   name: string;
-  /** Upstream provider (e.g., "openai", "anthropic"). */
+  /** Provider name. */
   provider: string;
   /** Maximum context window in tokens. */
   maxTokens: number;
@@ -38,28 +38,28 @@ export type ModelTier = "default" | "fast" | "pro";
 /** Registry of available models keyed by tier. */
 export const AI_MODELS: Record<ModelTier, AIModel> = {
   default: {
-    id: "openai/gpt-4.1-mini",
-    name: "GPT-4.1 Mini",
-    provider: "openai",
-    maxTokens: 128_000,
-    costPer1kInputTokens: 0.0004,
-    costPer1kOutputTokens: 0.0016,
+    id: "gemini-3-flash-preview",
+    name: "Gemini 3 Flash",
+    provider: "google",
+    maxTokens: 1_000_000,
+    costPer1kInputTokens: 0.0005,
+    costPer1kOutputTokens: 0.003,
   },
   fast: {
-    id: "anthropic/claude-3.5-haiku",
-    name: "Claude 3.5 Haiku",
-    provider: "anthropic",
-    maxTokens: 200_000,
-    costPer1kInputTokens: 0.0008,
-    costPer1kOutputTokens: 0.004,
+    id: "gemini-3-flash-preview",
+    name: "Gemini 3 Flash (Minimal Thinking)",
+    provider: "google",
+    maxTokens: 1_000_000,
+    costPer1kInputTokens: 0.0005,
+    costPer1kOutputTokens: 0.003,
   },
   pro: {
-    id: "openai/gpt-4.1",
-    name: "GPT-4.1",
-    provider: "openai",
+    id: "gemini-3-pro-preview",
+    name: "Gemini 3 Pro",
+    provider: "google",
     maxTokens: 1_000_000,
-    costPer1kInputTokens: 0.002,
-    costPer1kOutputTokens: 0.008,
+    costPer1kInputTokens: 0.00125,
+    costPer1kOutputTokens: 0.01,
   },
 } as const;
 

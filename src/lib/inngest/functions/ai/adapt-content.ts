@@ -138,10 +138,10 @@ export const adaptContent = inngest.createFunction(
 
     // Step 4: Run adaptation engine
     const result = await step.run("adapt-content", async () => {
-      const { OpenRouterClient } = await import("@/lib/ai/openrouter");
+      const { GoogleClient } = await import("@/lib/ai/google");
       const { AdaptationEngine } = await import("@/lib/ai/adaptation-engine");
 
-      const aiProvider = new OpenRouterClient();
+      const aiProvider = new GoogleClient();
       const engine = new AdaptationEngine(aiProvider);
 
       return engine.adapt(

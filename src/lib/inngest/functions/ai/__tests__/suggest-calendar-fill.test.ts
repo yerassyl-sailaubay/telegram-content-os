@@ -37,8 +37,8 @@ vi.mock("@/lib/ai/generation-engine", () => ({
   }),
 }));
 
-vi.mock("@/lib/ai/openrouter", () => ({
-  OpenRouterClient: vi.fn(function () {
+vi.mock("@/lib/ai/google", () => ({
+  GoogleClient: vi.fn(function () {
     return {};
   }),
 }));

@@ -81,10 +81,10 @@ export const repurposeContent = inngest.createFunction(
     });
 
     const result = await step.run("generate", async () => {
-      const { OpenRouterClient } = await import("@/lib/ai/openrouter");
+      const { GoogleClient } = await import("@/lib/ai/google");
       const { GenerationEngine } = await import("@/lib/ai/generation-engine");
 
-      const client = new OpenRouterClient();
+      const client = new GoogleClient();
       const engine = new GenerationEngine(client);
 
       return engine.generate({

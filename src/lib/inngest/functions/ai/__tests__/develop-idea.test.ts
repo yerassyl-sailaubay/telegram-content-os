@@ -20,8 +20,8 @@ vi.mock("@/lib/ai/generation-engine", () => ({
   },
 }));
 
-vi.mock("@/lib/ai/openrouter", () => ({
-  OpenRouterClient: class {},
+vi.mock("@/lib/ai/google", () => ({
+  GoogleClient: class {},
 }));
 
 function createSelectChain(data: unknown[]) {

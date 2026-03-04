@@ -6,7 +6,7 @@ import type {
   OpenRouterMessage,
 } from "./types";
 import { AI_MODELS } from "./types";
-import type { OpenRouterClient } from "./openrouter";
+import type { GoogleClient } from "./google";
 import { buildGenerateFromSourcePrompt } from "./prompts/generate-from-source";
 import { buildRepurposePrompt } from "./prompts/repurpose-telegram";
 import { buildIdeaToDraftPrompt } from "./prompts/idea-to-draft";
@@ -25,7 +25,7 @@ export function getModelTierForType(type: GenerationType): ModelTier {
 }
 
 export class GenerationEngine {
-  constructor(private readonly client: OpenRouterClient) {}
+  constructor(private readonly client: GoogleClient) {}
 
   async generate(request: GenerationRequest): Promise<GenerationResult> {
     const messages = this.buildPrompt(request);

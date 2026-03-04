@@ -2,8 +2,8 @@
  * AI provider — public API barrel export.
  *
  * Usage:
- *   import { OpenRouterClient, AI_MODELS } from "@/lib/ai";
- *   const ai = new OpenRouterClient();
+ *   import { GoogleClient, AI_MODELS } from "@/lib/ai";
+ *   const ai = new GoogleClient();
  *   const result = await ai.adaptContent({ content: "...", platform: "linkedin" });
  */
 
@@ -29,9 +29,9 @@ export { AI_MODELS, AIProviderError } from "./types";
 // Provider interface
 export type { AIProvider } from "./provider";
 
-// OpenRouter client
-export { OpenRouterClient } from "./openrouter";
-export type { CompletionResult, CompleteOptions } from "./openrouter";
+// Google Gemini client
+export { GoogleClient } from "./google";
+export type { CompletionResult, CompleteOptions } from "./google";
 
 // Prompt builders
 export { buildTranslatePrompt } from "./prompts/translate";
@@ -52,8 +52,4 @@ export {
   runQualityChecks,
   splitIntoThread,
 } from "./adaptation-engine";
-export type {
-  AdaptationInput,
-  AdaptationResult,
-  QualityCheckResult,
-} from "./adaptation-engine";
+export type { AdaptationInput, AdaptationResult, QualityCheckResult } from "./adaptation-engine";

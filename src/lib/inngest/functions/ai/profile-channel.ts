@@ -29,18 +29,11 @@ export const profileChannel = inngest.createFunction(
       const rows = await db
         .select()
         .from(telegramChannels)
-        .where(
-          and(
-            eq(telegramChannels.id, channelId),
-            eq(telegramChannels.userId, userId),
-          ),
-        )
+        .where(and(eq(telegramChannels.id, channelId), eq(telegramChannels.userId, userId)))
         .limit(1);
 
       if (rows.length === 0) {
-        throw new Error(
-          `Channel ${channelId} not found or not owned by user ${userId}`,
-        );
+        throw new Error(`Channel ${channelId} not found or not owned by user ${userId}`);
       }
 
       return {
@@ -81,13 +74,12 @@ export const profileChannel = inngest.createFunction(
     // Step 3: Generate profile via AI
     const profile = await step.run("generate-profile", async () => {
       const { ChannelProfiler } = await import("@/lib/ai/channel-profiler");
-      const { OpenRouterClient } = await import("@/lib/ai/openrouter");
+      const { GoogleClient } = await import("@/lib/ai/google");
 
-      const aiProvider = new OpenRouterClient();
+      const aiProvider = new GoogleClient();
       const profiler = new ChannelProfiler(aiProvider);
 
-      const channelName =
-        channel.title ?? channel.username ?? channelId;
+      const channelName = channel.title ?? channel.username ?? channelId;
 
       return profiler.generateProfile(channelName, posts);
     });

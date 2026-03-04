@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { OpenRouterMessage, GenerationRequest, TokenUsage } from "../types";
 import { AI_MODELS, AIProviderError } from "../types";
-import type { CompletionResult } from "../openrouter";
+import type { CompletionResult } from "../google";
 
 const {
   mockBuildGenerateFromSourcePrompt,
@@ -33,8 +33,8 @@ vi.mock("../prompts/calendar-fill", () => ({
   buildCalendarFillPrompt: mockBuildCalendarFillPrompt,
 }));
 
-vi.mock("../openrouter", () => ({
-  OpenRouterClient: vi.fn().mockImplementation(() => ({
+vi.mock("../google", () => ({
+  GoogleClient: vi.fn().mockImplementation(() => ({
     completeWithFallback: mockCompleteWithFallback,
   })),
 }));
@@ -49,7 +49,7 @@ const defaultTokenUsage: TokenUsage = {
 
 const defaultCompletionResult: CompletionResult = {
   content: "Generated Telegram post about AI trends.",
-  model: "openai/gpt-4.1-mini",
+  model: "gemini-3-flash-preview",
   tokenUsage: defaultTokenUsage,
 };
 
@@ -60,7 +60,7 @@ const defaultMessages: OpenRouterMessage[] = [
 
 function createMockClient() {
   return { completeWithFallback: mockCompleteWithFallback } as unknown as InstanceType<
-    typeof import("../openrouter").OpenRouterClient
+    typeof import("../google").GoogleClient
   >;
 }
 
@@ -253,7 +253,7 @@ describe("GenerationEngine", () => {
     it("maps CompletionResult to GenerationResult correctly", async () => {
       mockCompleteWithFallback.mockResolvedValue({
         content: "Generated post about AI.",
-        model: "openai/gpt-4.1",
+        model: "gemini-3-pro-preview",
         tokenUsage: { promptTokens: 200, completionTokens: 150, totalTokens: 350 },
       });
 
@@ -265,7 +265,7 @@ describe("GenerationEngine", () => {
 
       expect(result.content).toBe("Generated post about AI.");
       expect(result.type).toBe("repurpose");
-      expect(result.modelUsed).toBe("openai/gpt-4.1");
+      expect(result.modelUsed).toBe("gemini-3-pro-preview");
       expect(result.tokenUsage.totalTokens).toBe(350);
     });
   });

@@ -96,8 +96,8 @@ vi.mock("@/lib/billing/ai-quota", () => ({
   },
 }));
 
-vi.mock("@/lib/ai/openrouter", () => ({
-  OpenRouterClient: class MockOpenRouterClient {},
+vi.mock("@/lib/ai/google", () => ({
+  GoogleClient: class MockGoogleClient {},
 }));
 
 vi.mock("@/lib/ai/generation-engine", () => ({

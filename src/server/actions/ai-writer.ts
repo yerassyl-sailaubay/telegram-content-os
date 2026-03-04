@@ -3,7 +3,7 @@
 import { db } from "@/server/db";
 import { telegramChannels, telegramPosts, channelProfiles } from "@/server/db/schema";
 import { createClient } from "@/lib/supabase/server";
-import { OpenRouterClient } from "@/lib/ai/openrouter";
+import { GoogleClient } from "@/lib/ai/google";
 import { AI_MODELS } from "@/lib/ai/types";
 import { ChannelProfiler } from "@/lib/ai/channel-profiler";
 import { eq, and, desc } from "drizzle-orm";
@@ -76,7 +76,7 @@ export async function analyzeChannelVoice(
     }
 
     // Use AI to analyze channel
-    const aiProvider = new OpenRouterClient();
+    const aiProvider = new GoogleClient();
     const profiler = new ChannelProfiler(aiProvider);
 
     const profile = await profiler.generateProfile(
@@ -164,7 +164,7 @@ export async function generatePostWithAI(
       .slice(0, 5);
 
     // Use AI to generate post
-    const aiProvider = new OpenRouterClient();
+    const aiProvider = new GoogleClient();
 
     const systemPrompt = `You are an expert content creator who can perfectly mimic the writing style of any channel.
 

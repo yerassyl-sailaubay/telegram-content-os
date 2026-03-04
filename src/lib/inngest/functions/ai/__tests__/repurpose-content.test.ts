@@ -23,8 +23,8 @@ vi.mock("@/lib/billing/ai-quota", () => ({
   incrementAiUsage: mockIncrementAiUsage,
 }));
 
-vi.mock("@/lib/ai/openrouter", () => ({
-  OpenRouterClient: vi.fn(),
+vi.mock("@/lib/ai/google", () => ({
+  GoogleClient: vi.fn(),
 }));
 
 vi.mock("@/lib/ai/generation-engine", () => ({
