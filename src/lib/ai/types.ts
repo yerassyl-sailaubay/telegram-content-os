@@ -201,3 +201,40 @@ export class AIProviderError extends Error {
     this.name = "AIProviderError";
   }
 }
+
+// ---------------------------------------------------------------------------
+// Content Generation pipeline (distinct from Adaptation pipeline)
+// ---------------------------------------------------------------------------
+
+export type GenerationType = "source_to_telegram" | "repurpose" | "idea_to_draft" | "calendar_fill";
+
+export type RepurposeMode = "shorter" | "thread" | "poll";
+
+export interface GenerationRequest {
+  type: GenerationType;
+  sourceContent: string;
+  channelProfile?: ChannelProfile;
+  options?: GenerationOptions;
+}
+
+export interface GenerationOptions {
+  modelTier?: ModelTier;
+  maxLength?: number;
+  numVariations?: number;
+  repurposeMode?: RepurposeMode;
+}
+
+export interface GenerationResult {
+  content: string | string[];
+  type: GenerationType;
+  modelUsed: string;
+  tokenUsage: TokenUsage;
+}
+
+export interface CalendarFillSuggestion {
+  date: string;
+  suggestedContent: string;
+  sourceId?: string;
+  sourceType: "draft" | "idea" | "repurpose";
+  confidence: number;
+}

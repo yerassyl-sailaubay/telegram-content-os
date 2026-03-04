@@ -14,8 +14,18 @@ export {
   platformEnum,
 } from "./platform-connections";
 export { crossPosts, crossPostsRelations, crossPostStatusEnum } from "./cross-posts";
-export { schedules, schedulesRelations, scheduleStatusEnum } from "./schedules";
-export { contentLibrary, contentLibraryRelations } from "./content-library";
+export {
+  schedules,
+  schedulesRelations,
+  scheduleStatusEnum,
+  scheduleTargetTypeEnum,
+} from "./schedules";
+export {
+  contentLibrary,
+  contentLibraryRelations,
+  contentSourceTypeEnum,
+  contentStatusEnum,
+} from "./content-library";
 export { mediaFiles, mediaFilesRelations } from "./media-files";
 export { channelProfiles, channelProfilesRelations } from "./channel-profiles";
 export { usageTracking, usageTrackingRelations } from "./usage-tracking";
@@ -35,3 +45,9 @@ export {
   recurringSchedulesRelations,
   recurringFrequencyEnum,
 } from "./recurring-schedules";
+export {
+  externalSources,
+  externalSourcesRelations,
+  externalSourceTypeEnum,
+  sourceProcessingStatusEnum,
+} from "./external-sources";

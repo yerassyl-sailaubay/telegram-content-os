@@ -1,9 +1,7 @@
 {
-  "active_plan": "/Users/yerassyl/Documents/Code/telegram-content-os/.sisyphus/plans/telegram-content-os.md",
+  "active_plan": ".sisyphus/plans/pivot-content-os.md",
   "started_at": "2026-02-27T18:09:29.593Z",
-  "session_ids": [
-    "ses_3604b9270ffeBHqKe0xPDCzKmg"
-  ],
-  "plan_name": "telegram-content-os",
+  "session_ids": [],
+  "plan_name": "pivot-content-os",
   "agent": "atlas"
 }

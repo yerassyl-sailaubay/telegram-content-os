@@ -1,599 +1,597 @@
-## Task 12: Telegram Message Parser — Learnings
+# Learnings — telegram-content-os
 
-### UTF-16 Offset Handling
+## 2026-02-27 Session Start
 
-- Telegram entity offsets use UTF-16 code units, and JavaScript's `.length` and `.slice()` also operate on UTF-16 code units. **They match directly** — no conversion needed for basic operations.
-- The key insight: `string.slice(offset, offset + length)` works correctly with Telegram's UTF-16 offsets because JS strings ARE UTF-16 internally.
-- Emoji like 💰, 🌍 use 2 UTF-16 code units (surrogate pairs). Cyrillic chars use 1 each. Both work correctly with direct offset usage.
-- The only gotcha would be if using codepoint-based iteration (`for...of`, `Array.from`), which we don't need.
+- Project is greenfield — no existing code
+- Worktree: /Users/yerassyl/Documents/Code/telegram-content-os-work
+- Plan: 30 implementation tasks + 4 verification tasks across 6 waves
+- Wave 1 has 7 tasks, all independent, MAX PARALLEL after T1 scaffolding
+- Task 1 must complete FIRST since all other Wave 1 tasks depend on it
 
-### Entity Parsing Architecture
+## 2026-02-27 Task 1: Project Scaffolding
 
-- Separated entities into "structural" (blockquote, pre, text_link, mention, hashtag, url, etc.) and "formatting" (bold, italic, underline, etc.).
-- Structural entities create their own ContentBlock; formatting entities become FormattingMark annotations on text blocks.
-- For overlapping formatting, used a boundary-based approach: split text at all formatting boundaries, apply active marks per segment.
-- Top-level structural entity filtering needed to avoid double-processing (e.g., mention inside blockquote).
+### Next.js + Shadcn/ui setup
 
-### HTML XSS Prevention
+- `create-next-app` cannot run in a directory with existing files (.sisyphus blocked it)
+  → Workaround: scaffold in /tmp then rsync (excluding .git and node_modules)
+- `create-next-app` latest installed Next.js 16.1.6 (not 15) — still uses App Router
+- `--no-turbopack` flag is respected; but production build still shows "Turbopack" in output (expected)
+- `bunx shadcn@latest init --defaults --base-color slate` works non-interactively with Tailwind v4
+- shadcn/ui creates `src/lib/utils.ts` automatically with `cn()` helper
+- shadcn/ui Button component lands at `src/components/ui/button.tsx`
 
-- Must escape `<`, `>`, `&`, `"`, `'` in ALL user content before embedding in HTML.
-- **Critical**: URL sanitization is separate from HTML escaping. Must block `javascript:`, `data:`, `vbscript:` protocols by replacing with `about:blank`.
-- HTML escaping alone does NOT prevent `javascript:` in `href` attributes — the browser interprets the URL before applying HTML entity decoding.
+### Tailwind CSS 4
 
-### Testing Patterns
+- No `tailwind.config.ts` in v4 — config moved to CSS via `@import "tailwindcss"` in globals.css
+- postcss.config.mjs uses `@tailwindcss/postcss` plugin
 
-- Entity offset counting: be precise. `"const x = 1;"` is 12 chars, not 13. Easy to miscount.
-- Use `makeMessage()` and `makeEntity()` helpers for test readability.
-- Test every entity type individually, then in combination and with edge cases.
-- Pre-existing test failures in `content.test.ts` (4 tests) — unrelated to this task, caused by missing DB mocks.
+### TypeScript
 
-### Build Note
+- tsconfig.json strict mode enabled by default in create-next-app
+- `@/*` path alias maps to `./src/*` — configured correctly
 
-- `bun run build` fails at page data collection stage due to missing `DATABASE_URL` env var. TypeScript compilation succeeds. This is a pre-existing issue.
+### Build verification
 
-## Task 10: Media Library + Supabase Storage Integration
+- `bun run lint` — clean (0 errors)
+- `bun run build` — clean (0 TypeScript errors)
+- `/api/health` → `{"status":"ok"}` (200) confirmed via curl
+- Health route uses `NextResponse.json({ status: "ok" }, { status: 200 })`
 
-### Patterns Discovered
+### Package versions installed
 
-- **Server actions pattern**: Use `"use server"` directive, create authenticated helper `getAuthenticatedUser()` that returns both supabase client and user. Return `{success, data/error}` result types.
-- **Supabase Storage SDK**: Use `supabase.storage.from(bucket).upload/remove/createSignedUrl`. Pass `SupabaseClient` type from `@supabase/supabase-js` for typed helpers.
-- **Storage path convention**: `{userId}/{timestamp}-{sanitizedFilename}` prevents collisions.
-- **Page pattern**: Server component page → Client wrapper for interactivity. Use `getTranslations` in server, `useTranslations` in client.
-- **Loading skeleton**: Separate `loading.tsx` file at route level. Use `Skeleton` component from shadcn.
-- **Test mocking**: Mock `@/lib/supabase/server`, `@/server/db`, and `drizzle-orm` at module level. Chained return values for Drizzle query builder pattern (`select().from().where().limit()`).
-- **i18n**: Add namespaced keys to both `en.json` and `ru.json`. Use `{count}` for interpolation.
+- next@16.1.6, react@19.2.3, tailwindcss@4.2.1, typescript@5.9.3
+- prettier@3.8.1, prettier-plugin-tailwindcss@0.7.2
+- @typescript-eslint/eslint-plugin@8.56.1
 
-### Dependencies Added
+## 2026-02-27 Task 3: Supabase + DB Schema + Drizzle ORM
 
-- `react-dropzone@15.0.0` — drag-and-drop file upload
-- `@radix-ui/react-progress` (via shadcn progress component)
+### Dependencies installed
 
-### Architecture Decisions
+- drizzle-orm@0.45.1, postgres@3.4.8, drizzle-kit@0.31.9
+- @supabase/supabase-js@2.98.0, @supabase/ssr@0.8.0
 
-- Storage helper (`src/lib/storage/client.ts`) is framework-agnostic, takes `SupabaseClient` as parameter
-- Server actions (`src/server/actions/media.ts`) handle auth + DB + storage orchestration
-- Media picker (`src/components/media-picker.tsx`) is reusable modal — accepts `onSelect(file, signedUrl)` callback
-- Client components use `"use client"` directive; page is thin server component wrapper
-- Signed URLs used for all media access (private bucket pattern)
-- File validation happens in both storage helper (reusable) and server action (authoritative)
+### Schema architecture
 
-## Task 9: Content Library CRUD + Search + Categories
+- 12 tables in `src/server/db/schema/` with individual files + barrel export
+- Drizzle `pgEnum` for: plan, subscription_status, platform, cross_post_status, schedule_status
+- `platformEnum` is shared between platform_connections and cross_posts (imported from platform-connections.ts)
+- All tables use UUID primary keys via `uuid('id').defaultRandom().primaryKey()`
+- All timestamps use `{ withTimezone: true }` for Supabase compatibility
+- Foreign keys use `onDelete: 'cascade'` except cross_posts.source_post_id which uses `onDelete: 'set null'`
+- usage_tracking has composite unique constraint on (user_id, month)
 
-### Drizzle Mock Pattern for Tests
+### Drizzle ORM patterns (v0.45.1)
 
-- **Thenable chains**: Drizzle query chains are thenable (awaitable). When mocking, `select()` chains need a `.then()` method on the returned chain object. Use a shared queue (`selectResults[]`) that shifts values on `.then()` calls.
-- **Mutation chains**: `insert/update/delete` chains use `.returning()` — mock this as a standalone function with `mockResolvedValueOnce`.
-- **vi.hoisted()**: All mock variables referenced inside `vi.mock()` factory functions MUST be declared via `vi.hoisted()` — otherwise `vi.mock` hoisting causes "Cannot access before initialization" errors.
-- **importOriginal for drizzle-orm**: Schema files import `relations`, `pgTable` etc. from `drizzle-orm`. Mock must use `importOriginal()` to preserve these while overriding operators (`eq`, `and`, `ilike`, etc.).
+- `pgEnum()` call without explicit column name creates a reusable enum type
+- `relations()` must be defined separately from table schema
+- Circular imports between schema files work fine with Drizzle (users → subscriptions → users)
+- `unique()` from `drizzle-orm/pg-core` for composite unique constraints in table config callback
+- Table config callback now returns array (not object) in latest Drizzle: `(table) => [unique(...)]`
 
-### Full-Text Search with Postgres tsvector
+### DB client singleton
 
-- Used raw SQL via `sql` template tag: `to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, '')) @@ to_tsquery('english', ...)`
-- Search query transformation: split on whitespace, append `:*` for prefix matching, join with `&` for AND semantics.
-- `ts_rank()` used for relevance-based ordering.
+- Uses `globalThis` cache pattern for Next.js HMR (prevents connection leaks in dev)
+- `postgres(url, { prepare: false })` — `prepare: false` required for Supabase transaction pooler
+- DB client throws on missing DATABASE_URL — intentional for clear error messaging
 
-### Categories as Derived Data
+### Build verification
 
-- Categories are NOT a separate table — they're derived from `DISTINCT category` values in content_library.
-- Rename = update all matching rows. Delete = set category to null on matching rows.
-- Categories created "optimistically" in UI state for immediate use before first content with that category is saved.
+- `bun run build` passes cleanly with all schema files
+- Zero LSP diagnostics across all 16 new files
+- Schema files don't trigger Next.js build issues since they're not imported by any pages/routes yet
 
-### useRef in React 19 Strict Mode
+## 2026-02-27 Task 2: Test Infrastructure
 
-- `React.useRef<T>()` without initial arg is a compile error in strict TS. Must pass `undefined` or `null` explicitly: `React.useRef<T | null>(null)`.
+### Vitest + Happy-DOM setup
 
-### Pre-existing Build Issue
+- Use `happy-dom` as test environment (NOT jsdom) — faster and more accurate
+- vitest config MUST set `include: ["src/**/*.{test,spec}.{ts,tsx}"]` to exclude e2e/ from vitest glob
+  → Without explicit include, `bun run test` (vitest) picks up e2e/\*.spec.ts and fails with Playwright conflict error
+- Path alias `@/*` → `./src/*` must be set in vitest.config.ts resolve.alias to match tsconfig
+- `setupFiles: ["./src/test/setup.ts"]` loads jest-dom matchers globally
 
-- `src/lib/inngest/functions/scheduling/execute-scheduled-post.ts` has TS error (`db.query.schedules` — type `{}`) that predates this task. Build fails at TS check, not from content library changes.
+### bun test vs bun run test
+
+- `bun test --run` invokes bun's NATIVE test runner (not vitest) — picks up ALL \*.spec.ts files
+- `bun run test` invokes the npm script → `vitest --run` — correct way to run unit tests
+- E2E tests (e2e/\*.spec.ts) must be excluded from vitest include pattern to avoid Playwright collision
+
+### Playwright setup
+
+- `bunx playwright install chromium` — installs only chromium (no output on success = OK)
+- playwright.config.ts uses `webServer` to auto-start dev server during E2E runs
+- E2E tests should NOT be run without a live dev server — do not include in `bun run test`
+- E2E test in e2e/health.spec.ts uses `request` fixture (no browser needed for API tests)
+
+### Package versions installed
+
+- vitest@4.0.18, @vitejs/plugin-react@5.1.4, happy-dom@20.7.0
+- @testing-library/react@16.3.2, @testing-library/jest-dom@6.9.1, @testing-library/user-event@14.6.1
+- @vitest/coverage-v8@4.0.18, @playwright/test@1.58.2
+
+### Build verification
+
+- `bun run test` (vitest --run) — 7/7 unit tests passing
+- `bun run build` — clean (0 TypeScript errors)
+- `.next/lock` file can cause spurious build failures if a previous build was interrupted — delete and retry
+
+## [2026-02-27] Task 7: Inngest Setup
+
+### Package
+
+- Installed `inngest@3.52.4` via `bun add inngest`
+- `inngest/next` subpath export provides `serve()` for Next.js App Router API routes
+
+### Pattern: Inngest Client
+
+```ts
+import { Inngest } from "inngest";
+export const inngest = new Inngest({ id: "telegram-content-os" });
+```
+
+### Pattern: Event-triggered function
+
+```ts
+inngest.createFunction({ id: "test/hello-world" }, { event: "test/hello" }, async ({ event, step }) => { ... })
+```
+
+### Pattern: Cron function
+
+```ts
+inngest.createFunction({ id: "scheduled/example" }, { cron: "* * * * *" }, async ({ step }) => { ... })
+```
+
+### Pattern: Next.js App Router API Route
+
+```ts
+import { serve } from "inngest/next";
+export const { GET, POST, PUT } = serve({ client: inngest, functions });
+```
+
+### Dev Script
+
+- `"inngest-dev": "bunx inngest-cli@latest dev"` in package.json
+- Runs local Inngest dev server (no cloud connection needed)
+
+### Build Result
+
+- `bun run build` compiles cleanly with zero TypeScript errors
+- `/api/inngest` route registered as Dynamic (server-rendered)
+- Build shows `ƒ /api/inngest` confirming dynamic route works
+
+## 2026-02-27 Task 4: Supabase Auth
+
+### @supabase/ssr v0.8.0 API
+
+- `createBrowserClient(url, key)` from `@supabase/ssr` — singleton browser client, no cookie config needed
+- `createServerClient(url, key, { cookies: { getAll, setAll } })` — server client with cookie handlers
+- Both use `getAll`/`setAll` pattern (NOT deprecated `get`/`set`/`remove`)
+- Server client `setAll` wraps in try/catch — silently fails in Server Components (middleware handles refresh)
+- Middleware client copies cookies from request → response using `NextResponse` cookie API
+
+### Auth architecture
+
+- Browser client: `src/lib/supabase/client.ts` — simple `createBrowserClient` wrapper
+- Server client: `src/lib/supabase/server.ts` — `cookies()` from `next/headers`, async
+- Middleware helper: `src/lib/supabase/middleware.ts` — refreshes session, returns `{ user, supabaseResponse }`
+- Next.js middleware: `src/middleware.ts` — route protection + session refresh
+- Server actions: `src/server/actions/auth.ts` — login, signup, logout, signInWithOAuth
+- OAuth callback: `src/app/(auth)/auth/callback/route.ts` — exchanges code for session
+
+### Route protection pattern
+
+- Middleware matches all routes except static files, images, favicon, health API
+- Unauthenticated → /dashboard/\* → redirect to /login
+- Authenticated → /login|/signup → redirect to /dashboard
+- Dashboard layout also checks session server-side as defense-in-depth
+
+### Next.js 16 specifics
+
+- `searchParams` is now `Promise<{...}>` in page props — must await
+- `cookies()` from `next/headers` is async — must await
+- `headers()` from `next/headers` is async — must await
+- Middleware file triggers deprecation warning: 'Use proxy instead' — still works
+
+### Parallel task conflicts
+
+- Task 5 (i18n) added `src/app/[locale]/page.tsx` importing non-existent `@/components/language-switcher`
+- Created stub component to unblock build — Task 5 should replace it
+
+### shadcn components installed
+
+- Card, Input, Label (added for auth forms)
+- Button (pre-existing from scaffolding)
+
+### Build result
+
+- `bun run build` passes cleanly with all auth files
+- Zero LSP diagnostics across all 10 new auth files
+- Routes: /login, /signup, /auth/callback, /dashboard all registered correctly
+
+## 2026-02-27 Task 5: i18n Setup
+
+### next-intl v4.8.3 Setup
+
+- `next-intl@4.8.3` installed — latest stable for Next.js App Router
+- `createNextIntlPlugin` wraps `nextConfig` in `next.config.ts` — pass path to request config
+- `defineRouting` from `next-intl/routing` for locale config (locales, defaultLocale)
+- `createNavigation` from `next-intl/navigation` exports: Link, redirect, usePathname, useRouter
+- `getRequestConfig` from `next-intl/server` for server-side locale resolution + message loading
+- `hasLocale` from `next-intl` validates locale strings
+
+### File structure
+
+- `src/i18n/routing.ts` — defineRouting({ locales: ['en', 'ru'], defaultLocale: 'ru' })
+- `src/i18n/request.ts` — getRequestConfig with dynamic import for message JSON files
+- `src/i18n/navigation.ts` — createNavigation(routing) re-exports
+- `src/messages/en.json` + `src/messages/ru.json` — structured by namespace (common, auth, nav, dashboard)
+- `src/app/[locale]/layout.tsx` — locale-aware layout with NextIntlClientProvider
+- `src/app/[locale]/page.tsx` — locale-aware home page with useTranslations
+- `src/components/language-switcher.tsx` — DropdownMenu from shadcn/ui to switch locale
+
+### Layout architecture with next-intl
+
+- Root `src/app/layout.tsx` becomes a passthrough (`return children`) — no <html> or <body>
+- `src/app/[locale]/layout.tsx` renders `<html lang={locale}>` and wraps with `NextIntlClientProvider`
+- `generateStaticParams` returns all locales for SSG
+- `setRequestLocale(locale)` called for static rendering support
+- Geist fonts configured with `cyrillic` subset for Russian support
+
+### Middleware integration with auth (Task 4)
+
+- next-intl uses `createMiddleware(routing)` — called as function in custom middleware
+- Auth middleware (Supabase session check) integrated: i18n routing runs first, then auth checks
+- Auth routes (`/login`, `/signup`, `/dashboard`) checked after stripping locale prefix
+- `/auth/callback` route skips i18n (API-like route)
+- Next.js 16 shows deprecation: 'middleware file convention is deprecated, use proxy instead' — still works
+
+### Geist fonts
+
+- Geist and Geist_Mono support `cyrillic` subset — added to font config for Russian
+
+### Build result
+
+- `bun run build` passes cleanly with zero TypeScript errors
+- Routes: `/en` and `/ru` registered as SSG (static)
+- All auth routes (`/login`, `/signup`, `/dashboard`, `/auth/callback`) still work
+- shadcn `dropdown-menu` component added for language switcher
+
+## [2026-02-27] Task 6: UI Shell
+
+### Patterns Used
+
+- shadcn/ui Sidebar component (`bunx shadcn@latest add sidebar`) installs `src/components/ui/sidebar.tsx` + `src/hooks/use-mobile.ts` + skeleton
+- shadcn Sidebar provides: `SidebarProvider`, `Sidebar`, `SidebarContent`, `SidebarHeader`, `SidebarFooter`, `SidebarMenu`, `SidebarMenuButton`, `SidebarMenuItem`, `SidebarInset`, `SidebarTrigger` — all composable
+- `SidebarMenuButton` accepts `isActive` prop for active nav highlighting, and `tooltip` prop for collapsed tooltip
+- `SidebarInset` wraps the main content area next to the sidebar
+- `SidebarTrigger` in the header triggers mobile hamburger
+
+### next-themes Integration
+
+- `bun add next-themes@0.4.6`
+- `ThemeProvider` wraps `NextIntlClientProvider > children` in `[locale]/layout.tsx`
+- Use `attribute="class"` with `enableSystem` — dark mode class applies to `<html>`
+- `disableTransitionOnChange` prevents flash on theme switch
+
+### i18n Server Components in App Router
+
+- Placeholder pages are server components: use `getTranslations('namespace')` (async)
+- Client components: use `useTranslations('namespace')` (sync hook)
+- Added `comingSoon` key to `common` namespace in both en.json and ru.json
 
 ### Architecture
 
-- Server page fetches data, passes to client `ContentList` component
-- Client component manages all interactivity (search, filter, sort, CRUD modals)
-- URL search params used for filter state (shareable, back-button friendly)
-- Debounced search input → URL param update → useEffect refresh
+- `Shell` is a server component that receives `userEmail` and renders `SidebarProvider > AppSidebar + SidebarInset > AppHeader + main`
+- `AppSidebar` is `"use client"` — uses `useTranslations`, `usePathname` for active state
+- `AppHeader` is `"use client"` — breadcrumbs derived from `usePathname()` with segment map
+- `(dashboard)/layout.tsx` remains a server component — preserves Supabase auth check, passes `user.email` to Shell
 
-## Task 8: Telegram Bot Setup + Webhook Pipeline + Post Ingestion
+### Gotchas
 
-### Lazy Dynamic Imports for Next.js API Routes
+- zsh glob expands `(dashboard)` — must quote paths with parentheses in mkdir: `mkdir -p "/path/(dashboard)/..."`
+- shadcn Breadcrumb component not installed by default — needed `bunx shadcn@latest add breadcrumb`
+- The sidebar nav group label used `t("dashboard")` — could use a dedicated "navigation" label instead in future
+- `globals.css` already had sidebar CSS variables pre-configured from a previous shadcn install attempt
 
-- Importing `@/server/db` at module top-level in API routes causes build failure — `DATABASE_URL` isn't available during static page generation.
-- Solution: `async function getDb() { const { db } = await import("@/server/db"); return db; }` pattern.
-- Same applies to `@/server/db/schema`, `@/lib/inngest/client`, and `drizzle-orm` — all need lazy imports in webhook route.
-- Inngest function bodies also need lazy imports inside `step.run()` callbacks — top-level module imports get evaluated when the functions barrel is imported by the inngest API route.
+### Build
 
-### Telegram Webhook Best Practices
+- `bun run build` passes clean with 0 TypeScript errors
+- `bun run test` — 7/7 unit tests pass
+- All 7 dashboard routes render as dynamic server-rendered pages
 
-- Always return HTTP 200 to Telegram, even on application errors. Returning 4xx/5xx causes Telegram to retry, creating loops.
-- `X-Telegram-Bot-Api-Secret-Token` header verification using `crypto.timingSafeEqual` for constant-time comparison.
-- `crypto.timingSafeEqual` requires both buffers to be the same length — check length first before calling.
-- Use `require("crypto")` with eslint disable comment since crypto module needs careful import handling in Next.js.
+## Task 11: Scheduling Engine + Calendar UI
 
-### Media Group Batching
+### Timezone Handling
 
-- Telegram sends album posts as multiple separate messages with the same `media_group_id`.
-- Used in-memory `Map<string, { timeout, post }>` with 1-second window — first message creates the record, subsequent messages append media to it.
-- `setTimeout` triggers final DB update + Inngest event after the window closes.
-- Trade-off: in-memory batching doesn't survive server restarts. Acceptable for MVP; production would use Redis or DB-based batching.
+- Asia/Almaty is UTC+5 (not UTC+6) per IANA database — always verify against `date-fns-tz` output
+- `date-fns-tz@3.x` uses `TZDate` class instead of `utcToZonedTime`/`zonedTimeToUtc` from v2
+- For timezone grouping, `Intl.supportedValuesOf('timeZone')` gives browser-supported zones
+- `getTimezoneOffset` from date-fns-tz returns offset in milliseconds, divide by 3600000 for hours
 
-### Telegram Bot API Client Pattern
+### Calendar UI (No Heavy Libraries)
 
-- No external SDK (telegraf/grammy) — pure `fetch` wrapper with typed responses.
-- `withRetry()` function with exponential backoff for retryable status codes: 429 (rate limit), 500, 502, 503, 504.
-- `getTelegramClient()` factory with singleton caching per bot token — prevents multiple instances.
-- Custom `TelegramApiError` class extends `Error` with `statusCode` and `description` fields.
+- Built month/week/day views from scratch using date-fns — no FullCalendar/react-big-calendar needed
+- Month view: 6-row grid with `startOfWeek`/`endOfWeek` around `startOfMonth`/`endOfMonth`
+- Week view: 7-column × 24-row grid with hour labels; events positioned by `top` percentage
+- Day view: single column × 24-row; same positioning logic as week
+- shadcn `Calendar` component (react-day-picker) used only for the date picker in dialogs, not the main view
 
-### Vitest Fake Timers + Rejected Promises
+### Scheduling Engine Pattern
 
-- Using `vi.useFakeTimers()` with `mockRejectedValue()` (not `Once`) in retry tests causes unhandled rejection warnings.
-- Solution: use `mockImplementation(() => Promise.reject(...))` or switch to real timers with tiny delays for exhaustion tests.
+- Engine functions take `db` as parameter for testability (dependency injection)
+- `validateScheduleTime` enforces minimum 5-minute future window
+- Inngest `step.run()` for each discrete operation: fetch → mark-processing → emit-event → mark-completed
+- Used `inngest.send()` to emit a `post/publish.requested` event rather than directly posting
+- Schedule statuses: pending → processing → completed/failed; also cancelled (from user action)
 
-### Pre-existing Issues Fixed
+### Testing with vi.mock
 
-- Missing comma in `src/messages/en.json` and `ru.json` (line 121) — broke JSON parsing.
-- `block.formatting` not null-safe in `src/lib/telegram/converters.ts` — added `?? []` fallback (4 occurrences).
-- `React.useRef` without initial arg in `src/components/content/content-list.tsx` — React 19 strict mode requires explicit `null`.
+- Mock `@/server/db` and `@/lib/inngest/client` at module level for engine tests
+- `vi.mocked(db.insert).mockReturnValue(chain)` pattern for Drizzle query builder chains
+- Timezone tests don't need mocks — pure function tests with known inputs/outputs
 
-### Build Stats After Task 8
+### Server Actions Pattern
 
-- `bun run test` — 240 tests pass (9 test files), 0 failures
-- `bun run build` — clean, 22 routes generated
-- `npx tsc --noEmit` — zero type errors
-- 6 new files created, 1 existing file modified, 3 pre-existing files fixed
+- `createScheduleAction` uses `getUser()` for auth, then delegates to engine functions
+- `getSchedulesForCalendar` accepts date range + timezone, returns typed schedule objects
+- Revalidation: `revalidatePath('/dashboard/schedule')` after mutations
 
-## Channel Management (Task completed 2026-02-28)
+### Build Stats After Task 11
 
-- **No `Alert` component**: shadcn Alert is not installed — use custom `div` with destructive styling instead
-- **No `Switch` component**: shadcn Switch is not installed — use `Button` with variant toggle as alternative
-- **Telegram `getChat` test**: Bot access check for a channel works by catching the thrown `TelegramApiError` when bot isn't admin
-- **Server action pattern for nested queries**: Use `Promise.all` for parallel queries; `sql<Date | null>` for max aggregates
-- **Channel detail page**: Use `"use server"` inline function + `redirect()` for server-side disconnect action in Server Component
-- **Test `selectResults` queue**: Each `db.select()` call consumes one entry from the queue — remember to push entries for ALL selects in a single action call (channel lookup + post stats + recent posts = 3 pushes)
-- **Build fix**: Always check `ls src/components/ui/` before importing shadcn components; not all are installed
+- `bun run test` — 240 tests pass (9 test files, 23 new scheduling tests)
+- `bun run build` — clean, 0 TypeScript errors
+- `/dashboard/schedule` route registered as dynamic (ƒ)
+- 13 new files created, 3 existing files modified
 
-## Task 18: Twitter/X OAuth + Posting Integration
-
-### OAuth 2.0 PKCE Flow
-
-- Twitter uses OAuth 2.0 with PKCE (not OAuth 1.0a) for v2 API access.
-- `code_verifier` (32 random bytes, base64url) + `code_challenge` (SHA-256 of verifier, base64url) is the PKCE pair.
-- Store `code_verifier` and `state` in HTTP-only cookies during OAuth redirect; retrieve in callback.
-- Token endpoint requires Basic auth header (`base64(client_id:client_secret)`) + `application/x-www-form-urlencoded` body.
-- Twitter access tokens expire every 2 hours — must refresh proactively or on 401.
-
-### Twitter API v2 Specifics
-
-- Create tweet: `POST https://api.x.com/2/tweets` with `{ text: "..." }`.
-- Reply: add `reply: { in_reply_to_tweet_id: "..." }` to body.
-- Thread = sequence of replies: post first tweet, then reply to it, then reply to reply, etc.
-- Media upload STILL uses v1.1: `POST https://upload.twitter.com/1.1/media/upload.json` with `media_data` (base64) in form body.
-- User info: `GET https://api.x.com/2/users/me` with Bearer token.
-
-### Rate Limit Tracking
-
-- Free tier: 1,500 posts/month. Track in `usage_tracking` table (shared with AI calls tracking).
-- Upsert pattern: try `UPDATE ... WHERE userId=X AND month=YYYY-MM`, if 0 rows affected, `INSERT`.
-- `crossPostsCount` field in `usage_tracking` serves as the monthly counter.
-
-### Parallel Task Coordination (Task 17 LinkedIn)
-
-- Task 17 created `src/lib/platforms/types.ts` with shared types (`TokenPair`, `EncryptedTokenPair`, `PlatformConnection`, `PostResult`, `LinkedInApiError`).
-- When adding Twitter types, APPEND to existing `types.ts` — don't overwrite LinkedIn types.
-- Created `src/lib/platforms/index.ts` barrel export for both LinkedIn and Twitter.
-- Created shared `src/lib/platforms/encryption.ts` (AES-256-GCM) usable by both platforms.
-
-### Inngest Function Pattern
-
-- Inngest function for platform posting NOT added to the functions barrel (`src/lib/inngest/functions/index.ts`) to avoid conflicts with parallel tasks. Created as standalone export.
-- Each `step.run()` block does its own lazy imports — this is critical for avoiding build-time failures.
-- 401 handling: catch error, refresh token, retry once within the same step.
-
-### Testing Patterns
-
-- Mock global `fetch` with `vi.stubGlobal("fetch", mockFetch)` for Twitter API tests.
-- DB mock pattern: chain methods (`select().from().where().limit()`) with controllable return values via `mockLimit.mockReturnValueOnce()`.
-- Retry tests with real timers (small `baseDelayMs: 1`) are more reliable than fake timers for this use case.
-- Web Crypto (`crypto.subtle.digest`) is available in happy-dom test environment — no need to mock it.
-- 40 new tests covering: PKCE, auth URL, token exchange, refresh, user info, tweet creation, replies, media, threads, rate limits, encryption, retry logic, error classes.
-
-### Build Stats After Task 18
-
-- `bun run test` — 370 tests pass (13 test files), 0 failures
-- `bun run build` — clean, 26 routes (including `/api/auth/twitter` and `/api/auth/twitter/callback`)
-- Zero TS diagnostics on all new files
-
-## Task 15: AI Content Adaptation Engine
+## [2026-02-28] Task 14: OpenRouter AI Provider Abstraction Layer
 
 ### Architecture
 
-- `AdaptationEngine` class takes `AIProvider` (dependency injection) — easy to mock in tests.
-- Pipeline: extract plain text → AI provider call → quality checks → Twitter threading.
-- Pure utility functions exported separately for unit testing: `extractPlainText`, `isEnglish`, `fitsLengthLimit`, `hasHashtags`, `runQualityChecks`, `splitIntoThread`.
+- 2-step pipeline: translate (RU→EN literal) → adapt (platform-specific EN)
+- `AIProvider` interface in `provider.ts` defines the contract: `adaptContent()` + `analyzeChannelProfile()`
+- `OpenRouterClient` class implements `AIProvider` with lazy API key validation
+- Prompt templates are pure functions returning `OpenRouterMessage[]` arrays
+- Model registry: `AI_MODELS` record keyed by tier (default/fast/pro)
 
-### Twitter Thread Splitting
+### Lazy Init Pattern (Critical)
 
-- Split at sentence boundaries first (regex: `/[^.!?]*[.!?]\s?|[^.!?]+$/g`).
-- If single sentence exceeds `maxLength`, fall back to word-boundary splitting.
-- Thread numbering added as ` N/M` suffix (e.g., ` 1/3`).
-- Default `maxLength=270` (reserves 10 chars for numbering within 280 limit).
-- Content ≤ 280 chars → no splitting, returned as single-element array.
+- Constructor does NOT validate `OPENROUTER_API_KEY` — only checks at request time via `getApiKey()`
+- This matches the project pattern: DB uses Proxy-based lazy init, Telegram uses factory function
+- Prevents build-time failures when env vars aren't set
 
-### Quality Checks
+### OpenRouter API
 
-- `isEnglish()`: Counts Latin vs Cyrillic alpha chars. >90% Latin = English. Extended Latin (accented) counted as Latin.
-- `fitsLengthLimit()`: LinkedIn ≤ 3000, Twitter ≤ 280.
-- For Twitter threads, checks each tweet individually (not total content).
-- `hasHashtags()`: Simple regex `/#\w+/`.
-- Warnings array collects human-readable issues for UI display.
+- Endpoint: `https://openrouter.ai/api/v1/chat/completions`
+- Auth: `Authorization: Bearer <key>` header
+- Request body matches OpenAI format: `{ model, messages, temperature, max_tokens }`
+- Response includes `usage.prompt_tokens`, `usage.completion_tokens`, `usage.total_tokens`
+- Headers: also sends `HTTP-Referer` and `X-Title` (OpenRouter best practice)
 
-### Inngest Function Pattern (adapt-content)
+### Retry & Fallback
 
-- Event: `ai/content.adapt` with `{ postId, userId, platform, channelId?, modelTier? }`.
-- Uses lazy imports pattern consistently (`await import(...)` inside `step.run()`).
-- `contentParsed` from DB is `jsonb` — needs type assertion to `ParsedContent` shape.
-- For inline type imports in runtime code: `import("@/lib/telegram/parser.types").ParsedContent` works for type position only.
-- Cannot destructure types from dynamic `import()` — `const { ParsedContent } = await import(...)` fails because types are erased.
-- Channel profile fetched from `channel_profiles` table if `channelId` available (from event data or post's `channelId`).
-- Result stored in `cross_posts` with `status: "draft"` — user reviews before posting.
+- Exponential backoff with jitter: `baseDelayMs * 2^attempt + random(0-200)ms`
+- Retryable status codes: 429, 500, 502, 503, 504
+- Model fallback: if primary model returns 502/503 after exhausting retries, tries `default` → `fast` tiers
+- `AIProviderError` class carries `statusCode` + `retryable` flag for callers to handle
+
+### Timeout
+
+- Uses `AbortController` with `AbortSignal.timeout` pattern
+- Default 30s timeout, configurable via `options.timeoutMs`
+- `AbortError` is caught and re-thrown as retryable `AIProviderError` (408)
+
+### Prompt Design
+
+- Translate prompt: emphasizes LITERAL translation, low temperature (0.3)
+- LinkedIn: professional tone, thought-provoking question, 1-2 hashtags, <3000 chars
+- Twitter: conversational/punchy, 2-5 hashtags, emoji, 280 char/tweet, thread splitting
+- Channel profile: expects JSON output with niche, tone, topTopics, language
+- All prompts accept optional `channelProfile` for tone-matching context
+
+### JSON Parsing from AI
+
+- AI may wrap JSON in markdown code fences (`json ... `)
+- `parseJsonResponse()` strips fences before `JSON.parse()`
+- Throws `AIProviderError` on parse failure with content preview
 
 ### Testing
 
-- 45 tests covering: extractPlainText (8), isEnglish (6), fitsLengthLimit (4), hasHashtags (4), runQualityChecks (8), splitIntoThread (7), AdaptationEngine (8).
-- Mock `AIProvider` via `vi.fn().mockResolvedValue()` — no actual API calls.
-- `satisfies` keyword useful for type-checking mock return values against interface.
+- 46 new tests covering: prompt templates, model config, client, retry, fallback, pipeline, error handling
+- `mockFetch.mockReset()` in `beforeEach` is essential — `vi.restoreAllMocks()` alone doesn't reset call counts for manually created `vi.fn()` mocks
+- Fake timers (`vi.useFakeTimers()`) + `vi.advanceTimersByTimeAsync()` for retry tests
+- Real timers needed for exhaustion tests (tiny delays, multiple retries)
 
-### Build Stats After Task 15
+### Files Created (9 new)
 
-- `bun run test` — 430 tests pass (15 test files), 0 failures
-- `bun run build` — clean, 26 routes
-- Zero TS diagnostics on all new files
+- `src/lib/ai/types.ts` — All AI types, model config, error class
+- `src/lib/ai/provider.ts` — AIProvider interface
+- `src/lib/ai/openrouter.ts` — OpenRouter client implementation
+- `src/lib/ai/prompts/translate.ts` — RU→EN literal translation prompt
+- `src/lib/ai/prompts/adapt-linkedin.ts` — LinkedIn adaptation prompt
+- `src/lib/ai/prompts/adapt-twitter.ts` — Twitter adaptation prompt
+- `src/lib/ai/prompts/channel-profile.ts` — Channel profile analysis prompt
+- `src/lib/ai/__tests__/openrouter.test.ts` — 46 tests
+- `src/lib/ai/index.ts` — Barrel export
 
-## Task 22: Stripe Billing Integration + Subscription Tiers
+### Build Stats After Task 14
 
-### Architecture
+- `bun run test` — 370 tests pass (13 test files, 46 new AI tests)
+- `bun run build` — clean, 0 TypeScript errors
+- Zero LSP diagnostics across all 9 new files
 
-- **Billing module**: `src/lib/billing/` — 7 files (types, plans, stripe client, checkout, portal, webhook, barrel export).
-- **Plan tiers**: Free ($0, default), Plus ($19/mo), Pro ($49/mo). Stripe Price IDs from env vars.
-- **Stripe Checkout hosted page** — no custom payment forms. Monthly only in V1.
-- **Dynamic imports in webhook handlers**: Each handler uses `const { db } = await import("@/server/db")` to avoid build-time DB connection.
-- **Webhook dispatcher**: handles 4 event types (checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed). Returns `{handled, eventType, error?}` — never throws.
+## [2026-02-28] Task 17: LinkedIn OAuth + Posting Integration
 
-### Stripe SDK v20 (API 2026-02-25.clover) Breaking Change
+### OAuth 2.0 PKCE Flow
 
-- **CRITICAL**: `current_period_end` and `current_period_start` moved from `Subscription` to `SubscriptionItem` level.
-- Must read from `sub.items.data[0].current_period_end` instead of `sub.current_period_end`.
-- `stripe.subscriptions.retrieve()` returns `Response<Subscription>` — access period dates via items.
+- LinkedIn OAuth uses PKCE with S256 code challenge method
+- `code_verifier` is 43-128 char random string (RFC 7636), stored in HTTP-only cookie during OAuth redirect
+- `code_challenge` = Base64URL(SHA-256(code_verifier)) — no padding, URL-safe alphabet
+- LinkedIn token endpoint: `https://www.linkedin.com/oauth/v2/accessToken`
+- Authorization URL: `https://www.linkedin.com/oauth/v2/authorization`
+- Required scopes: `openid`, `profile`, `w_member_social` (for Posts API)
 
-### Mocking Stripe in Tests
+### LinkedIn API Headers
 
-- `vi.mock("stripe")` with a class-based mock, NOT `vi.fn().mockImplementation()`. The Stripe SDK uses `new Stripe()` constructor — arrow functions are not constructable.
-- Correct pattern: `class StripeMock { checkout = {...}; constructor(_key, _opts) {} }` then `return { default: StripeMock }`.
-- DB mocking for dynamic imports: `vi.mock("@/server/db")`, `vi.mock("@/server/db/schema")`, `vi.mock("drizzle-orm")` at module level works because vitest resolves these the same way as dynamic `import()` calls.
+- `LinkedIn-Version: 202401` — required version header for all API calls
+- `X-Restli-Protocol-Version: 2.0.0` — required for REST.li endpoints
+- `Content-Type: application/json` — standard
+- `Authorization: Bearer <token>` — standard OAuth bearer token
 
-### UI Components
+### Posts API (v2)
 
-- `PricingCard`: shows plan features, current plan indicator, popular badge.
-- `UsageMeter`: progress bar with warning/exceeded states, unlimited support.
-- `BillingClient`: client component orchestrating pricing cards grid, usage meters, manage subscription button, checkout flow.
-- Server page (`billing/page.tsx`) fetches subscription + usage data, renders `PageHeader + BillingClient`.
+- POST `https://api.linkedin.com/rest/posts` — create text or image posts
+- Image upload is 2-step: (1) `POST /rest/images?action=initializeUpload` to get upload URL, (2) `PUT` binary to upload URL
+- Image initialize request body: `{ initializeUploadRequest: { owner: "urn:li:person:<id>" } }`
+- Post body uses `shareCommentary` for text content and `content.media.id` for image attachment
+- User info endpoint: `https://api.linkedin.com/v2/userinfo` (OpenID Connect)
 
-### i18n JSON Editing Lessons
+### Token Encryption
 
-- **ALWAYS validate JSON after editing** with `node -e "JSON.parse(fs.readFileSync(...))"`.
-- When appending a new top-level namespace to JSON, ensure the previous closing brace gets a trailing comma.
-- The `"nav"` key must stay as a nested object — never flatten it.
+- Used AES-256-GCM for encrypting tokens before DB storage
+- Key derived via SHA-256 hash of `ENCRYPTION_KEY` env var (any string works, hashed to 32 bytes)
+- IV is random 12 bytes, prepended to ciphertext, auth tag appended (16 bytes)
+- Different from existing `encryption.ts` which expects 64 hex char key — both coexist
 
-### Build Stats After Task 22
+### Name Collision with Twitter Module
 
-- `bun run test` — 524 tests pass (18 test files), 0 failures
-- `bun run build` — clean, 31 routes (including `/api/billing/checkout`, `/api/billing/portal`, `/api/billing/webhook`, `/dashboard/billing`)
-- 26 billing-specific tests covering: plan definitions, tier resolution, Stripe client singleton, checkout session, portal session, webhook signature verification, all 4 webhook event handlers, error handling, barrel exports
+- Both `twitter.ts` and `linkedin.ts` export identically-named functions (generateCodeVerifier, buildAuthorizationUrl, etc.)
+- Barrel `index.ts` uses namespace re-exports: `export * as linkedin from './linkedin'`, `export * as twitter from './twitter'`
+- `export * as encryption from './encryption'` for shared encryption module
 
-## Task 23 — Usage Tracking + Tier Enforcement (enforce.ts + tests)
+### Inngest Function Pattern
 
-### vi.hoisted() pattern for DB mock symbols
+- Event: `platform/linkedin.post` with data: `{ crossPostId, userId }`
+- Steps: mark-processing → fetch-connection → decrypt-tokens → (optional) upload-image → create-post → (on 401) refresh-and-retry → mark-completed
+- `crossPostStatusEnum` only has: draft, scheduled, posted, failed — no `processing`, so used `scheduled` as intermediate
+- 401 from API triggers automatic token refresh + single retry
 
-When `vi.mock` factory callbacks reference module-level variables (like `Symbol()`), those variables must be created via `vi.hoisted()` — not as plain `const`. `vi.mock` factories are hoisted above ALL `const` declarations in the file, causing temporal dead zone errors.
+### Testing Insights
 
-**Wrong:**
+- `mockFetch.mockReset()` in `beforeEach` is essential — `vi.restoreAllMocks()` doesn't clear mock call history for `vi.fn()` mocks
+- Test command: `bun vitest run <path>` for single file (NOT `bun run test -- --run <path>` which causes double `--run` flag)
+- 24 new tests covering: PKCE helpers, token encryption, buildAuthorizationUrl, exchangeCodeForTokens, refreshAccessToken, getUserInfo, createPost, uploadImage, withLinkedInRetry
 
-```ts
-const mockTable = Symbol("table"); // TDZ error inside factory
-vi.mock("@/server/db/schema", () => ({ table: mockTable }));
-```
+### API Route Lazy Imports
 
-**Correct:**
+- LinkedIn API routes use dynamic `import()` for DB/library imports to avoid build-time failures
+- `cookies()` and `searchParams` are async Promises in Next.js 16 — must `await`
+- OAuth state parameter uses `crypto.randomUUID()` stored in cookie for CSRF protection
 
-```ts
-const { mockTable } = vi.hoisted(() => ({ mockTable: Symbol("table") }));
-vi.mock("@/server/db/schema", () => ({ table: mockTable }));
-```
+### Build Stats After Task 17
 
-### buildSelectChain utility
+- `bun run test` — 370 tests pass (13 test files, 24 new LinkedIn tests)
+- `bun run build` — clean, 0 TypeScript errors
+- New routes: `/api/auth/linkedin` and `/api/auth/linkedin/callback` registered as dynamic (ƒ)
+- 7 new files created (linkedin.ts, linkedin.test.ts, 2 API routes, inngest function, updated index.ts and types.ts)
 
-Test helper that builds a chainable DB select mock (`.select().from().where().limit()`) returning a resolved value. Must be defined as a plain `function` (hoisted) or `const` at module scope — NOT inside `vi.hoisted` (which only runs once at hoist time, not per-call).
+## [2026-02-28] Task 20: Analytics Data Collection — Track Cross-Post Performance
 
-### enforceQuota / withQuotaCheck design
+### Schema Design
 
-- `enforceQuota` is a "never throws" function returning a discriminated union
-- `withQuotaCheck` throws `QuotaExceededError` (extends `Error` with `used`, `limit`, `upgradeUrl` properties)
-- When a user exceeds quota, `enforceQuota` calls both `canCrossPost` AND `getRemainingQuota` — so the DB select mock needs 4 call slots (2 for canCrossPost, 2 for getRemainingQuota)
+- 3 new tables: `postAnalytics`, `channelMetrics`, `analyticsSyncLog`
+- `postAnalytics` has FK to `crossPosts` + `platformEnum` reuse from `platform-connections.ts`
+- `channelMetrics` has FK to `telegramChannels` for per-channel aggregate metrics
+- `analyticsSyncLog` tracks sync windows per user/platform to prevent duplicate fetches
+- All tables follow existing patterns: UUID PKs, `withTimezone: true` timestamps, `onDelete: 'cascade'`
 
-### DB mock call counting pattern
+### Rate Limiting Pattern
 
-For functions that internally make multiple DB select calls, track `callCount` per test:
+- Implemented sliding window rate limiter: `createRateLimiter(platform)` → `{ tryAcquire, getWaitTime }`
+- LinkedIn: 100 requests/day (86400000ms window)
+- Telegram: 30 messages/second (1000ms window)
+- Rate limiter is in-memory per function invocation — suitable for 6h cron intervals
 
-```ts
-let callCount = 0;
-mockSelect.mockImplementation(() => {
-  callCount++;
-  if (callCount === 1) return buildSelectChain([{ plan: "free" }]);
-  return buildSelectChain([{ crossPostsCount: 5 }]);
-});
-```
+### Platform-Specific Analytics
 
-### Build Stats After Task 23
+- **LinkedIn**: Uses `socialActions` endpoint for per-post engagement (likes, comments) — impressions NOT available from this endpoint
+- **Twitter**: Free tier is write-only, NO engagement endpoints — collector only captures metadata (charCount, hasMedia, hashtags)
+- **Telegram**: Bot API doesn't have a direct 'get reactions' endpoint — reactions come via webhook events. Cron function stores defaults (0) as placeholders
 
-- `bun run test` — 44 new usage/enforcement tests pass; 749 total pass (2 pre-existing failures in channels.test.ts, 1 failing suite ux-states.test.tsx — all unrelated to this task)
-- `npx tsc --noEmit` — zero TS errors in billing files; 9 pre-existing errors in other test files (crosspost-wizard, settings, ux-states, welcome)
-- `bun run build` — Turbopack panic (pre-existing Next.js 16 infrastructure issue, not caused by our changes)
-- Files: `usage.ts` (146 lines), `enforce.ts` (82 lines), updated `index.ts` (34 lines), `usage.test.ts` (~650 lines, 44 tests)
+### DB Type Mismatch Fix
 
-## Task 21 — Analytics Dashboard UI (2026-02-28)
+- Inngest `step.run()` callbacks use dynamic imports for DB — the inferred type differs from direct `db` import
+- Solution: `hasSyncedWindow` and `recordSyncWindow` accept `db: unknown` and cast internally to `any`
+- Avoids `as any` at call sites — keeps type safety at the interface boundary
 
-### Component Architecture
+### Inngest Cron Pattern for Analytics
 
-- Server component page.tsx calls server action and passes `initialData` to client `AnalyticsDashboard`
-- Client dashboard holds dateRange/channelId state and re-fetches on user interaction
-- Each sub-component (metrics-card, engagement-chart, etc.) is pure — accepts props, renders UI
-- All charts wrapped in their own `Card` with `data-testid` attributes
+- All 3 functions use `cron: '0 */6 * * *'` (every 6 hours)
+- Pattern: step.run('get-users') → loop users → step.run per user → step.run('save-analytics')
+- Dynamic imports inside `step.run()` for DB and libraries (same pattern as post-to-linkedin.ts)
+- Sync dedup via `analyticsSyncLog` prevents re-fetching same time window
 
-### Recharts in Tests
+### Testing
 
-- Must mock recharts entirely in vitest/happy-dom — `ResizeObserver` doesn't exist in happy-dom
-- Mock `ResponsiveContainer` as a plain div, `LineChart`/`BarChart` as plain divs too
-- Pattern: `vi.mock("recharts", () => ({ ResponsiveContainer: ({children}) => <div>{children}</div>, ... }))`
+- 41 new tests covering: rate limiter, sync dedup, Twitter metadata, engagement aggregation, LinkedIn fetch, Telegram reactions, error types, edge cases
+- Mocked `global.fetch` for API call tests with `vi.stubGlobal('fetch', mockFetch)`
+- `consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})` to suppress error logs in tests
 
-### i18n JSON Editing Safety
+### Build Stats After Task 20
 
-- When adding a new namespace to en.json/ru.json, the last key of the previous namespace must end with `},` not `}`
-- The stray closing brace issue from previous agents: using Edit to replace the last `}` + `}` pair with single `},`
-- Always validate with: `node -e "require('./src/messages/en.json'); console.log('valid')"`
+- `bun run test` — 498 tests pass (17 test files, 41 new analytics tests)
+- `bun run build` — clean, 0 TypeScript errors
+- Zero LSP diagnostics across all analytics files
+- 10 new files created, 2 existing files modified (schema/index.ts, inngest/functions/index.ts)
 
-### toLocaleString() in Tests
+## [2026-02-28] UX Audit: Loading Skeletons, Empty States, Error Boundaries, Toast Notifications
 
-- `(1250).toLocaleString()` renders as `"1 250"` (non-breaking space) in some locales (Node.js test env)
-- Use regex matchers: `screen.getByText(/1[,\s]?250/)` to handle locale differences
+### Existing State Before Audit
 
-### Heatmap Pattern
+- 3 pages already had custom `loading.tsx`: channels, crosspost, billing — left untouched (page-specific skeletons are better than generic ones)
+- Posts, Media, Schedule pages were "coming soon" placeholders — no real empty state handling
+- No `alert()` usage in non-test code (only in XSS tests in `converters.test.ts`)
+- No sonner/Toaster was present anywhere in the app
+- No dashboard-level error boundary existed
 
-- CSS grid approach: 7 rows (days) × 24 cols (hours) implemented as nested flex
-- Opacity-based color intensity using Tailwind `bg-primary/X` classes (15/30/50/70/90)
-- TooltipProvider wraps the whole grid; each cell has a Tooltip
-- Day labels (Mon-Sun) on left column, hour markers (every 3h) above as absolute-positioned spans
+### Reusable UI Components Created
 
-### Empty State Pattern
+- `skeleton-variants.tsx`: 7 variants — TableSkeleton, CardSkeleton, ChartSkeleton, CalendarSkeleton, StatsRowSkeleton, PageHeaderSkeleton, TabsSkeleton
+- `empty-state.tsx`: Generic empty state with icon (lucide-react), title, description, optional CTA button
+- `error-state.tsx`: Error display with retry button, uses `useTranslations('uxStates')`
+- All components use `cn()` for className merging and accept standard HTML div props
 
-- All chart components check if data is empty/all-zero and show centered message
-- `data.every((d) => d.total === 0)` for line chart, `data.length === 0` for bar/table
-- Consistent message: noDataYet + noDataDescription i18n keys
+### shadcn sonner Integration
 
-## Task 26 — Recurring Post Schedules: Cron-Based Recurrence (2026-02-28)
+- `bunx shadcn@latest add sonner` generates `src/components/ui/sonner.tsx`
+- `<Toaster />` added to `src/app/[locale]/layout.tsx` — renders outside providers, inside `<body>`
+- sonner re-exports `toast()` function for imperative use from any client component
 
-### UTC Date Manipulation — Critical Bug Pattern
+### i18n Pattern for UX States
 
-- `setHours()`, `setMinutes()`, `setDay()`, `setDate()` from `date-fns` operate on **LOCAL time**, not UTC.
-- On a machine with UTC+5 (e.g., Asia/Almaty), `setHours(date, 14)` sets local hour 14 = UTC 09:00. This silently produces wrong UTC dates.
-- **Fix**: Use native `Date.UTC()` constructor and `setUTC*` methods instead:
+- New `uxStates` namespace in both `en.json` and `ru.json`
+- Keys: `errorTitle`, `errorDescription`, `retryButton`, `backToDashboard`
+- Empty state keys per page: `postsEmptyTitle`, `postsEmptyDescription`, `postsEmptyCta`, etc.
+- Client components use `useTranslations('uxStates')`, server components use `getTranslations('uxStates')`
 
-  ```ts
-  // WRONG — local time
-  let candidate = setHours(new Date(now), hours);
+### Next.js 16 Error Boundary Pattern
 
-  // CORRECT — UTC time
-  let candidate = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hours, minutes, 0, 0),
-  );
-  ```
+- `error.tsx` MUST have `"use client"` directive — it's a Client Component requirement
+- Props: `{ error: Error & { digest?: string }, reset: () => void }`
+- `reset()` re-renders the route segment — equivalent to React error boundary retry
+- Dashboard-level `error.tsx` catches errors from any nested dashboard page
 
-- Similarly, `setDay()` from date-fns uses local day-of-week. Replace with manual UTC calculation:
-  ```ts
-  const currentDay = candidate.getUTCDay();
-  let diff = targetDay - currentDay;
-  if (diff < 0) diff += 7;
-  candidate = new Date(candidate.getTime() + diff * 86_400_000);
-  ```
-- `new Date(year, month + 1, 0).getDate()` for days-in-month also uses local time. Use `Date.UTC()` + `getUTCDate()` instead.
-- `addDays`/`addWeeks`/`addMonths` from date-fns work on timestamps (ms offsets) so they're safe, but for consistency, pure UTC arithmetic (`+ N * 86_400_000`) is clearer.
-- `isBefore(a, b)` from date-fns is safe (compares timestamps), but `a >= b` is equally clear and avoids the import.
+### Loading Page Pattern
 
-### Recurring Schedule Architecture
+- `loading.tsx` files use skeleton variants matching the expected page layout
+- No i18n needed in loading pages — skeletons are visual-only, no text content
+- Each loading page is a default export React component returning JSX
 
-- DB schema: `recurringSchedules` table with `frequency` enum (daily/weekly/monthly), `dayOfWeek`, `dayOfMonth`, `timeUtc`, `timezone`, `nextRunAt`, `lastRunAt`, `isActive`.
-- Service layer: `getNextOccurrence` (pure UTC calculation), `localTimeToUtc` (uses `fromZonedTime`), CRUD operations.
-- Inngest cron: `*/15 * * * *` — queries due schedules, deduplicates via `hasExistingOccurrence`, creates `cross_posts` + `schedules` entries, advances `nextRunAt`.
-- UI: `recurring-form.tsx` with frequency dropdown, conditional day pickers, time input, timezone selector.
+### Empty State Pattern for "Coming Soon" Pages
 
-### Testing Fake Timers + UTC
+- Dedicated components per page: `posts-empty-state.tsx`, `media-empty-state.tsx`, `schedule-empty-state.tsx`
+- Each uses the generic `EmptyState` component with page-specific icon, title, description from i18n
+- Page files (`page.tsx`) import the empty state component directly — no conditional logic needed since these pages don't have data yet
 
-- `vi.setSystemTime(new Date("2026-03-10T12:00:00Z"))` sets the system clock in UTC, but date-fns functions still use the machine's local timezone for `set*` operations.
-- Tests that assert UTC output (`.toISOString()`) will fail on non-UTC machines if the code uses local-time setters.
-- Always write UTC-critical date logic with `Date.UTC()` / `setUTC*` / `getUTC*` methods — never `date-fns` `set*` functions.
+### Testing with vi.hoisted()
 
-### Build Stats After Task 26
+- `vi.hoisted()` is REQUIRED for variables referenced inside `vi.mock()` factory functions
+- Pattern: `const mockTranslations = vi.hoisted(() => vi.fn((key: string) => key))`
+- Without `vi.hoisted()`, the variable is `undefined` when the mock factory runs (hoisting issue)
+- Mocked `next-intl` with: `vi.mock('next-intl', () => ({ useTranslations: () => mockTranslations }))`
 
-- `bun run test` — 736 tests pass (26 test files), 0 failures
-- `bun run build` — clean, 32 routes
-- 41 new tests for recurring scheduling (getNextOccurrence, localTimeToUtc, createRecurringSchedule, pauseSchedule, resumeSchedule, timezone-aware, edge cases)
+### Build Stats After UX Audit
 
-## Task CI/CD Setup — CI Pipeline + Pre-commit Hooks (2026-02-28)
-
-### Husky v9 Init
-
-- `bunx husky init` creates `.husky/pre-commit` with default content `bun test`
-- The `prepare` script (`"prepare": "husky"`) is automatically added to package.json by `husky init`
-- Overwrite `.husky/pre-commit` content after init to set desired behavior
-
-### lint-staged Config in package.json
-
-- Add `"lint-staged"` key at top level of package.json (NOT inside scripts)
-- Pattern: `"*.{ts,tsx}": ["bun lint --fix"]` and `"*.{ts,tsx,js,jsx,json,md}": ["prettier --write"]`
-- Run via `bunx lint-staged` in the pre-commit hook
-
-### GitHub Actions with Bun
-
-- Use `oven-sh/setup-bun@v2` action (not npm/yarn setup actions)
-- Cache key: `~/.bun/install/cache` with `${{ hashFiles('**/bun.lock') }}`
-- For Playwright browsers: `bunx playwright install --with-deps chromium`
-- Upload artifacts: `actions/upload-artifact@v4` with `if: always()` for reports, `if: failure()` for screenshots
-
-### Pre-existing Issues (not caused by this task)
-
-- `bunx tsc --noEmit` has 5+ pre-existing TS errors in test files (crosspost-wizard.test.tsx, settings.test.tsx, welcome.test.ts)
-- `bun lint` exits code 1 due to 2 pre-existing errors (setState in effect, impure function in render)
-- These do NOT affect test execution — `bun run test` passes all 736 tests
-- Build (`bun run build`) completes successfully with 32 routes
-
-### Smoke Test Pattern
-
-- Start server: `bun run start -- -p $PORT &` → capture PID for cleanup
-- Poll endpoint: retry loop with `curl -sf` checking `/api/health`
-- Verify: `echo "$RESPONSE" | grep -q '"status":"ok"'`
-- Always cleanup with `trap cleanup EXIT`
-- Make executable: `chmod +x scripts/smoke-test.sh`
-
-### Build Stats After CI/CD Task
-
-- `bun run test` — 736 tests pass (26 test files), 0 failures
-- `bun run build` — clean, 32 routes (including /api/health)
-- TypeScript errors: 5 pre-existing in test files (unrelated to CI/CD)
-- Lint: 2 pre-existing errors, 42 warnings (unrelated to CI/CD)
-
-## Task 29 — Full UX Audit: Loading Skeletons, Empty States, Error Boundaries (2026-02-28)
-
-### shadcn Component Installation
-
-- `bunx shadcn@latest add skeleton sonner --yes` installs sonner (new) and skips skeleton (already installed).
-- Sonner creates `src/components/ui/sonner.tsx` — uses `next-themes` for theme-aware toasts.
-- `<Toaster />` must be added inside the theme provider in the locale layout (`src/app/[locale]/layout.tsx`).
-
-### Existing Skeletons Pattern
-
-- Some pages (channels, crosspost, billing) already had custom `loading.tsx` files with detailed, page-specific skeletons.
-- These custom skeletons are BETTER than generic variants because they match the actual page layout exactly.
-- Approach: keep existing custom skeletons, create reusable variants for NEW loading files, and use custom where they already exist.
-
-### Skeleton Variants Design
-
-- Created 7 reusable variants: `TableSkeleton`, `CardSkeleton`, `ChartSkeleton`, `CalendarSkeleton`, `StatsRowSkeleton`, `PageHeaderSkeleton`, `TabsSkeleton`.
-- Each has `data-testid` attribute for testing and accepts `className` prop.
-- Staggered `animationDelay` per row/card for visual polish — CSS `animation-delay` on the pulse animation.
-
-### Empty State Component
-
-- Generic `EmptyState` accepts: `icon` (LucideIcon type), `title`, `description`, optional `actionLabel` + `actionHref` or `onAction`.
-- Dual CTA pattern: `actionHref` renders an `<a>` wrapped in `Button asChild`; `onAction` renders a `Button` with `onClick`.
-- Matches existing channel-list empty state visual style (dashed border, muted bg, icon circle, centered text).
-
-### Error Boundary (error.tsx) Pattern
-
-- Next.js 16 `error.tsx` MUST be a Client Component (`"use client"`).
-- Props: `{ error: Error & { digest?: string }, reset: () => void }`.
-- `useEffect` logs error to console for debugging.
-- Renders `ErrorState` component with i18n-translated strings and retry via `reset()`.
-
-### i18n Namespace Strategy
-
-- Created `uxStates` top-level namespace with nested `error` and `empty` sub-namespaces.
-- Empty states per page: `uxStates.empty.posts`, `uxStates.empty.channels`, etc.
-- Kept existing page-specific i18n keys untouched — new namespace is additive.
-
-### Testing Dynamic Imports in Vitest
-
-- Used `async function` + `await import("../component")` pattern for tests to avoid hoisting issues with `vi.mock()`.
-- `vi.mock("next-intl")` returns a simple key-lookup function — sufficient for testing component rendering.
-- Error boundary test: suppress `console.error` in useEffect with `vi.spyOn(console, "error").mockImplementation(() => {})`.
-- 20 tests covering: all 7 skeleton variants, empty state (5 cases), error state (5 cases), dashboard error boundary (2 cases).
-
-### Build Stats After Task 29
-
-- `bun run test` — 756 tests pass (27 test files), 0 failures
-- `bun run build` — clean, 32 routes
-- Zero LSP errors across all new/modified files
-
-## Task 21: Analytics Dashboard UI (completed 2026-03-01)
-
-### Architecture
-
-- **Server action** (`src/server/actions/analytics.ts`): single `getAnalyticsDashboard(range, channelId?)` action fetches all data in one pass — 1 cross-posts+analytics JOIN, 1 channel lookup. Data aggregation (engagement over time, platform comparison, heatmap grid) happens in-memory from that single result set.
-- **Server page** (`src/app/[locale]/(dashboard)/dashboard/analytics/page.tsx`): thin server component, fetches initial data via `getAnalyticsDashboard("30d")`, passes to `<AnalyticsDashboard initialData=... />`.
-- **`AnalyticsDashboard` client component**: manages state (dateRange, channelId), calls server action on filter changes, composes all sub-components.
-
-### Recharts in happy-dom Tests
-
-- Recharts uses `ResizeObserver` which is not available in happy-dom — must mock the entire `recharts` module.
-- Correct pattern: mock each export (`LineChart`, `BarChart`, `Bar`, `Line`, `ResponsiveContainer`, etc.) with simple `div` wrappers or `null`.
-- Tests import components AFTER `vi.mock("recharts", ...)` declaration.
-
-### Heatmap Implementation
-
-- Pure CSS grid — 7 rows (Mon–Sun) × 24 columns (hours) using Tailwind flexbox with `gap-px`.
-- Intensity mapping via `bg-primary/{opacity}` classes — 6 levels based on `value / maxValue` ratio.
-- `TooltipProvider` from shadcn wraps the whole grid, each cell is a `TooltipTrigger`.
-- Day index conversion: JS `getDay()` returns 0=Sun — convert with `(date.getDay() + 6) % 7` to get Mon=0.
-
-### PostsTable Sorting
-
-- Client-side sort only (data is already limited to 20 rows from server).
-- Sort state: `sortKey` ("postedAt" | "impressions" | "totalEngagement") + `sortDir` ("asc" | "desc").
-- Platform filter via `<Select>` — "all" | "linkedin" | "twitter".
-
-### i18n Notes
-
-- All analytics keys live under `"analytics"` namespace in both `en.json` and `ru.json`.
-- `engagementCount` uses `{count}` interpolation.
-- Chart range buttons use `range_7d`, `range_30d`, `range_90d` keys (not dot notation).
-
-## Task 24 — Welcome Message Template Editor (2026-03-01)
-
-### Architecture
-
-- **DB schema**: `welcome_templates` table (`src/server/db/schema/welcome-templates.ts`) — UUID PK, channelId FK (cascade), userId FK (cascade), templateText (text), isEnabled (boolean, default false), createdAt/updatedAt (timestamptz).
-- **Server actions** (`src/server/actions/welcome.ts`): `getWelcomeTemplate`, `saveWelcomeTemplate` (upsert pattern), `testWelcomeMessage` (renders with sample data + sends via TelegramClient).
-- **Bot handler** (`src/lib/telegram/welcome.ts`): `renderTemplate` (variable substitution), `buildTemplateVars`, `handleNewChatMember` with dependency injection (`WelcomeHandlerDeps` interface) and in-memory rate limiting (24h TTL, lazy cleanup at 10k entries).
-- **Webhook integration**: `new_chat_members` handler in webhook route (lines 350-403) with lazy imports to avoid build-time DB connection.
-- **UI**: Server page at `[id]/welcome/page.tsx` + client `TemplateEditor` component with live preview, variable insertion buttons, enable/disable toggle.
-
-### Template Variables
-
-- `{name}` — Member's full name (first + last, fallback "New Member")
-- `{channel_name}` — Channel title (fallback "this channel")
-- `{member_count}` — Current member count as string
-
-### JSON Fixing Pattern
-
-- Both `en.json` and `ru.json` had garbage lines (duplicate closing braces, stray comma, `posts` namespace outside root object) appended after line 559.
-- Fix: identify valid JSON boundary with `json.loads(first_N_lines)`, then replace from the corruption point with properly structured content.
-- Python validation: `json.loads(content)` catches `Extra data` error at exact line/column of corruption.
-
-### Pre-existing Test Failures
-
-- `ux-states.test.tsx` — fails importing `@/app/(dashboard)/dashboard/error` (file doesn't exist at that path).
-- `channels.test.ts` — 2 failures: "already connected" error message mismatch + webhook deletion mock not called. Both pre-existing, not caused by welcome feature.
-
-### No Switch Component
-
-- shadcn/ui in this project has 23 components but no `Switch`. Used `Button` with `variant={isEnabled ? 'default' : 'outline'}` as toggle instead.
-
-### Build Stats After Task 24
-
-- `bun run test` — 23 new welcome tests pass; 749 total pass (2 pre-existing failures in channels.test.ts, 1 pre-existing suite failure in ux-states.test.tsx)
-- `bun run build` — clean, 32 routes including `/[locale]/dashboard/channels/[id]/welcome`
-- Zero TS diagnostics on all new/modified files
-
-### Build Stats After Task 21
-
-- `bun run test` — 33 new analytics tests pass; 734 total pass (2 pre-existing failures in channels.test.ts and ux-states.test.tsx unrelated to this task)
-- `bun run build` — clean, 32 routes including `/[locale]/dashboard/analytics`
-- Zero TS diagnostics on all new files
-- `recharts@3.7.0` installed
+- `bun run test` — 756 tests pass (27 test files, 20 new UX state tests)
+- `bun run build` — clean, 0 TypeScript errors, 32 routes
+- Zero LSP diagnostics across all 15 new files and 6 modified files
+- 15 new files created, 6 existing files modified

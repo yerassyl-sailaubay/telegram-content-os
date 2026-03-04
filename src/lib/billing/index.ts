@@ -3,10 +3,7 @@ export { getStripe, resetStripeClient } from "./stripe";
 export { PLANS, resolveTierFromPriceId, getPlan, getAllPlans } from "./plans";
 export { createCheckoutSession } from "./checkout";
 export { createPortalSession } from "./portal";
-export {
-  constructWebhookEvent,
-  handleWebhookEvent,
-} from "./webhook";
+export { constructWebhookEvent, handleWebhookEvent } from "./webhook";
 export type {
   PlanTier,
   SubscriptionStatus,
@@ -26,9 +23,15 @@ export {
   incrementUsage,
 } from "./usage";
 export type { QuotaInfo } from "./usage";
-export {
-  enforceQuota,
-  withQuotaCheck,
-  QuotaExceededError,
-} from "./enforce";
+export { enforceQuota, withQuotaCheck, QuotaExceededError } from "./enforce";
 export type { QuotaCheckResult } from "./enforce";
+export {
+  canGenerateAi,
+  getCurrentAiUsage,
+  getRemainingAiQuota,
+  enforceAiQuota,
+  incrementAiUsage,
+  withAiQuotaCheck,
+  AiQuotaExceededError,
+} from "./ai-quota";
+export type { AiQuotaCheckResult, AiQuotaInfo } from "./ai-quota";

@@ -1,4 +1,12 @@
-import type { TelegramApiResponse, TelegramChat, TelegramUser, TelegramSentMessage } from "./types";
+import type {
+  TelegramApiResponse,
+  TelegramChat,
+  TelegramUser,
+  TelegramSentMessage,
+  InputMediaPhoto,
+  InputMediaVideo,
+  SendPollOptions,
+} from "./types";
 import { TelegramApiError } from "./types";
 
 const TELEGRAM_API_BASE = "https://api.telegram.org";
@@ -179,6 +187,47 @@ export class TelegramClient {
     return this.request<boolean>("deleteMessage", {
       chat_id: chatId,
       message_id: messageId,
+    });
+  }
+
+  async sendMediaGroup(
+    chatId: string | number,
+    media: (InputMediaPhoto | InputMediaVideo)[],
+    options?: { disable_notification?: boolean },
+  ): Promise<TelegramSentMessage[]> {
+    return this.request<TelegramSentMessage[]>("sendMediaGroup", {
+      chat_id: chatId,
+      media,
+      ...options,
+    });
+  }
+
+  async sendPoll(
+    chatId: string | number,
+    question: string,
+    options: string[],
+    pollOptions?: SendPollOptions,
+  ): Promise<TelegramSentMessage> {
+    return this.request<TelegramSentMessage>("sendPoll", {
+      chat_id: chatId,
+      question,
+      options,
+      ...pollOptions,
+    });
+  }
+
+  async sendDocument(
+    chatId: string | number,
+    document: string,
+    options?: {
+      caption?: string;
+      parse_mode?: "HTML" | "MarkdownV2";
+    },
+  ): Promise<TelegramSentMessage> {
+    return this.request<TelegramSentMessage>("sendDocument", {
+      chat_id: chatId,
+      document,
+      ...options,
     });
   }
 }

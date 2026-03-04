@@ -160,6 +160,34 @@ export interface TelegramSentMessage {
 }
 
 // ---------------------------------------------------------------------------
+// Input media types for sendMediaGroup
+// ---------------------------------------------------------------------------
+
+export interface InputMediaPhoto {
+  type: "photo";
+  media: string;
+  caption?: string;
+  parse_mode?: "HTML" | "MarkdownV2";
+}
+
+export interface InputMediaVideo {
+  type: "video";
+  media: string;
+  caption?: string;
+  parse_mode?: "HTML" | "MarkdownV2";
+  width?: number;
+  height?: number;
+  duration?: number;
+}
+
+export interface SendPollOptions {
+  is_anonymous?: boolean;
+  type?: "regular" | "quiz";
+  correct_option_id?: number;
+  allows_multiple_answers?: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Error
 // ---------------------------------------------------------------------------
 
