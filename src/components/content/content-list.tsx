@@ -43,10 +43,7 @@ type ContentListProps = {
   initialCategories: string[];
 };
 
-export function ContentList({
-  initialData,
-  initialCategories,
-}: ContentListProps) {
+export function ContentList({ initialData, initialCategories }: ContentListProps) {
   const t = useTranslations("content");
   const tCommon = useTranslations("common");
   const router = useRouter();
@@ -61,12 +58,8 @@ export function ContentList({
   // Dialog state
   const [formOpen, setFormOpen] = React.useState(false);
   const [categoryManagerOpen, setCategoryManagerOpen] = React.useState(false);
-  const [editingItem, setEditingItem] = React.useState<ContentItem | null>(
-    null,
-  );
-  const [deletingItem, setDeletingItem] = React.useState<ContentItem | null>(
-    null,
-  );
+  const [editingItem, setEditingItem] = React.useState<ContentItem | null>(null);
+  const [deletingItem, setDeletingItem] = React.useState<ContentItem | null>(null);
 
   // Filter state from URL
   const searchQuery = searchParams.get("q") ?? "";
@@ -133,8 +126,7 @@ export function ContentList({
     setIsSubmitting(true);
     try {
       // Handle category = "__none__" from Select
-      const category =
-        formData.category === "__none__" ? null : formData.category;
+      const category = formData.category === "__none__" ? null : formData.category;
 
       if (editingItem) {
         const result = await updateContent({
@@ -204,9 +196,7 @@ export function ContentList({
     // but a cleaner approach is to just add it to the local list
     // and let it persist when content is saved with that category.
     // For now, we add it optimistically.
-    setCategories((prev) =>
-      prev.includes(name) ? prev : [...prev, name].sort(),
-    );
+    setCategories((prev) => (prev.includes(name) ? prev : [...prev, name].sort()));
   }
 
   async function handleRenameCategory(oldName: string, newName: string) {
@@ -233,8 +223,8 @@ export function ContentList({
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="relative max-w-sm flex-1">
+            <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
             <Input
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -244,9 +234,7 @@ export function ContentList({
           </div>
           <Select
             value={categoryFilter || "__all__"}
-            onValueChange={(val) =>
-              updateUrlParams({ category: val === "__all__" ? "" : val })
-            }
+            onValueChange={(val) => updateUrlParams({ category: val === "__all__" ? "" : val })}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder={t("filterByCategory")} />
@@ -260,10 +248,7 @@ export function ContentList({
               ))}
             </SelectContent>
           </Select>
-          <Select
-            value={sortOrder}
-            onValueChange={(val) => updateUrlParams({ sort: val })}
-          >
+          <Select value={sortOrder} onValueChange={(val) => updateUrlParams({ sort: val })}>
             <SelectTrigger className="w-[160px]">
               <SelectValue />
             </SelectTrigger>
@@ -274,16 +259,12 @@ export function ContentList({
           </Select>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCategoryManagerOpen(true)}
-          >
-            <FolderCog className="h-4 w-4 mr-1" />
+          <Button variant="outline" size="sm" onClick={() => setCategoryManagerOpen(true)}>
+            <FolderCog className="mr-1 h-4 w-4" />
             {t("manageCategories")}
           </Button>
           <Button size="sm" onClick={handleNewClick}>
-            <Plus className="h-4 w-4 mr-1" />
+            <Plus className="mr-1 h-4 w-4" />
             {t("newContent")}
           </Button>
         </div>
@@ -293,10 +274,7 @@ export function ContentList({
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-[200px] animate-pulse rounded-lg border bg-muted/30"
-            />
+            <div key={i} className="bg-muted/30 h-[200px] animate-pulse rounded-lg border" />
           ))}
         </div>
       ) : isEmpty ? (
@@ -304,31 +282,24 @@ export function ContentList({
           <p className="text-lg font-medium">
             {hasFilters ? t("noSearchResults") : t("noContent")}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {hasFilters
-              ? t("noSearchResultsDescription")
-              : t("noContentDescription")}
+          <p className="text-muted-foreground mt-1 text-sm">
+            {hasFilters ? t("noSearchResultsDescription") : t("noContentDescription")}
           </p>
           {!hasFilters && (
             <Button className="mt-4" onClick={handleNewClick}>
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className="mr-1 h-4 w-4" />
               {t("newContent")}
             </Button>
           )}
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-between text-sm">
             <span>{t("itemCount", { count: data.total })}</span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data.items.map((item) => (
-              <ContentCard
-                key={item.id}
-                item={item}
-                onEdit={handleEditClick}
-                onDelete={setDeletingItem}
-              />
+              <ContentCard key={item.id} item={item} onEdit={handleEditClick} />
             ))}
           </div>
         </>
@@ -341,14 +312,12 @@ export function ContentList({
             variant="outline"
             size="sm"
             disabled={currentPage <= 1}
-            onClick={() =>
-              updateUrlParams({ page: String(currentPage - 1) })
-            }
+            onClick={() => updateUrlParams({ page: String(currentPage - 1) })}
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="mr-1 h-4 w-4" />
             {t("previousPage")}
           </Button>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {t("pageInfo", {
               page: currentPage,
               totalPages: data.totalPages,
@@ -358,12 +327,10 @@ export function ContentList({
             variant="outline"
             size="sm"
             disabled={currentPage >= data.totalPages}
-            onClick={() =>
-              updateUrlParams({ page: String(currentPage + 1) })
-            }
+            onClick={() => updateUrlParams({ page: String(currentPage + 1) })}
           >
             {t("nextPage")}
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       )}
@@ -400,14 +367,10 @@ export function ContentList({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("deleteConfirmDescription")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("deleteConfirmDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>
-              {tCommon("cancel")}
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isSubmitting}>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={isSubmitting}

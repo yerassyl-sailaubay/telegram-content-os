@@ -198,3 +198,81 @@
 - Content status set to "scheduled" only for scheduled publish — immediate publish keeps status as-is (Inngest job updates to "published" on success)
 - Test mock pattern: `mockReturning` consumed in order (insert schedule → update content status) for scheduled publish tests
 - 9 tests, all pass on first run — TDD flow: RED confirmed module-not-found, GREEN was immediate since tests defined the contract precisely
+
+## RepurposeModal component (2026-03-04)
+
+- `useTransition` is the correct hook for server action submission — wraps `async` action, exposes `isPending` state
+- `toast` from `sonner` (not `useToast`) — import directly: `import { toast } from "sonner"`
+- Dialog's `onOpenChange` should be intercepted to block close while pending (pass custom `handleClose`)
+- Mode options data defined as a const array with `React.ElementType` for icon refs — avoids repetitive JSX
+- i18n keys for new sections go directly before `"posts"` key at bottom of both locale files
+- `t()` accepts string literal key paths — no type-safety needed at call sites for dynamic keys like `t(labelKey)`
+- Pre-existing build error in `src/server/actions/dashboard.ts:204` (Drizzle `eq()` null-vs-string type mismatch) — was failing before this task, not introduced here
+- `data-testid` pattern: `repurpose-modal`, `repurpose-mode-{mode}`, `repurpose-variations-control`, `repurpose-submit-button`, `repurpose-cancel-button`
+
+## 2026-03-04 T15 — QuickCapture & IdeaCard Components
+
+- `createContentItem()` is a new action in `content.ts` separate from legacy `createContent()` — it accepts `sourceType`, `status`, `channelId`, `sourceUrl`, `sourceMetadata`
+- `developIdea(contentId)` in `develop-idea.ts` fires an Inngest event `ai/content.develop-idea` — returns `{ message: "Developing idea" }` on success
+- `formatDistanceToNow` from `@/lib/date-utils` is the shared relative time formatter — used in content-card.tsx already
+- Quick-capture uses `useTransition` (not `useState` for loading) — matches the pattern used across server action components
+- i18n keys added at top-level namespace `quickCapture` and `ideaCard` (not nested under `content`) — keeps them self-contained per component
+- `bun run build` was already failing with a pre-existing TypeScript error in `dashboard.ts:204` (`sched.crossPostId` is `string | null`, `eq()` doesn't accept null) — our files have zero errors
+- Both components have zero LSP diagnostics and zero TypeScript errors per `bunx tsc --noEmit`
+
+## T29 — Create from URL page
+
+- `createFromUrl(url, channelId)` in `@/server/actions/sources` is the action — returns `ActionResult<{ message: string }>`
+- Page pattern: `async default export` + `getTranslations("namespace")` + `<PageHeader>` + `<ClientComponent />`
+- Channels are fetched client-side (in `useEffect`) using `listChannels()` from `@/server/actions/channels`
+- Toast usage: `toast.success(title, { description })` and `toast.error(title, { description })` from `"sonner"` — imported directly from the package (NOT from `@/components/ui/sonner`)
+- `isYouTubeUrl()` is exported from `@/lib/sources/url-parser` and safe to import in client components
+- Pre-existing build error in `dashboard.ts:204` (sched.crossPostId null check) was fixed with a null guard (`if (!sched.crossPostId) continue;`)
+- Pre-existing TypeScript error in `content-library-client.tsx` (EmptyState icon type widening) was fixed with `as LucideIcon` cast
+- `data-testid` added on: `url-input`, `channel-select`, `submit-url`
+
+## 2026-03-04 Content Library Page (T18)
+
+- Existing `content-card.tsx` used `onDelete` prop — had to update `content-list.tsx` to remove that prop when rewriting the card (backwards compatibility break; old card only had edit/delete, new has status/source/action-menu)
+- `EmptyState` component requires `LucideIcon` type specifically, not `React.ElementType` — use `import { type LucideIcon }` from lucide-react
+- Status tab "idea" is based on `sourceType === 'idea'` not a status field — `listContent` + filter client-side; other tabs use `getContentByStatus()`
+- `ContentStatusTab` type includes "idea" which is NOT a DB status — needs special handling in fetch logic
+- Channel title falls back to `ch.username` then `ch.id` — `ChannelWithPostCount.title` can be null
+- The `content-filters.tsx` "use client" serialization warnings for callback props are expected Next.js behavior — not errors, build still passes
+- Archive via `updateContentStatus` with valid transitions: `draft → archived`, `published → archived` — works for most statuses; items already archived won't show Archive action
+- `bun run build` (not `bun build`) is the correct command for Next.js project
+
+## Calendar Gaps + Suggestion Card (2026-03-04)
+
+### Component Location
+
+- New `src/components/calendar/` directory created for calendar-specific components
+- `calendar-gaps.tsx` — main calendar gap viewer with channel selector, gap highlighting, suggestion trigger
+- `suggestion-card.tsx` — individual AI suggestion card with accept/dismiss
+
+### Patterns
+
+- `getNext7Days()` computes gap dates client-side (always next 7 days from today — no server data needed since there's no schedule conflict detection at this stage)
+- Calendar `modifiers` + `modifiersClassNames` props used for gap highlighting with a dashed red overlay via CSS `::after` pseudo-element trick using Tailwind `after:*` variants
+- `CalendarFillSuggestion.sourceType` is `"draft" | "idea" | "repurpose"` (NOT "external") per `types.ts`, even though the task spec mentions "external" — implemented badge for all 4 to be safe
+- `ChannelWithPostCount` has `title` and `username` fields; schedule page maps to `{ id, name: title ?? username ?? id }`
+- Suggestions state resets on channel change via `useEffect([channelId])` (dismisses stale results)
+- i18n keys: added `calendarGaps.*` and `suggestionCard.*` to both `en.json` and `ru.json`
+- `ru.json` was being auto-modified by a background process during editing — used Python script to modify via `json.load/dump` instead
+
+### LSP Warnings
+
+- Next.js 71007 warning ("Props must be serializable") on `onAccept`/`onDismiss` props — this is a false positive since `SuggestionCard` is consumed by `CalendarGaps` (client component) and never directly by a server component boundary
+- These are warnings only, not errors, and do not affect the build
+
+## 2026-03-04 Telegram Publish Page
+
+- Page pattern: server component → `await searchParams` → parallel data fetching → client form
+- `ChannelWithPostCount` extends `Channel` with `postCount` and `lastPostAt` — strip with destructuring before passing to form
+- `publishToTelegram` action handles both immediate publish and schedule in one call — no separate schedule action needed
+- `AlertDialog` pattern: `AlertDialogTrigger asChild` wrapping the submit button, confirm fires actual handler
+- `date-fns` `format(date, "PPP")` gives locale-aware date display in Calendar popover
+- `Calendar` `disabled` prop takes predicate — use `date < new Date(new Date().setHours(0,0,0,0))` to disable past days
+- i18n key access pattern for dynamic keys: try/catch around `t(dynamicKey)` to handle missing keys gracefully
+- `bun run build` (not `bun build`) to invoke Next.js build
+- Build verified: `/[locale]/dashboard/publish` route appears in route listing at exit code 0

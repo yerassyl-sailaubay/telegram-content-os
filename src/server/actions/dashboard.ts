@@ -195,6 +195,8 @@ export async function getDashboardHomeData(): Promise<ActionResult<DashboardHome
     // Fetch cross post content for each upcoming schedule
     const upcomingPosts: UpcomingPost[] = [];
     for (const sched of upcomingSchedules) {
+      if (!sched.crossPostId) continue;
+
       const crossPostRows = await db
         .select({
           platform: crossPosts.platform,
