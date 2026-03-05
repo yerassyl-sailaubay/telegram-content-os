@@ -63,11 +63,7 @@ export default async function DashboardPage() {
         <WelcomeSection userName={data?.userName ?? null} userEmail={data?.userEmail ?? null} />
 
         <Card>
-          <CardContent className="pt-5 pb-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-semibold">{t("captureTitle")}</span>
-            </div>
+          <CardContent className="py-4">
             <QuickCapture />
           </CardContent>
         </Card>
