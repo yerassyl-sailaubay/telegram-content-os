@@ -43,6 +43,13 @@
       "when": 1772811000000,
       "tag": "0005_optimize_rls_initplan",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772819000000,
+      "tag": "0006_fix_schedules_cross_post_nullable",
+      "breakpoints": true
     }
   ]
 }
