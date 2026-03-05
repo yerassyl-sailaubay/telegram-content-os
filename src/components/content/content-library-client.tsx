@@ -50,42 +50,55 @@ const EMPTY_STATE_CONFIG: Record<
 
 export function ContentLibraryClient({ initialItems, channels }: ContentLibraryClientProps) {
   const t = useTranslations("content");
+  const tCommon = useTranslations("common");
   const [isPending, startTransition] = useTransition();
 
   const [activeTab, setActiveTab] = React.useState<ContentStatusTab>("all");
   const [selectedChannelId, setSelectedChannelId] = React.useState<string>("");
   const [items, setItems] = React.useState<ContentItem[]>(initialItems);
+  const [error, setError] = React.useState<string | null>(null);
 
   async function fetchItems(tab: ContentStatusTab, channelId: string) {
-    if (tab === "all") {
-      const result = await listContent({ perPage: 50 });
-      if (result.success) {
-        let filtered = result.data.items;
-        if (channelId) {
-          filtered = filtered.filter((item) => item.channelId === channelId);
+    setError(null);
+    try {
+      if (tab === "all") {
+        const result = await listContent({ perPage: 50 });
+        if (result.success) {
+          let filtered = result.data.items;
+          if (channelId) {
+            filtered = filtered.filter((item) => item.channelId === channelId);
+          }
+          setItems(filtered);
+          return;
         }
-        setItems(filtered);
-      }
-    } else if (tab === "idea") {
-      const result = await listContent({ perPage: 50 });
-      if (result.success) {
-        let filtered = result.data.items.filter((item) => item.sourceType === "idea");
-        if (channelId) {
-          filtered = filtered.filter((item) => item.channelId === channelId);
+        setError(result.error);
+      } else if (tab === "idea") {
+        const result = await listContent({ perPage: 50 });
+        if (result.success) {
+          let filtered = result.data.items.filter((item) => item.sourceType === "idea");
+          if (channelId) {
+            filtered = filtered.filter((item) => item.channelId === channelId);
+          }
+          setItems(filtered);
+          return;
         }
-        setItems(filtered);
-      }
-    } else {
-      const result = await getContentByStatus(
-        tab as "draft" | "published" | "archived" | "scheduled",
-      );
-      if (result.success) {
-        let filtered = result.data;
-        if (channelId) {
-          filtered = filtered.filter((item) => item.channelId === channelId);
+        setError(result.error);
+      } else {
+        const result = await getContentByStatus(
+          tab as "draft" | "published" | "archived" | "scheduled",
+        );
+        if (result.success) {
+          let filtered = result.data;
+          if (channelId) {
+            filtered = filtered.filter((item) => item.channelId === channelId);
+          }
+          setItems(filtered);
+          return;
         }
-        setItems(filtered);
+        setError(result.error);
       }
+    } catch {
+      setError(tCommon("error"));
     }
   }
 
@@ -123,6 +136,8 @@ export function ContentLibraryClient({ initialItems, channels }: ContentLibraryC
         selectedChannelId={selectedChannelId}
         onChannelChange={handleChannelChange}
       />
+
+      {error && <p className="text-destructive text-sm">{error}</p>}
 
       {isPending ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

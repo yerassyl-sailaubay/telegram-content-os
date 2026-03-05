@@ -19,6 +19,7 @@ type AdaptState = "idle" | "pending" | "polling" | "done" | "error";
 
 export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
   const t = useTranslations("crosspost");
+  const tCommon = useTranslations("common");
   const [state, setState] = useState<AdaptState>("idle");
   const [crossPostId, setCrossPostId] = useState<string | null>(null);
   const [crossPost, setCrossPost] = useState<CrossPost | null>(null);
@@ -27,25 +28,35 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
   const startAdaptation = useCallback(async () => {
     setState("pending");
     setError(null);
+    try {
+      const result = await triggerAdaptContent({
+        postId: post.id,
+        platform,
+      });
 
-    const result = await triggerAdaptContent({
-      postId: post.id,
-      platform,
-    });
+      if (!result.success) {
+        setState("error");
+        setError(result.error);
+        return;
+      }
 
-    if (!result.success) {
+      setCrossPostId(result.data.crossPostId);
+      setState("polling");
+    } catch {
       setState("error");
-      setError(result.error);
-      return;
+      setError(tCommon("error"));
     }
-
-    setCrossPostId(result.data.crossPostId);
-    setState("polling");
-  }, [post.id, platform]);
+  }, [post.id, platform, tCommon]);
 
   // Auto-start on mount
   useEffect(() => {
-    startAdaptation();
+    const timer = setTimeout(() => {
+      void startAdaptation();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [startAdaptation]);
 
   // Poll for completion
@@ -55,7 +66,15 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
     let cancelled = false;
 
     const poll = async () => {
-      const result = await getCrossPost(crossPostId);
+      let result;
+      try {
+        result = await getCrossPost(crossPostId);
+      } catch {
+        if (cancelled) return;
+        setState("error");
+        setError(tCommon("error"));
+        return;
+      }
       if (cancelled) return;
 
       if (!result.success) {
@@ -73,8 +92,17 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
       }
 
       if (cp.status === "failed") {
+        const metadata = cp.engagementData;
+        const errorMessage =
+          metadata &&
+          typeof metadata === "object" &&
+          "errorMessage" in metadata &&
+          typeof metadata.errorMessage === "string" &&
+          metadata.errorMessage.trim().length > 0
+            ? metadata.errorMessage
+            : t("adaptationFailed");
         setState("error");
-        setError("AI adaptation failed. Please try again.");
+        setError(errorMessage);
         return;
       }
 
@@ -90,7 +118,7 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [state, crossPostId]);
+  }, [state, crossPostId, tCommon, t]);
 
   const platformLabel = platform === "linkedin" ? t("linkedin") : t("twitter");
 
@@ -99,7 +127,7 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
       {/* Status indicator */}
       <div className="relative flex items-center justify-center">
         {(state === "pending" || state === "polling") && (
-          <div className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
+          <div className="bg-primary/20 absolute inset-0 animate-ping rounded-full" />
         )}
         <div
           className={`relative flex h-20 w-20 items-center justify-center rounded-full border-2 transition-colors ${
@@ -113,9 +141,9 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
           {state === "done" ? (
             <CheckCircle2 className="h-10 w-10 text-green-500" />
           ) : state === "error" ? (
-            <XCircle className="h-10 w-10 text-destructive" />
+            <XCircle className="text-destructive h-10 w-10" />
           ) : (
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <Loader2 className="text-primary h-10 w-10 animate-spin" />
           )}
         </div>
       </div>
@@ -130,13 +158,11 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
               : t("adaptingHeading")}
         </h3>
         {state !== "done" && state !== "error" && (
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-2 max-w-sm text-sm">
             {t("adaptingDescription", { platform: platformLabel })}
           </p>
         )}
-        {error && (
-          <p className="mt-2 text-sm text-destructive">{error}</p>
-        )}
+        {error && <p className="text-destructive mt-2 text-sm">{error}</p>}
       </div>
 
       {/* Progress dots for polling */}
@@ -145,7 +171,7 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="h-2 w-2 animate-bounce rounded-full bg-primary"
+              className="bg-primary h-2 w-2 animate-bounce rounded-full"
               style={{ animationDelay: `${i * 0.15}s` }}
             />
           ))}
@@ -161,7 +187,11 @@ export function StepAdapt({ post, platform, onNext, onBack }: StepAdaptProps) {
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button variant="ghost" onClick={onBack} disabled={state === "pending" || state === "polling"}>
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          disabled={state === "pending" || state === "polling"}
+        >
           {t("back")}
         </Button>
         {state === "error" && (

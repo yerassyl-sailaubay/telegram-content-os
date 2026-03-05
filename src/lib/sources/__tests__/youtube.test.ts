@@ -195,6 +195,44 @@ describe("extractYouTubeTranscript", () => {
     expect(result.metadata.title).toBeUndefined();
   });
 
+  it("falls back to YouTube page description when transcript is unavailable", async () => {
+    mockFetchTranscript.mockRejectedValue(
+      Object.assign(new Error(`No transcript available for video: ${VIDEO_ID}`), {
+        name: "YoutubeTranscriptNotAvailableError",
+        videoId: VIDEO_ID,
+      }),
+    );
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        text: async () =>
+          '<meta name="description" content="A useful fallback summary from YouTube." />',
+      })
+      .mockResolvedValueOnce({ ok: false, status: 404 });
+
+    const result = await extractYouTubeTranscript(VIDEO_ID);
+
+    expect(result.content).toBe("A useful fallback summary from YouTube.");
+    expect(result.metadata.transcriptAvailable).toBe(false);
+    expect(result.metadata.transcriptFallback).toBe("description");
+    expect(result.metadata.wordCount).toBe(6);
+  });
+
+  it("throws when transcript is unavailable and page description fallback is missing", async () => {
+    mockFetchTranscript.mockRejectedValue(
+      Object.assign(new Error(`No transcript available for video: ${VIDEO_ID}`), {
+        name: "YoutubeTranscriptNotAvailableError",
+        videoId: VIDEO_ID,
+      }),
+    );
+    mockFetch.mockResolvedValue({
+      ok: true,
+      text: async () => "<html><head></head><body>No description</body></html>",
+    });
+
+    await expect(extractYouTubeTranscript(VIDEO_ID)).rejects.toThrow(/no transcript available/i);
+  });
+
   it("returns correct ExtractionResult shape", async () => {
     mockFetchTranscript.mockResolvedValue(MOCK_SEGMENTS);
     mockFetch.mockResolvedValue({

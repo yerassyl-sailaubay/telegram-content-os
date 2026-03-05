@@ -35,13 +35,16 @@ function createMockStep() {
   };
 }
 
-function createEvent(overrides: Partial<{ url: string; userId: string; channelId: string }> = {}) {
+function createEvent(
+  overrides: Partial<{ url: string; userId: string; channelId: string; sourceId?: string }> = {},
+) {
   return {
     name: "sources/url.submitted" as const,
     data: {
       url: overrides.url ?? "https://www.youtube.com/watch?v=abc123",
       userId: overrides.userId ?? "user-uuid-1",
       channelId: overrides.channelId ?? "channel-uuid-1",
+      sourceId: overrides.sourceId,
     },
   };
 }
@@ -211,7 +214,7 @@ describe("processExternalSource", () => {
     expect(step.sendEvent).not.toHaveBeenCalled();
   });
 
-  it("executes steps in order: parse-url, extract-content, store-content, then sendEvent", async () => {
+  it("executes steps in order including status transitions", async () => {
     const event = createEvent();
     const step = createMockStep();
 
@@ -230,7 +233,14 @@ describe("processExternalSource", () => {
     await runHandler(event, step);
 
     const stepNames = step.run.mock.calls.map((call: unknown[]) => call[0]);
-    expect(stepNames).toEqual(["parse-url", "extract-content", "store-content"]);
+    expect(stepNames).toEqual([
+      "mark-extracting",
+      "parse-url",
+      "extract-content",
+      "store-content",
+      "mark-extracted",
+      "mark-generating",
+    ]);
     expect(step.sendEvent).toHaveBeenCalledTimes(1);
   });
 

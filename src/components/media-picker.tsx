@@ -24,23 +24,19 @@ type MediaPickerProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-export function MediaPicker({
-  onSelect,
-  trigger,
-  open,
-  onOpenChange,
-}: MediaPickerProps) {
+export function MediaPicker({ onSelect, trigger, open, onOpenChange }: MediaPickerProps) {
   const t = useTranslations("media");
+  const tCommon = useTranslations("common");
   const [files, setFiles] = React.useState<MediaFile[]>([]);
-  const [signedUrls, setSignedUrls] = React.useState<Record<string, string>>(
-    {},
-  );
+  const [signedUrls, setSignedUrls] = React.useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const [filter, setFilter] = React.useState<FileCategory>("all");
+  const [error, setError] = React.useState<string | null>(null);
 
   const loadFiles = React.useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const result = await listMedia(filter);
       if (result.success) {
@@ -56,11 +52,15 @@ export function MediaPicker({
           }),
         );
         setSignedUrls(urls);
+      } else {
+        setError(result.error ?? tCommon("error"));
       }
+    } catch {
+      setError(tCommon("error"));
     } finally {
       setIsLoading(false);
     }
-  }, [filter]);
+  }, [filter, tCommon]);
 
   const handleOpenChange = React.useCallback(
     (isOpen: boolean) => {
@@ -74,13 +74,20 @@ export function MediaPicker({
 
   const handleUpload = async (newFiles: File[]) => {
     setIsUploading(true);
+    setError(null);
     try {
       for (const file of newFiles) {
         const formData = new FormData();
         formData.set("file", file);
-        await uploadMedia(formData);
+        const uploadResult = await uploadMedia(formData);
+        if (!uploadResult.success) {
+          setError(uploadResult.error ?? t("uploadError"));
+          return;
+        }
       }
       await loadFiles();
+    } catch {
+      setError(t("uploadError"));
     } finally {
       setIsUploading(false);
     }
@@ -92,10 +99,17 @@ export function MediaPicker({
       onSelect(file, url);
       onOpenChange?.(false);
     } else {
-      const urlResult = await getMediaUrl(file.id);
-      if (urlResult.success) {
-        onSelect(file, urlResult.data);
-        onOpenChange?.(false);
+      setError(null);
+      try {
+        const urlResult = await getMediaUrl(file.id);
+        if (urlResult.success) {
+          onSelect(file, urlResult.data);
+          onOpenChange?.(false);
+        } else {
+          setError(urlResult.error ?? tCommon("error"));
+        }
+      } catch {
+        setError(tCommon("error"));
       }
     }
   };
@@ -109,13 +123,15 @@ export function MediaPicker({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("pickerTitle")}</DialogTitle>
           <DialogDescription>{t("pickerDescription")}</DialogDescription>
         </DialogHeader>
 
         <MediaUpload onUpload={handleUpload} isUploading={isUploading} />
+
+        {error && <p className="text-destructive text-sm">{error}</p>}
 
         <div className="flex gap-2">
           {filterButtons.map((btn) => (
@@ -132,7 +148,7 @@ export function MediaPicker({
 
         {isLoading ? (
           <div className="flex min-h-[200px] items-center justify-center">
-            <p className="text-sm text-muted-foreground">{t("uploading")}</p>
+            <p className="text-muted-foreground text-sm">{t("uploading")}</p>
           </div>
         ) : (
           <MediaGrid

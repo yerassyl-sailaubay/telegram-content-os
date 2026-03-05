@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -107,8 +108,18 @@ export function ContentList({ initialData, initialCategories }: ContentListProps
         }),
         getUserCategories(),
       ]);
-      if (contentResult.success) setData(contentResult.data);
-      if (categoriesResult.success) setCategories(categoriesResult.data);
+      if (contentResult.success) {
+        setData(contentResult.data);
+      } else {
+        toast.error(contentResult.error ?? tCommon("error"));
+      }
+      if (categoriesResult.success) {
+        setCategories(categoriesResult.data);
+      } else {
+        toast.error(categoriesResult.error ?? tCommon("error"));
+      }
+    } catch {
+      toast.error(tCommon("error"));
     } finally {
       setIsLoading(false);
     }
@@ -138,9 +149,10 @@ export function ContentList({ initialData, initialCategories }: ContentListProps
           isTemplate: formData.isTemplate,
         });
         if (!result.success) {
-          console.error("Update failed:", result.error);
+          toast.error(result.error ?? tCommon("error"));
           return;
         }
+        toast.success(t("updated"));
       } else {
         const result = await createContent({
           title: formData.title,
@@ -150,14 +162,17 @@ export function ContentList({ initialData, initialCategories }: ContentListProps
           isTemplate: formData.isTemplate,
         });
         if (!result.success) {
-          console.error("Create failed:", result.error);
+          toast.error(result.error ?? tCommon("error"));
           return;
         }
+        toast.success(t("created"));
       }
 
       setFormOpen(false);
       setEditingItem(null);
       await refreshData();
+    } catch {
+      toast.error(tCommon("error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -169,11 +184,13 @@ export function ContentList({ initialData, initialCategories }: ContentListProps
     try {
       const result = await deleteContent(deletingItem.id);
       if (!result.success) {
-        console.error("Delete failed:", result.error);
+        toast.error(result.error ?? tCommon("error"));
         return;
       }
       setDeletingItem(null);
       await refreshData();
+    } catch {
+      toast.error(tCommon("error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -200,16 +217,28 @@ export function ContentList({ initialData, initialCategories }: ContentListProps
   }
 
   async function handleRenameCategory(oldName: string, newName: string) {
-    const result = await renameCategoryAction(oldName, newName);
-    if (result.success) {
-      await refreshData();
+    try {
+      const result = await renameCategoryAction(oldName, newName);
+      if (result.success) {
+        await refreshData();
+      } else {
+        toast.error(result.error ?? tCommon("error"));
+      }
+    } catch {
+      toast.error(tCommon("error"));
     }
   }
 
   async function handleDeleteCategory(name: string) {
-    const result = await deleteCategoryAction(name);
-    if (result.success) {
-      await refreshData();
+    try {
+      const result = await deleteCategoryAction(name);
+      if (result.success) {
+        await refreshData();
+      } else {
+        toast.error(result.error ?? tCommon("error"));
+      }
+    } catch {
+      toast.error(tCommon("error"));
     }
   }
 

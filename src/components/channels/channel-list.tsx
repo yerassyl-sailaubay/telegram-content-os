@@ -13,19 +13,27 @@ type ChannelListProps = {
 
 export function ChannelList({ channels: initialChannels }: ChannelListProps) {
   const t = useTranslations("channels");
+  const tCommon = useTranslations("common");
   const router = useRouter();
-  const [channels, setChannels] =
-    useState<ChannelWithPostCount[]>(initialChannels);
+  const [channels, setChannels] = useState<ChannelWithPostCount[]>(initialChannels);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   function handleDisconnect(id: string) {
     setDisconnectingId(id);
+    setError(null);
     startTransition(async () => {
-      const result = await disconnectChannel(id);
-      if (result.success) {
-        setChannels((prev) => prev.filter((c) => c.id !== id));
-        router.refresh();
+      try {
+        const result = await disconnectChannel(id);
+        if (result.success) {
+          setChannels((prev) => prev.filter((c) => c.id !== id));
+          router.refresh();
+        } else {
+          setError(result.error);
+        }
+      } catch {
+        setError(tCommon("error"));
       }
       setDisconnectingId(null);
     });
@@ -33,8 +41,8 @@ export function ChannelList({ channels: initialChannels }: ChannelListProps) {
 
   if (channels.length === 0) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/20 p-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+      <div className="bg-muted/20 flex min-h-[300px] flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center">
+        <div className="bg-muted mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -52,23 +60,24 @@ export function ChannelList({ channels: initialChannels }: ChannelListProps) {
           </svg>
         </div>
         <h3 className="mb-1 font-semibold">{t("noChannels")}</h3>
-        <p className="text-sm text-muted-foreground">
-          {t("noChannelsDescription")}
-        </p>
+        <p className="text-muted-foreground text-sm">{t("noChannelsDescription")}</p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {channels.map((channel) => (
-        <ChannelCard
-          key={channel.id}
-          channel={channel}
-          onDisconnect={handleDisconnect}
-          isDisconnecting={disconnectingId === channel.id}
-        />
-      ))}
+    <div className="space-y-3">
+      {error && <p className="text-destructive text-sm">{error}</p>}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {channels.map((channel) => (
+          <ChannelCard
+            key={channel.id}
+            channel={channel}
+            onDisconnect={handleDisconnect}
+            isDisconnecting={disconnectingId === channel.id}
+          />
+        ))}
+      </div>
     </div>
   );
 }

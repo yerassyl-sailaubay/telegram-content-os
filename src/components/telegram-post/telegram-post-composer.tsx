@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useCallback } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,6 +62,7 @@ interface TelegramPostComposerProps {
 export function TelegramPostComposer({ initialChannels }: TelegramPostComposerProps) {
   const t = useTranslations("telegramPost");
   const tAi = useTranslations("aiWriter");
+  const tCommon = useTranslations("common");
 
   const [channels] = useState<Channel[]>(initialChannels);
   const [selectedChannel, setSelectedChannel] = useState<string>("");
@@ -87,35 +88,61 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
   const charCount = content.length;
   const maxChars = 4096; // Telegram message limit
 
-  const handleChannelChange = useCallback(async (channelId: string) => {
+  function resolveErrorMessage(error: unknown): string {
+    return error instanceof Error && error.message ? error.message : tCommon("error");
+  }
+
+  const handleChannelChange = async (channelId: string) => {
     setSelectedChannel(channelId);
+    setResult(null);
 
     // Load channel profile
-    if (channelId) {
+    if (!channelId) {
+      setChannelProfile(null);
+      return;
+    }
+
+    try {
       const result = await getChannelProfile(channelId);
       if (result.success && result.data) {
         setChannelProfile(result.data);
       } else {
         setChannelProfile(null);
+        setResult({
+          success: false,
+          message: result.error,
+        });
       }
+    } catch (error) {
+      setChannelProfile(null);
+      setResult({
+        success: false,
+        message: resolveErrorMessage(error),
+      });
     }
-  }, []);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
+    setResult(null);
     const formData = new FormData();
     formData.append("image", file);
 
-    const result = await uploadImageForPost(formData);
-    if (result.success) {
-      setImageUrl(result.data.url);
-    } else {
-      setResult({ success: false, message: result.error });
+    try {
+      const result = await uploadImageForPost(formData);
+      if (result.success) {
+        setImageUrl(result.data.url);
+      } else {
+        setResult({ success: false, message: result.error });
+      }
+    } catch (error) {
+      setResult({ success: false, message: resolveErrorMessage(error) });
+    } finally {
+      setIsUploading(false);
     }
-    setIsUploading(false);
   };
 
   const removeImage = () => {
@@ -130,25 +157,32 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
 
     setResult(null);
     startTransition(async () => {
-      const response = await postToTelegram({
-        channelId: selectedChannel,
-        content: content.trim(),
-        parseMode,
-        imageUrl: imageUrl || undefined,
-      });
-
-      if (response.success) {
-        setResult({
-          success: true,
-          message: t("postSuccess"),
+      try {
+        const response = await postToTelegram({
+          channelId: selectedChannel,
+          content: content.trim(),
+          parseMode,
+          imageUrl: imageUrl || undefined,
         });
-        setContent("");
-        setImageUrl(null);
-        setSelectedChannel("");
-      } else {
+
+        if (response.success) {
+          setResult({
+            success: true,
+            message: t("postSuccess"),
+          });
+          setContent("");
+          setImageUrl(null);
+          setSelectedChannel("");
+        } else {
+          setResult({
+            success: false,
+            message: response.error,
+          });
+        }
+      } catch (error) {
         setResult({
           success: false,
-          message: response.error,
+          message: resolveErrorMessage(error),
         });
       }
     });
@@ -157,39 +191,62 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
   const handleAnalyzeChannel = async () => {
     if (!selectedChannel) return;
     setIsAnalyzing(true);
-    const result = await analyzeChannelVoice(selectedChannel);
-    if (result.success && result.data) {
-      setChannelProfile({ ...result.data, generatedAt: new Date() });
+    setResult(null);
+    try {
+      const result = await analyzeChannelVoice(selectedChannel);
+      if (result.success && result.data) {
+        setChannelProfile({ ...result.data, generatedAt: new Date() });
+      } else {
+        setResult({
+          success: false,
+          message: result.error,
+        });
+      }
+    } catch (error) {
+      setResult({
+        success: false,
+        message: resolveErrorMessage(error),
+      });
+    } finally {
+      setIsAnalyzing(false);
     }
-    setIsAnalyzing(false);
   };
 
   const handleGenerateWithAI = async () => {
     if (!selectedChannel || !aiTopic.trim()) return;
 
     setIsGenerating(true);
-    const result = await generatePostWithAI({
-      channelId: selectedChannel,
-      topic: aiTopic.trim(),
-      tone: aiTone || undefined,
-    });
-
-    if (result.success) {
-      const hashtags = result.data.suggestedHashtags.join(" ");
-      setContent(result.data.content + (hashtags ? "\n\n" + hashtags : ""));
-      setAiDialogOpen(false);
-      setAiTopic("");
-      setResult({
-        success: true,
-        message: tAi("generatedSuccess"),
+    setResult(null);
+    try {
+      const result = await generatePostWithAI({
+        channelId: selectedChannel,
+        topic: aiTopic.trim(),
+        tone: aiTone || undefined,
       });
-    } else {
+
+      if (result.success) {
+        const hashtags = result.data.suggestedHashtags.join(" ");
+        setContent(result.data.content + (hashtags ? "\n\n" + hashtags : ""));
+        setAiDialogOpen(false);
+        setAiTopic("");
+        setResult({
+          success: true,
+          message: tAi("generatedSuccess"),
+        });
+      } else {
+        setResult({
+          success: false,
+          message: result.error,
+        });
+      }
+    } catch (error) {
       setResult({
         success: false,
-        message: result.error,
+        message: resolveErrorMessage(error),
       });
+    } finally {
+      setIsGenerating(false);
     }
-    setIsGenerating(false);
   };
 
   if (channels.length === 0) {

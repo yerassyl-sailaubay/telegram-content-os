@@ -157,6 +157,7 @@ function createEvent(
     contentItemId: string;
     userId: string;
     channelId: string;
+    sourceId?: string;
   }> = {},
 ) {
   return {
@@ -165,6 +166,7 @@ function createEvent(
       contentItemId: overrides.contentItemId ?? "content-item-uuid-1",
       userId: overrides.userId ?? "user-uuid-1",
       channelId: overrides.channelId ?? "channel-uuid-1",
+      sourceId: overrides.sourceId,
     },
   };
 }
@@ -257,6 +259,7 @@ describe("generateFromSource", () => {
       "generate",
       "store-children",
       "track-usage",
+      "mark-source-completed",
     ]);
 
     // Verify quota was checked

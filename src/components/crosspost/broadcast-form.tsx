@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Radio, Calendar, CheckCircle2, Loader2, Send, Clock } from "lucide-react";
 import { listTelegramPostsForCrosspost, createBroadcastAction } from "@/server/actions/crosspost";
@@ -25,7 +25,6 @@ export function BroadcastForm({ connectedPlatforms }: BroadcastFormProps) {
   const [step, setStep] = useState<BroadcastStep>("select");
   const [search, setSearch] = useState("");
   const [posts, setPosts] = useState<TelegramPostWithChannel[]>([]);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedPost, setSelectedPost] = useState<TelegramPostWithChannel | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [useSchedule, setUseSchedule] = useState(false);
@@ -44,14 +43,15 @@ export function BroadcastForm({ connectedPlatforms }: BroadcastFormProps) {
       });
       if (result.success) {
         setPosts(result.data.posts);
+        setError(null);
+      } else {
+        setError(result.error);
       }
-      setHasLoaded(true);
     });
   }
 
   useEffect(() => {
     loadPosts();
-     
   }, []);
 
   function togglePlatform(platform: Platform) {
@@ -295,6 +295,7 @@ export function BroadcastForm({ connectedPlatforms }: BroadcastFormProps) {
 
       {/* Posts list */}
       <div className="max-h-[400px] space-y-2 overflow-y-auto pr-1">
+        {error && <p className="text-destructive text-sm">{error}</p>}
         {isLoadingPosts ? (
           <div className="space-y-2">
             {Array.from({ length: 4 }).map((_, i) => (

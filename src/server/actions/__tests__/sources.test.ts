@@ -2,13 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mock Setup ──────────────────────────────────────────────────────────────
 
-const { mockUser, mockSend, mockEnforceAiQuota, mockParseUrl, selectResults } = vi.hoisted(() => ({
-  mockUser: { id: "user-123", email: "test@example.com" },
-  mockSend: vi.fn(),
-  mockEnforceAiQuota: vi.fn(),
-  mockParseUrl: vi.fn(),
-  selectResults: [] as unknown[][],
-}));
+const { mockUser, mockSend, mockEnforceAiQuota, mockParseUrl, selectResults, insertResults } =
+  vi.hoisted(() => ({
+    mockUser: { id: "user-123", email: "test@example.com" },
+    mockSend: vi.fn(),
+    mockEnforceAiQuota: vi.fn(),
+    mockParseUrl: vi.fn(),
+    selectResults: [] as unknown[][],
+    insertResults: [] as unknown[][],
+  }));
 
 // Mock Supabase
 vi.mock("@/lib/supabase/server", () => ({
@@ -49,13 +51,25 @@ function createSelectChain() {
   return chain;
 }
 
+function createInsertChain() {
+  const chain: Record<string, unknown> = {};
+  chain.values = vi.fn().mockReturnValue(chain);
+  chain.returning = vi.fn().mockResolvedValue(insertResults.shift() ?? []);
+  return chain;
+}
+
 // Mock DB
 const mockSelect = vi.fn();
+const mockInsert = vi.fn();
 vi.mock("@/server/db", () => ({
   db: {
     select: (...args: unknown[]) => {
       mockSelect(...args);
       return createSelectChain();
+    },
+    insert: (...args: unknown[]) => {
+      mockInsert(...args);
+      return createInsertChain();
     },
   },
 }));
@@ -79,6 +93,7 @@ import { createFromUrl } from "../sources";
 beforeEach(() => {
   vi.clearAllMocks();
   selectResults.length = 0;
+  insertResults.length = 0;
   mockSend.mockResolvedValue(undefined);
 });
 
@@ -94,12 +109,14 @@ describe("createFromUrl", () => {
     mockEnforceAiQuota.mockResolvedValue({ allowed: true });
     // Channel ownership check — channel belongs to user
     selectResults.push([{ id: "channel-1", userId: "user-123" }]);
+    insertResults.push([{ id: "source-uuid-1" }]);
 
     const result = await createFromUrl("https://www.youtube.com/watch?v=abc123", "channel-1");
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.message).toBe("Processing started");
+      expect(result.data.sourceId).toBe("source-uuid-1");
     }
     expect(mockParseUrl).toHaveBeenCalledWith("https://www.youtube.com/watch?v=abc123");
     expect(mockEnforceAiQuota).toHaveBeenCalledWith("user-123");
@@ -109,6 +126,7 @@ describe("createFromUrl", () => {
         url: "https://www.youtube.com/watch?v=abc123",
         userId: "user-123",
         channelId: "channel-1",
+        sourceId: "source-uuid-1",
       },
     });
   });
@@ -120,6 +138,7 @@ describe("createFromUrl", () => {
     });
     mockEnforceAiQuota.mockResolvedValue({ allowed: true });
     selectResults.push([{ id: "channel-2", userId: "user-123" }]);
+    insertResults.push([{ id: "source-uuid-2" }]);
 
     const result = await createFromUrl("https://example.com/article", "channel-2");
 
@@ -133,6 +152,7 @@ describe("createFromUrl", () => {
         url: "https://example.com/article",
         userId: "user-123",
         channelId: "channel-2",
+        sourceId: "source-uuid-2",
       },
     });
   });

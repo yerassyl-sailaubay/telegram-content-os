@@ -776,6 +776,7 @@
     "requestingSuggestions": "Requesting...",
     "suggestionsRequested": "Suggestions requested! Check back in a moment.",
     "suggestionsRequestError": "Failed to request suggestions",
+    "suggestionsRefreshError": "Failed to refresh suggestions",
     "suggestionsTitle": "AI Suggestions",
     "suggestionsDescription": "Review and accept AI-generated content ideas for your gaps",
     "noSuggestions": "No suggestions yet",
@@ -811,7 +812,16 @@
     "submitting": "Processing...",
     "successTitle": "Content created!",
     "successDescription": "Your content is being processed. Check the library shortly.",
-    "errorTitle": "Failed to create content"
+    "errorTitle": "Failed to create content",
+    "recentImports": "Recent imports",
+    "refreshJobs": "Refresh",
+    "noRecentImports": "No recent imports yet",
+    "statusPending": "Pending",
+    "statusExtracting": "Extracting",
+    "statusExtracted": "Extracted",
+    "statusGenerating": "Generating",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed"
   },
   "repurpose": {
     "title": "Repurpose Content",

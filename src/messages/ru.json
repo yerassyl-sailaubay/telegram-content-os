@@ -776,6 +776,7 @@
     "requestingSuggestions": "Запрос...",
     "suggestionsRequested": "Подсказки запрошены! Проверьте через момент.",
     "suggestionsRequestError": "Не удалось запросить подсказки",
+    "suggestionsRefreshError": "Не удалось обновить подсказки",
     "suggestionsTitle": "ИИ-подсказки",
     "suggestionsDescription": "Просмотрите и примите идеи контента, сгенерированные ИИ",
     "noSuggestions": "Подсказок пока нет",
@@ -811,7 +812,16 @@
     "submitting": "Обработка...",
     "successTitle": "Контент создан!",
     "successDescription": "Ваш контент обрабатывается. Проверьте библиотеку через некоторое время.",
-    "errorTitle": "Не удалось создать контент"
+    "errorTitle": "Не удалось создать контент",
+    "recentImports": "Последние импорты",
+    "refreshJobs": "Обновить",
+    "noRecentImports": "Пока нет импортов",
+    "statusPending": "В очереди",
+    "statusExtracting": "Извлечение",
+    "statusExtracted": "Извлечено",
+    "statusGenerating": "Генерация",
+    "statusCompleted": "Готово",
+    "statusFailed": "Ошибка"
   },
   "repurpose": {
     "title": "Переработать контент",

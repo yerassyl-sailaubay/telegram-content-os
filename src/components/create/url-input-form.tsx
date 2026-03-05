@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Loader2, Link2, Youtube, Globe } from "lucide-react";
+import { Loader2, Link2, Youtube, Globe, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,11 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { createFromUrl } from "@/server/actions/sources";
+import {
+  createFromUrl,
+  listExternalSourceJobs,
+  type ExternalSourceJob,
+} from "@/server/actions/sources";
 import { listChannels } from "@/server/actions/channels";
 import type { ChannelWithPostCount } from "@/server/actions/channels";
 import { isYouTubeUrl } from "@/lib/sources/url-parser";
@@ -31,6 +35,26 @@ export function UrlInputForm() {
   const [channels, setChannels] = useState<ChannelWithPostCount[]>([]);
   const [isPending, startTransition] = useTransition();
   const [isLoadingChannels, startLoadingChannels] = useTransition();
+  const [jobs, setJobs] = useState<ExternalSourceJob[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+  const [jobsError, setJobsError] = useState<string | null>(null);
+
+  const refreshJobs = useCallback(async () => {
+    setIsLoadingJobs(true);
+    setJobsError(null);
+    try {
+      const result = await listExternalSourceJobs();
+      if (result.success) {
+        setJobs(result.data);
+      } else {
+        setJobsError(result.error);
+      }
+    } catch {
+      setJobsError(t("errorTitle"));
+    } finally {
+      setIsLoadingJobs(false);
+    }
+  }, [t]);
 
   useEffect(() => {
     startLoadingChannels(async () => {
@@ -42,7 +66,22 @@ export function UrlInputForm() {
         }
       }
     });
-  }, []);
+    void refreshJobs();
+  }, [refreshJobs]);
+
+  useEffect(() => {
+    const hasActiveJobs = jobs.some((job) =>
+      ["pending", "extracting", "extracted", "generating"].includes(job.processingStatus),
+    );
+
+    if (!hasActiveJobs) return;
+
+    const interval = setInterval(() => {
+      void refreshJobs();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [jobs, refreshJobs]);
 
   function validate(): boolean {
     let valid = true;
@@ -80,6 +119,7 @@ export function UrlInputForm() {
         setChannelId(channels.length === 1 ? channels[0].id : "");
         setUrlError(null);
         setChannelError(null);
+        void refreshJobs();
       } else {
         toast.error(t("errorTitle"), {
           description: result.error,
@@ -213,6 +253,54 @@ export function UrlInputForm() {
               t("submit")
             )}
           </Button>
+
+          <div className="border-t pt-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-medium">{t("recentImports")}</p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => void refreshJobs()}
+                disabled={isLoadingJobs}
+              >
+                <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", isLoadingJobs && "animate-spin")} />
+                {t("refreshJobs")}
+              </Button>
+            </div>
+
+            {jobsError && <p className="text-destructive mb-2 text-sm">{jobsError}</p>}
+
+            {jobs.length === 0 ? (
+              <p className="text-muted-foreground text-sm">{t("noRecentImports")}</p>
+            ) : (
+              <div className="space-y-2">
+                {jobs.map((job) => (
+                  <div key={job.id} className="rounded-md border p-3">
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-medium">{job.title || job.sourceUrl}</p>
+                      <span className="text-muted-foreground text-xs">
+                        {job.createdAt ? new Date(job.createdAt).toLocaleString() : ""}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-muted-foreground truncate text-xs">{job.sourceUrl}</p>
+                      <span className="bg-muted rounded-full px-2 py-0.5 text-xs">
+                        {t(
+                          `status${job.processingStatus[0]!.toUpperCase()}${job.processingStatus.slice(1)}` as Parameters<
+                            typeof t
+                          >[0],
+                        )}
+                      </span>
+                    </div>
+                    {job.processingStatus === "failed" && job.errorMessage && (
+                      <p className="text-destructive mt-2 text-xs">{job.errorMessage}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </form>
       </CardContent>
     </Card>

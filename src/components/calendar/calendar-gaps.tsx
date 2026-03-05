@@ -55,10 +55,8 @@ export function CalendarGaps({
   const [suggestions, setSuggestions] =
     React.useState<CalendarFillSuggestion[]>(initialSuggestions);
 
-  const gapDates = getNext7Days();
-  const gapCount = gapDates.length;
-
-  const gapDatesAsDate = React.useMemo(() => gapDates.map((d) => new Date(d)), []);
+  const gapDatesAsDate = React.useMemo(() => getNext7Days(), []);
+  const gapCount = gapDatesAsDate.length;
 
   async function handleRequestSuggestions() {
     if (!channelId) return;
@@ -87,8 +85,11 @@ export function CalendarGaps({
       const result = await getCalendarSuggestions(channelId);
       if (result.success) {
         setSuggestions(result.data);
+      } else {
+        toast.error(result.error ?? t("suggestionsRefreshError"));
       }
     } catch {
+      toast.error(t("suggestionsRefreshError"));
     } finally {
       setLoadingSuggestions(false);
     }
@@ -112,7 +113,7 @@ export function CalendarGaps({
 
   React.useEffect(() => {
     setSuggestions(initialSuggestions);
-  }, [channelId]);
+  }, [channelId, initialSuggestions]);
 
   const noChannels = channels.length === 0;
 
