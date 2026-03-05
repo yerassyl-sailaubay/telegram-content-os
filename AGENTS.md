@@ -1,130 +1,133 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-02-28
-**Commit:** 4db9712
+**Generated:** 2026-03-05
+**Commit:** 0356cf7
 **Branch:** work/telegram-content-os
 
 ## OVERVIEW
 
-AI-powered content management system for Telegram creators. Ingests Telegram channel posts, adapts content via AI (OpenRouter) for cross-posting to Twitter/LinkedIn, with scheduling, analytics, and billing. Built on Next.js 16 App Router + TypeScript strict + Supabase + Drizzle ORM + Inngest background jobs + Stripe.
+AI-powered content operating system for Telegram creators. The app ingests Telegram and external sources (YouTube/articles), generates/adapts content with Google Gemini, and handles scheduling, cross-posting, analytics, and billing.
+
+Core stack: Next.js 16 App Router + TypeScript strict + Supabase + Drizzle ORM + Inngest + Stripe.
 
 ## STRUCTURE
 
 ```
 src/
-├── app/                  # Next.js App Router
-│   ├── (dashboard)/      # Auth-protected dashboard (group route)
-│   │   └── dashboard/    # /dashboard/* pages (analytics, billing, channels, crosspost, media, posts, schedule, settings)
-│   ├── [locale]/         # i18n locale wrapper (en, ru; default: ru)
-│   │   └── (auth)/       # Login/signup/callback
-│   └── api/              # API routes: health, inngest, telegram/webhook, billing/*, auth/twitter|linkedin
-├── components/           # React components → see components/AGENTS.md
-├── lib/                  # Business logic modules → see lib/AGENTS.md
-│   ├── ai/               # OpenRouter client, adaptation engine, prompt builders
-│   ├── analytics/        # Cross-platform metrics collector
-│   ├── billing/          # Stripe integration, plans, quota enforcement
-│   ├── broadcast/        # Multi-platform broadcast orchestrator
-│   ├── inngest/          # Background job definitions (11 functions)
-│   ├── platforms/        # Twitter + LinkedIn API clients
-│   ├── scheduling/       # Post scheduling engine + recurring schedules
-│   ├── storage/          # Supabase storage client
-│   ├── supabase/         # Supabase auth helpers (server + middleware)
-│   └── telegram/         # Telegram Bot API client + message parser
-├── server/               # Server-side logic → see server/AGENTS.md
-│   ├── actions/          # 10 server action modules
-│   └── db/               # Drizzle ORM client + 19 schema tables
-├── hooks/                # Single hook: use-mobile.ts
-├── i18n/                 # next-intl config (locales: en, ru; default: ru)
-├── messages/             # i18n translation files (en.json, ru.json)
-├── test/                 # Test setup, factories, mocks
-└── middleware.ts          # Request pipeline: i18n routing → Supabase auth
+├── app/                        # App Router pages + API routes
+│   ├── [locale]/               # Locale wrapper (en, ru; default: ru)
+│   │   ├── (auth)/             # Login/signup/callback
+│   │   └── (dashboard)/        # Auth-protected UI
+│   │       └── dashboard/      # Main product surfaces (admin, analytics, billing, channels, create, crosspost, media, posts, publish, schedule, settings, telegram-post)
+│   └── api/                    # health, inngest, telegram webhook, billing webhooks, social auth
+├── components/                 # UI + feature components (see src/components/AGENTS.md)
+├── lib/                        # Business/domain logic (see src/lib/AGENTS.md)
+├── server/                     # Server actions + DB layer (see src/server/AGENTS.md)
+├── hooks/                      # Shared hooks
+├── i18n/                       # next-intl routing/navigation
+├── messages/                   # en.json / ru.json
+├── test/                       # Shared test setup/factories/mocks
+└── middleware.ts               # i18n + Supabase auth request pipeline
 ```
 
 ## WHERE TO LOOK
 
-| Task               | Location                                                                 | Notes                                         |
-| ------------------ | ------------------------------------------------------------------------ | --------------------------------------------- |
-| Add a page         | `src/app/(dashboard)/dashboard/{feature}/page.tsx`                       | Follow existing page pattern                  |
-| Add API route      | `src/app/api/{domain}/route.ts`                                          | Export named HTTP methods                     |
-| Add server action  | `src/server/actions/{domain}.ts`                                         | Return `ActionResult<T>` discriminated union  |
-| Add DB table       | `src/server/db/schema/{table}.ts` + re-export in `schema/index.ts`       | Drizzle ORM schema                            |
-| Add background job | `src/lib/inngest/functions/{domain}/` + register in `functions/index.ts` | Inngest function                              |
-| Add platform       | `src/lib/platforms/{name}.ts` + namespace export in `platforms/index.ts` | Follow Twitter/LinkedIn pattern               |
-| Add AI prompt      | `src/lib/ai/prompts/adapt-{platform}.ts`                                 | Follow existing prompt builder pattern        |
-| Add component      | `src/components/{feature}/{name}.tsx`                                    | Co-locate tests in `__tests__/`               |
-| Add UI primitive   | `src/components/ui/`                                                     | Use shadcn CLI: `bunx shadcn add {component}` |
+| Task                    | Location                                                     | Notes                                 |
+| ----------------------- | ------------------------------------------------------------ | ------------------------------------- |
+| Add locale page         | `src/app/[locale]/.../page.tsx`                              | Keep locale-aware navigation/messages |
+| Add dashboard page      | `src/app/[locale]/(dashboard)/dashboard/{feature}/page.tsx`  | Most product pages live here          |
+| Add API route           | `src/app/api/{domain}/route.ts`                              | Export named HTTP methods             |
+| Add server action       | `src/server/actions/{domain}.ts`                             | Return `ActionResult<T>` union        |
+| Add DB table/schema     | `src/server/db/schema/{table}.ts` + `schema/index.ts`        | Keep barrel exports in sync           |
+| Add background function | `src/lib/inngest/functions/{domain}/` + `functions/index.ts` | Must register in index                |
+| Add component           | `src/components/{feature}/{name}.tsx`                        | Co-locate tests in `__tests__/`       |
+| Add UI primitive        | `src/components/ui/`                                         | Use shadcn CLI                        |
 
 ## CONVENTIONS
 
-- **Package manager**: Bun (`bun install`, `bun run <script>`, `bunx`)
-- **Imports**: Always `@/` alias for `src/` — e.g. `@/lib/utils`, `@/server/db`
-- **Formatting**: Prettier — double quotes, semicolons, trailing commas, 100 char width
-- **Styling**: Tailwind CSS 4 (CSS-first, no tailwind.config) + OKLCH colors. Use `cn()` from `@/lib/utils`
-- **Component variants**: CVA pattern (`class-variance-authority`)
-- **Module exports**: Barrel `index.ts` files. Platforms use namespace exports (`export * as linkedin`)
-- **Types**: Co-located `types.ts` per module, not in global `src/types/`
-- **Tests**: Co-located `__tests__/` dirs with `*.test.ts(x)`. Vitest globals enabled
-- **Files**: kebab-case (`channel-card.tsx`, `adapt-twitter.ts`)
-- **Server actions**: Return `ActionResult<T>` with `{ success: true, data }` | `{ success: false, error }`
-- **DB**: Lazy Proxy singleton (`src/server/db/index.ts`). Never import `postgres` directly
-- **i18n**: Default locale is `ru`. All user-facing strings in `src/messages/{locale}.json`
-- **Env vars**: `NEXT_PUBLIC_*` for browser-safe, UPPERCASE for server-only
+- **Package manager**: Bun (`bun install`, `bun run ...`, `bunx ...`).
+- **Imports**: `@/` alias for `src/`.
+- **Formatting**: Prettier (double quotes, semicolons, trailing commas, 100 width).
+- **Styling**: Tailwind CSS 4 + `cn()` helper from `@/lib/utils`.
+- **Actions**: `ActionResult<T>` pattern (`{ success: true, data } | { success: false, error }`).
+- **DB access**: Use `db` from `@/server/db` (lazy singleton proxy), never direct `postgres` imports.
+- **i18n**: Default locale is `ru`; user-facing strings belong in `src/messages/{locale}.json`.
+- **Tests**: Vitest + Testing Library; keep tests close to features when possible.
 
 ## ANTI-PATTERNS
 
-- Do NOT place code between `createServerClient()` and `supabase.auth.getUser()` in middleware — causes random logouts
-- Do NOT use LinkedIn UGC API — deprecated. Use Posts API (`linkedin.ts` already does)
-- Do NOT import DB connection directly — always use `db` export from `@/server/db`
-- Do NOT skip quota check before AI operations — always `enforceQuota` first
-- Do NOT hardcode locale — use next-intl `useTranslations()` or `getTranslations()`
+- Do NOT insert code between `createServerClient()` and `supabase.auth.getUser()` in `src/lib/supabase/middleware.ts`.
+- Do NOT skip quota enforcement before AI-heavy operations.
+- Do NOT hardcode locale strings or route assumptions; use next-intl helpers.
+- Do NOT edit generated/shadcn UI primitives in ways that conflict with regeneration.
 
 ## REQUEST FLOW
 
 ```
-Request → middleware.ts (i18n + auth)
-  ├── API routes: /api/* (skip middleware matcher)
-  ├── Auth pages: /[locale]/login, /signup → redirect if authenticated
-  └── Dashboard: /[locale]/dashboard/* → redirect to login if unauthenticated
+Request
+  -> src/middleware.ts (i18n + auth gating)
+  -> locale root /[locale] stays public (landing)
+  -> /[locale]/dashboard/* requires auth
+  -> /[locale]/login|signup redirects away if already authenticated
 
-Telegram webhook → /api/telegram/webhook → Inngest event → background processing
-Stripe webhook → /api/billing/webhook → subscription updates
-OAuth callbacks → /api/auth/{twitter,linkedin}/callback → token storage
+Root /
+  -> src/app/page.tsx redirects to default locale (/ru)
+
+Telegram webhook
+  -> /api/telegram/webhook
+  -> DB write + Inngest event
+
+External source pipeline
+  -> server action (sources.ts)
+  -> Inngest: process external source
+  -> optional AI generation fanout
+
+Billing webhook
+  -> /api/billing/webhook
+  -> subscription + usage updates
 ```
 
 ## BACKGROUND JOBS (Inngest)
 
-| Function                    | Trigger          | Purpose                                 |
-| --------------------------- | ---------------- | --------------------------------------- |
-| `telegramPostReceived`      | Telegram webhook | Process new channel post                |
-| `adaptContent`              | Server action    | AI content adaptation pipeline          |
-| `profileChannel`            | Server action    | Analyze channel tone for AI             |
-| `executeScheduledPost`      | Cron/schedule    | Post at scheduled time                  |
-| `processRecurringSchedules` | Cron             | Generate posts from recurring schedules |
-| `executeBroadcast`          | Server action    | Multi-platform simultaneous post        |
-| `collectLinkedInAnalytics`  | Cron             | Fetch LinkedIn post metrics             |
-| `collectTwitterAnalytics`   | Cron             | Fetch Twitter post metrics              |
-| `collectTelegramAnalytics`  | Cron             | Fetch Telegram post metrics             |
+Registered in `src/lib/inngest/functions/index.ts`:
+
+- `telegramPostReceived`
+- `publishToTelegram`
+- `adaptContent`
+- `developIdea`
+- `repurposeContent`
+- `generateFromSource`
+- `profileChannel`
+- `suggestCalendarFill`
+- `executeScheduledPost`
+- `processRecurringSchedules`
+- `executeBroadcast`
+- `processExternalSource`
+- `collectLinkedInAnalytics`
+- `collectTwitterAnalytics`
+- `collectTelegramAnalytics`
+- `helloWorld` (example)
+- `scheduledExample` (example)
 
 ## COMMANDS
 
 ```bash
-bun dev              # Dev server (port 3000)
+bun dev              # Dev server
 bun build            # Production build
+bun start            # Start production server
 bun lint             # ESLint
-bun format           # Prettier
-bun test             # Unit tests (Vitest)
-bun test:watch       # Tests in watch mode
-bun test:coverage    # Tests with coverage
-bun test:e2e         # E2E tests (Playwright)
-bun inngest-dev      # Inngest dev server (for background jobs)
-bun test:smoke       # Smoke test (starts server, checks /api/health)
+bun format           # Prettier write
+bun test             # Vitest run
+bun test:watch       # Vitest watch
+bun test:coverage    # Vitest coverage
+bun test:e2e         # Playwright
+bun inngest-dev      # Inngest local dev
+bun test:smoke       # Smoke test script
 ```
 
 ## NOTES
 
-- CI runs: typecheck → lint → test → build (sequential). E2E runs separately on push to main
-- Pre-commit hook (Husky): `lint-staged` runs `bun lint --fix` + `prettier --write`
-- Tailwind CSS 4 uses CSS-first config in `src/app/globals.css` (not `tailwind.config.js`)
-- DB schema has 19 tables — see `src/server/db/schema/` for full list
-- AI adaptation is 2-step: literal translation (RU→EN) → platform-specific adaptation
-- Twitter adaptation handles threading with sentence boundary splitting (reserves 10 chars for " 1/N")
+- Current database migrations include `drizzle/0000` through `drizzle/0005`.
+- DB schema currently has **19 tables** (`external-sources` is included).
+- Middleware file naming is still `middleware.ts`; Next.js 16 warns that `proxy` is the newer convention.
+- There is an untracked standalone subproject folder `telegram-content-os-landing/`; it is separate from `src/app/[locale]/page.tsx` landing.

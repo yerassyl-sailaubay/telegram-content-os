@@ -2,51 +2,83 @@
 
 ## OVERVIEW
 
-Server-side logic: server actions + Drizzle ORM database layer
+`src/server` contains server actions and the Drizzle ORM data layer. It is the main place for auth-scoped mutations/queries and DB schema definitions.
 
 ## STRUCTURE
 
 ```
 server/
-├── actions/          # 10 server action modules + __tests__/
+├── actions/          # 20 server action modules + tests
+│   ├── admin.ts
+│   ├── ai-writer.ts
 │   ├── analytics.ts
+│   ├── analytics-telegram.ts
 │   ├── auth.ts
+│   ├── calendar.ts
 │   ├── channels.ts
 │   ├── content.ts
 │   ├── crosspost.ts
 │   ├── dashboard.ts
+│   ├── develop-idea.ts
 │   ├── media.ts
+│   ├── publish-telegram.ts
+│   ├── repurpose.ts
 │   ├── schedule.ts
 │   ├── settings.ts
+│   ├── sources.ts
+│   ├── telegram-post.ts
+│   ├── telegram-post-edit.ts
 │   └── welcome.ts
 └── db/
-    ├── index.ts      # Lazy Proxy singleton — never import postgres directly
-    ├── schema/        # 19 Drizzle ORM table schemas + index.ts barrel
+    ├── index.ts      # Lazy DB singleton proxy
+    ├── schema/       # 19 table schema files + barrel exports
     └── seed.ts
 ```
 
 ## WHERE TO LOOK
 
-| Task              | Location                                                   |
-| ----------------- | ---------------------------------------------------------- |
-| Add server action | `actions/{domain}.ts`                                      |
-| Add DB table      | `db/schema/{table}.ts` + re-export in `db/schema/index.ts` |
-| Modify DB client  | `db/index.ts` (Proxy singleton)                            |
-| Add seed data     | `db/seed.ts`                                               |
+| Task                    | Location                                                         |
+| ----------------------- | ---------------------------------------------------------------- |
+| Add/update action       | `src/server/actions/{domain}.ts`                                 |
+| Add DB table            | `src/server/db/schema/{table}.ts` + export via `schema/index.ts` |
+| Adjust DB bootstrapping | `src/server/db/index.ts`                                         |
+| Seed data updates       | `src/server/db/seed.ts`                                          |
 
 ## CONVENTIONS
 
-- **ActionResult**: Every action returns `{ success: true, data: T }` | `{ success: false, error: string }`. No exceptions.
-- **DB import**: `import { db } from "@/server/db"`. The Proxy in `db/index.ts` handles lazy init and HMR-safe caching on `globalThis`.
-- **Schema files**: one table per file in `db/schema/`, re-exported via `db/schema/index.ts` barrel.
-- **19 schema tables**: `users`, `telegram-channels`, `telegram-posts`, `cross-posts`, `platform-connections`, `subscriptions`, `usage-tracking`, `schedules`, `recurring-schedules`, `media-files`, `content-library`, `channel-profiles`, `channel-metrics`, `post-analytics`, `analytics-sync-log`, `user-preferences`, `welcome-messages`, `welcome-templates`.
-- **Auth first**: actions get the user from Supabase before any DB operation.
-- **Revalidation**: call `revalidatePath()` after mutations.
-- **Quota**: call `enforceQuota` before any AI operation — never skip it.
+- **ActionResult contract**: return `{ success: true, data }` or `{ success: false, error }`.
+- **Auth-first pattern**: verify current user before user-scoped DB reads/writes.
+- **DB import**: always `import { db } from "@/server/db"`.
+- **Schema hygiene**: one table per schema file; keep `schema/index.ts` in sync.
+- **Revalidation**: use `revalidatePath` after state-changing actions where UI cache depends on it.
+
+## DB TABLES (CURRENT)
+
+19 schema files currently define:
+
+- `analytics-sync-log`
+- `channel-metrics`
+- `channel-profiles`
+- `content-library`
+- `cross-posts`
+- `external-sources`
+- `media-files`
+- `platform-connections`
+- `post-analytics`
+- `recurring-schedules`
+- `schedules`
+- `subscriptions`
+- `telegram-channels`
+- `telegram-posts`
+- `usage-tracking`
+- `user-preferences`
+- `users`
+- `welcome-messages`
+- `welcome-templates`
 
 ## ANTI-PATTERNS
 
-- Do NOT import `postgres` directly — use `db` from `@/server/db`.
-- Do NOT return raw values from actions — always wrap in `ActionResult<T>`.
-- Do NOT skip the auth check — every action verifies the user first.
-- Do NOT add a schema file without re-exporting it from `db/schema/index.ts`.
+- Do NOT import `postgres` directly in actions.
+- Do NOT throw raw values from action boundaries where `ActionResult` should be returned.
+- Do NOT skip ownership/auth checks on user data.
+- Do NOT add schema files without exporting them in `src/server/db/schema/index.ts`.

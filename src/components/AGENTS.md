@@ -2,26 +2,32 @@
 
 ## OVERVIEW
 
-React components for Telegram Content OS dashboard.
+`src/components` contains feature UI for dashboard, landing, admin, creation flows, and reusable primitives.
 
 ## STRUCTURE
 
 ```
 components/
-├── analytics/        # Charts, metrics cards, posting heatmap, platform comparison
-├── billing/          # Pricing card, usage meter, billing client
-├── channels/         # Channel list, card, settings, connect wizard
-├── content/          # Content list, card, form, category manager
-├── crosspost/        # Multi-step crosspost wizard (7 step components) + broadcast form
-├── dashboard/        # Overview widgets: stats, activity feed, quick actions, sparkline
-├── layout/           # App shell, sidebar, header, page header
-├── media/            # Media library grid, upload, card, empty state
-├── posts/            # Posts empty state
-├── preview/          # Platform-specific post previews (Twitter, LinkedIn)
-├── schedule/         # Calendar, recurring form, schedule dialog, timezone select
-├── settings/         # Tab-per-section: profile, connections, AI preferences, billing
-├── welcome/          # Onboarding template editor
-├── ui/               # shadcn/ui primitives (27 components) — CLI-managed
+├── admin/            # Admin console UI
+├── analytics/        # Charts, KPI cards, tables, comparison views
+├── billing/          # Usage meter, pricing/upgrade surfaces
+├── calendar/         # Gap detection cards and scheduling suggestions
+├── channels/         # Channel list/settings/connect/profile
+├── content/          # Content library, filters, quick capture, repurpose modal
+├── create/           # URL input + source ingestion UX
+├── crosspost/        # Crosspost wizard + broadcast form
+├── dashboard/        # Dashboard widgets (welcome, stats, activity, upcoming)
+├── landing/          # Landing sections (hero, features, how-it-works)
+├── layout/           # Shell, sidebar, headers
+├── media/            # Media grid/upload/cards
+├── posts/            # Post empty states and supporting UI
+├── preview/          # LinkedIn/Twitter preview cards
+├── publish/          # Telegram publish form
+├── schedule/         # Calendar + recurring + schedule dialog
+├── settings/         # Profile, connections, AI prefs, billing tabs
+├── telegram-post/    # Telegram post composer
+├── ui/               # shadcn/ui primitives (27 files)
+├── welcome/          # Welcome template editor
 ├── language-switcher.tsx
 ├── media-picker.tsx
 ├── theme-provider.tsx
@@ -30,35 +36,29 @@ components/
 
 ## WHERE TO LOOK
 
-| Task                                     | Location                          |
-| ---------------------------------------- | --------------------------------- |
-| Add a dashboard overview widget          | `dashboard/`                      |
-| Add an analytics chart or metric         | `analytics/`                      |
-| Add a settings tab                       | `settings/`                       |
-| Add a billing UI component               | `billing/`                        |
-| Add a channel management component       | `channels/`                       |
-| Add a crosspost wizard step              | `crosspost/`                      |
-| Add a schedule/calendar component        | `schedule/`                       |
-| Add a media library component            | `media/`                          |
-| Add a platform post preview              | `preview/`                        |
-| Add a UI primitive (button, input, etc.) | run `bunx shadcn add {component}` |
-| App-wide layout (shell, sidebar)         | `layout/`                         |
+| Task                             | Location                                                   |
+| -------------------------------- | ---------------------------------------------------------- |
+| Add admin UI                     | `src/components/admin/`                                    |
+| Add landing section              | `src/components/landing/`                                  |
+| Add content library UI           | `src/components/content/`                                  |
+| Add source-ingestion UI          | `src/components/create/`                                   |
+| Add crosspost flow UI            | `src/components/crosspost/`                                |
+| Add analytics visualizations     | `src/components/analytics/`                                |
+| Add telegram publish/composer UX | `src/components/publish/`, `src/components/telegram-post/` |
+| Add dashboard widget             | `src/components/dashboard/`                                |
+| Add reusable primitive           | `src/components/ui/` via shadcn CLI                        |
 
 ## CONVENTIONS
 
-- **`ui/`** contains only shadcn/ui primitives. Add via `bunx shadcn add {component}`, never hand-write.
-- Feature components live in their own dir matching the dashboard route name.
-- CVA (`class-variance-authority`) for multi-variant components — see `ui/badge.tsx` as reference.
-- `cn()` from `@/lib/utils` for all conditional class merging.
-- Tests co-located in `__tests__/` within each feature dir, named `*.test.tsx`.
-- File names are kebab-case: `metrics-card.tsx`, `crosspost-wizard.tsx`.
-- Standalone app-wide components (theme, locale switcher, media picker) live at root of `components/`.
-- `"use client"` at file top for any component using hooks or browser APIs.
-- Props types defined inline or in a co-located `types.ts` — not in global `src/types/`.
+- Keep feature components inside their feature directory (avoid generic catch-all folders).
+- Use `cn()` from `@/lib/utils` for class composition.
+- Use CVA when variant complexity warrants it.
+- Keep tests in colocated `__tests__/` folders with `*.test.tsx` naming.
+- Add `"use client"` to components using hooks/browser APIs.
+- Keep testability hooks (`data-testid`) for interactive/complex components.
 
 ## ANTI-PATTERNS
 
-- Do NOT hand-edit files in `ui/` — they're regenerated by shadcn CLI and edits will be lost.
-- Do NOT create generic shared dirs (`common/`, `shared/`, `utils/`) — put components in their feature folder.
-- Do NOT import from other feature dirs when a component is truly shared — move it to `ui/` or keep it standalone at root.
-- Do NOT skip `data-testid` attributes on interactive or complex components — tests depend on them.
+- Do NOT hand-edit shadcn-managed primitives in `components/ui` if they should stay CLI-syncable.
+- Do NOT couple unrelated feature folders directly; lift reusable pieces appropriately.
+- Do NOT hardcode locale/user-facing copy in components; use translations.

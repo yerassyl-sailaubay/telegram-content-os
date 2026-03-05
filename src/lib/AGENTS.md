@@ -1,53 +1,67 @@
 # LIB — BUSINESS LOGIC MODULES
 
-**Overview:** Business logic modules — AI, billing, platforms, scheduling, analytics, Telegram, and broadcast
+## OVERVIEW
+
+`src/lib` contains domain logic and integrations: AI generation/adaptation, external source ingestion, billing/quota, analytics, platform publishing, scheduling, storage, auth helpers, and Inngest functions.
 
 ## STRUCTURE
 
 ```
 lib/
-├── ai/               # OpenRouter + adaptation engine + prompt builders (8 files)
-├── analytics/        # Cross-platform metrics collector (4 files)
-├── billing/          # Stripe + plans + quota + usage tracking (9 files)
-├── broadcast/        # Multi-platform broadcast orchestrator (4 files)
-├── inngest/          # Background jobs client + 11 functions
-├── platforms/        # Twitter + LinkedIn API clients (6 files)
-├── scheduling/       # Engine + recurring schedules + timezone (4 files)
-├── storage/          # Supabase storage client (1 file)
-├── supabase/         # Auth helpers: server.ts, middleware.ts, client.ts
-├── telegram/         # Bot API client + message parser + converters (7 files)
-├── date-utils.ts     # Shared date formatting
-├── utils.ts          # cn() helper (clsx + tailwind-merge)
-└── utils.test.ts
+├── admin/            # Admin access helpers
+├── ai/               # Gemini client + generation/adaptation engines + prompt builders
+├── analytics/        # Metrics collection and Telegram enhanced analytics
+├── billing/          # Stripe checkout/portal/webhook + quota/usage enforcement
+├── broadcast/        # Multi-platform broadcast orchestration
+├── inngest/          # Inngest client + registered background functions
+├── platforms/        # LinkedIn/Twitter API clients + token encryption
+├── scheduling/       # Scheduling engine, recurring processor, timezone helpers
+├── sources/          # URL parsing + article/youtube extraction
+├── storage/          # Supabase media storage client
+├── supabase/         # Browser/server/middleware Supabase clients
+├── telegram/         # Telegram parsing, conversion, and bot client helpers
+├── date-utils.ts     # Shared date/time formatting helpers
+└── utils.ts          # `cn()` and utility helpers
 ```
 
 ## MODULE MAP
 
-| Module      | Entry Point                    | Key Exports                                                               | Notes                                                            |
-| ----------- | ------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| ai/         | index.ts                       | `AdaptationEngine`, `OpenRouterClient`, `ChannelProfiler`                 | 2-step pipeline: translate → adapt. Prompts in `prompts/` subdir |
-| analytics/  | index.ts                       | `MetricsCollector`                                                        | Collects from LinkedIn, Twitter, Telegram                        |
-| billing/    | index.ts                       | `enforceQuota`, `PLANS`, `getStripe`, `getCurrentUsage`, `incrementUsage` | Pro tier uses `Infinity` for unlimited                           |
-| broadcast/  | index.ts                       | `BroadcastOrchestrator`                                                   | Parallel multi-platform posting                                  |
-| inngest/    | client.ts + functions/index.ts | 11 background functions                                                   | Event-driven; see root AGENTS.md for full function list          |
-| platforms/  | index.ts                       | `linkedin.*`, `twitter.*` (namespace exports)                             | Namespace exports avoid name collisions                          |
-| scheduling/ | engine.ts                      | `SchedulingEngine`, `processRecurring`                                    | `timezone.ts` handles TZ conversions                             |
-| storage/    | client.ts                      | `StorageClient`                                                           | Supabase file storage                                            |
-| supabase/   | server.ts, middleware.ts       | `createClient`, `updateSession`                                           | `middleware.ts` has critical anti-pattern — see below            |
-| telegram/   | parser.ts, client.ts           | `parseTelegramMessage`, `TelegramClient`                                  | UTF-16 offset handling for emoji/surrogate pairs                 |
+| Module        | Entry Point                                       | Key Exports                                                               | Notes                                            |
+| ------------- | ------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
+| `admin/`      | `admin/index.ts`                                  | `requireAdmin`, role helpers                                              | Used by admin console/actions                    |
+| `ai/`         | `ai/index.ts`                                     | `GoogleClient`, `GenerationEngine`, `AdaptationEngine`, `ChannelProfiler` | Main AI path is Gemini-based                     |
+| `analytics/`  | `analytics/index.ts`                              | metrics collectors + helpers                                              | Includes Telegram-specific aggregations          |
+| `billing/`    | `billing/index.ts`                                | checkout/portal/webhook + quota APIs                                      | `enforceQuota`, `enforceAiQuota`, usage counters |
+| `broadcast/`  | `broadcast/index.ts`                              | `BroadcastOrchestrator`                                                   | Fanout publishing workflow                       |
+| `inngest/`    | `inngest/client.ts`, `inngest/functions/index.ts` | Inngest client + 17 registered functions                                  | Includes production + example functions          |
+| `platforms/`  | `platforms/index.ts`                              | `linkedin.*`, `twitter.*`, encryption                                     | OAuth + posting + retry logic                    |
+| `scheduling/` | `scheduling/engine.ts`                            | `SchedulingEngine`, recurring processors                                  | Scheduling validation + queue creation           |
+| `sources/`    | `sources/index.ts`                                | URL/article/youtube extraction                                            | Feeds `external_sources` + AI generation         |
+| `storage/`    | `storage/client.ts`                               | `StorageClient`                                                           | Supabase bucket interactions                     |
+| `supabase/`   | `supabase/{client,server,middleware}.ts`          | typed client factories                                                    | Middleware ordering is critical                  |
+| `telegram/`   | `telegram/{client,parser,...}.ts`                 | `TelegramClient`, parsers/converters                                      | Handles webhook and publish formatting           |
 
 ## CONVENTIONS
 
-- Each module has a barrel `index.ts` (except `scheduling/`, `telegram/`, `supabase/` — use named entry files)
-- Types co-located in `types.ts` per module, not in a global types dir
-- Tests live in `__tests__/` dirs alongside source
-- Platform modules use namespace exports: `export * as linkedin from "./linkedin"`
-- AI prompts: one file per platform at `ai/prompts/adapt-{platform}.ts`
-- New Inngest functions must be registered in `inngest/functions/index.ts`
+- Keep module-local `types.ts` where practical; avoid dumping types globally.
+- Keep tests in `__tests__/` alongside module code.
+- Register every new Inngest function in `inngest/functions/index.ts`.
+- Use namespace exports for platform modules (`linkedin`, `twitter`) to avoid collisions.
+- For source processing, preserve the status lifecycle in `external_sources` (`pending` → `extracting` → `extracted`/`generating` → `completed`/`failed`).
 
 ## ANTI-PATTERNS
 
-- Do NOT skip `enforceQuota` before any AI operation
-- Do NOT use the LinkedIn UGC API — deprecated. `linkedin.ts` already uses Posts API
-- Do NOT place any code between `createServerClient()` and `supabase.auth.getUser()` in `supabase/middleware.ts` — causes random logouts
-- Do NOT import `postgres` directly — always use `db` from `@/server/db`
+- Do NOT bypass quota checks around AI generation/adaptation workflows.
+- Do NOT place logic between `createServerClient()` and `supabase.auth.getUser()` in middleware client creation.
+- Do NOT use deprecated LinkedIn UGC endpoints; use Posts API flow.
+- Do NOT import DB connection primitives directly from `postgres`; use `@/server/db`.
+
+## INNGEST SNAPSHOT
+
+Current registered functions (`src/lib/inngest/functions/index.ts`):
+
+- AI: `adaptContent`, `developIdea`, `generateFromSource`, `profileChannel`, `repurposeContent`, `suggestCalendarFill`
+- Scheduling/Broadcast: `executeScheduledPost`, `processRecurringSchedules`, `executeBroadcast`
+- Sources/Telegram: `processExternalSource`, `telegramPostReceived`, `publishToTelegram`
+- Analytics: `collectLinkedInAnalytics`, `collectTwitterAnalytics`, `collectTelegramAnalytics`
+- Examples: `helloWorld`, `scheduledExample`

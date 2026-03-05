@@ -905,3 +905,27 @@ The codebase is well-architected for adding Google support, but requires signifi
 - No new dependencies added — uses existing `lucide-react`, shadcn/ui, next-intl, Tailwind CSS 4
 
 **Build result**: ✓ Passes cleanly (52 static/dynamic routes generated)
+
+## F2: Code Quality Review (2026-03-05)
+
+### Build/Lint/Test Status
+
+- `tsc --noEmit`: 9 errors, ALL in test files — production code compiles clean
+- `bun lint`: 2 errors (step-adapt.tsx setState-in-effect, sidebar.tsx Math.random purity — shadcn stock), 56 warnings
+- `bun run test`: 1066 pass / 2 fail (pre-existing channels.test.ts) + 1 broken suite (ux-states.test.tsx bad import)
+
+### Anti-Pattern Scan — CLEAN
+
+- Zero: `as any`, `@ts-ignore`, `@ts-expect-error`, empty catch blocks, console.log in new code, TODO/FIXME
+- 5 justified `eslint-disable` directives
+
+### Key Issues Found
+
+1. `ux-states.test.tsx` imports `@/app/(dashboard)/dashboard/error` — file lives at `@/app/[locale]/(dashboard)/dashboard/error`
+2. `step-adapt.tsx:48` calls setState synchronously in useEffect
+3. ~6 unused imports in production files (scheduling/recurring.ts, analytics.ts, growth-chart.tsx, metrics-card.tsx)
+4. `_recentDraftTitles` in develop-idea.ts loaded but never used (dead code from Wave 3)
+
+### AI Slop Assessment — CLEAN
+
+- All spot-checked files (generation-engine, content actions, inngest functions, telegram-analytics) show good structure, consistent patterns, no excessive comments, no over-abstraction
