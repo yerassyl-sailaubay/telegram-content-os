@@ -29,6 +29,20 @@
       "when": 1772800000000,
       "tag": "0003_live_schema_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772808000000,
+      "tag": "0004_rls_and_fk_index_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772811000000,
+      "tag": "0005_optimize_rls_initplan",
+      "breakpoints": true
     }
   ]
 }
