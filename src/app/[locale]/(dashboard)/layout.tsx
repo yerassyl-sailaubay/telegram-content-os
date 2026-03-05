@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminEmail } from "@/lib/admin/access";
 import { Shell } from "@/components/layout/shell";
 
 export default async function DashboardLayout({
@@ -17,5 +18,9 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  return <Shell userEmail={user.email}>{children}</Shell>;
+  return (
+    <Shell userEmail={user.email} isAdmin={isAdminEmail(user.email)}>
+      {children}
+    </Shell>
+  );
 }

@@ -35,7 +35,8 @@
     "media": "Media",
     "settings": "Settings",
     "billing": "Billing",
-    "telegramPost": "New Post"
+    "telegramPost": "New Post",
+    "admin": "Admin"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -399,6 +400,86 @@
     "upgradePromptTitle": "Running low on AI generations",
     "upgradePromptMessage": "You've used {used} of {limit} AI generations this month. Upgrade to {plan} for more.",
     "upgradePromptAction": "Upgrade Now"
+  },
+  "admin": {
+    "title": "Admin Console",
+    "description": "Operational visibility, debugging logs, and billing controls",
+    "accessErrorTitle": "Admin access required",
+    "refresh": "Refresh snapshot",
+    "snapshotAt": "Snapshot: {date}",
+    "openModeTitle": "Open development mode",
+    "openModeDescription": "ADMIN_EMAILS is not set. Any authenticated user can access this page in non-production environments.",
+    "tabs": {
+      "overview": "Overview",
+      "billing": "Billing",
+      "logs": "Logs"
+    },
+    "metrics": {
+      "totalUsers": "Total users",
+      "paidUsers": "Paid users",
+      "pastDueUsers": "Past due users",
+      "crossPosts24h": "Cross-posts (24h)",
+      "failedCrossPosts24h": "Failed cross-posts (24h)",
+      "pendingSchedules": "Pending schedules",
+      "failedSchedules24h": "Failed schedules (24h)",
+      "crossPostsMonth": "Cross-post usage (month)",
+      "aiCallsMonth": "AI usage (month)"
+    },
+    "env": {
+      "title": "Environment checks",
+      "description": "Critical variables required for integrations and background jobs",
+      "missingCount": "{count} variables missing",
+      "allConfigured": "All critical environment variables are configured",
+      "configured": "Configured",
+      "missing": "Missing"
+    },
+    "billing": {
+      "title": "Billing controls",
+      "description": "Manage subscription and usage for each user. Usage month: {month}.",
+      "empty": "No users found.",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "Saved",
+      "cancelAtEnd": "Cancel at period end",
+      "usageMonth": "Usage month: {month}",
+      "updatedAt": "Updated: {date}",
+      "columns": {
+        "user": "User",
+        "plan": "Plan",
+        "status": "Status",
+        "periodEnd": "Period End",
+        "cancelAtEnd": "Cancel",
+        "usage": "Usage",
+        "stripe": "Stripe",
+        "action": "Action"
+      }
+    },
+    "logs": {
+      "empty": "No records yet.",
+      "columns": {
+        "time": "Time",
+        "user": "User",
+        "platform": "Platform / Type",
+        "status": "Status",
+        "details": "Details"
+      },
+      "crossPosts": {
+        "title": "Cross-post events",
+        "description": "Latest cross-post lifecycle events across all users"
+      },
+      "scheduleFailures": {
+        "title": "Schedule failures",
+        "description": "Recent failed scheduled jobs"
+      },
+      "sourceFailures": {
+        "title": "Source processing failures",
+        "description": "Recent extraction/generation failures from external sources"
+      },
+      "analyticsSync": {
+        "title": "Analytics sync activity",
+        "description": "Most recent analytics synchronization windows"
+      }
+    }
   },
   "analytics": {
     "loading": "Refreshing...",
