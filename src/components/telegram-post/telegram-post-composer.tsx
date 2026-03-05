@@ -103,16 +103,17 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
     }
 
     try {
-      const result = await getChannelProfile(channelId);
-      if (result.success && result.data) {
-        setChannelProfile(result.data);
-      } else {
+      const profileResult = await getChannelProfile(channelId);
+      if (!profileResult.success) {
         setChannelProfile(null);
         setResult({
           success: false,
-          message: result.error,
+          message: profileResult.error,
         });
+        return;
       }
+
+      setChannelProfile(profileResult.data);
     } catch (error) {
       setChannelProfile(null);
       setResult({
@@ -193,15 +194,16 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
     setIsAnalyzing(true);
     setResult(null);
     try {
-      const result = await analyzeChannelVoice(selectedChannel);
-      if (result.success && result.data) {
-        setChannelProfile({ ...result.data, generatedAt: new Date() });
-      } else {
+      const analysisResult = await analyzeChannelVoice(selectedChannel);
+      if (!analysisResult.success) {
         setResult({
           success: false,
-          message: result.error,
+          message: analysisResult.error,
         });
+        return;
       }
+
+      setChannelProfile({ ...analysisResult.data, generatedAt: new Date() });
     } catch (error) {
       setResult({
         success: false,
