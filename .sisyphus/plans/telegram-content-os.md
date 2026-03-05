@@ -763,7 +763,7 @@ Max Concurrent: 7 (Wave 1)
 
 ### Wave 2 — Core Data + Telegram (after Wave 1)
 
-- [ ] 8. Telegram Bot Setup + Webhook Pipeline + Post Ingestion
+- [x] 8. Telegram Bot Setup + Webhook Pipeline + Post Ingestion
 
   **What to do**:
   - Create Telegram bot via @BotFather, store bot token in env vars
@@ -851,7 +851,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/app/api/telegram/**`, `src/lib/telegram/**`, `src/lib/inngest/functions/telegram/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 9. Content Library CRUD + Search + Categories
+- [x] 9. Content Library CRUD + Search + Categories
 
   **What to do**:
   - Create content library feature at `src/app/(dashboard)/content/`:
@@ -920,7 +920,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/app/(dashboard)/content/**`, `src/server/actions/content.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 10. Media Library + Supabase Storage Integration
+- [x] 10. Media Library + Supabase Storage Integration
 
   **What to do**:
   - Create media library feature at `src/app/(dashboard)/media/`:
@@ -989,7 +989,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/app/(dashboard)/media/**`, `src/components/media-picker.tsx`, `src/server/actions/media.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 11. Scheduling Engine + Calendar UI
+- [x] 11. Scheduling Engine + Calendar UI
 
   **What to do**:
   - Create scheduling feature at `src/app/(dashboard)/schedule/`:
@@ -1060,7 +1060,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/app/(dashboard)/schedule/**`, `src/lib/scheduling/**`, `src/lib/inngest/functions/scheduling/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 12. Telegram Message Parser (formatting → structured data)
+- [x] 12. Telegram Message Parser (formatting → structured data)
 
   **What to do**:
   - Create message parser in `src/lib/telegram/parser.ts`:
@@ -1138,7 +1138,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/lib/telegram/parser.ts`, `src/lib/telegram/parser.test.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 13. Channel Management UI
+- [x] 13. Channel Management UI
 
   **What to do**:
   - Create channel management at `src/app/(dashboard)/channels/`:
@@ -1210,7 +1210,7 @@ Max Concurrent: 7 (Wave 1)
 
 ### Wave 3 — Cross-Posting Engine (after Wave 2)
 
-- [ ] 14. OpenRouter AI Provider Abstraction Layer
+- [x] 14. OpenRouter AI Provider Abstraction Layer
 
   **What to do**:
   - Create AI provider abstraction in `src/lib/ai/`:
@@ -1302,7 +1302,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/lib/ai/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 15. AI Content Adaptation Engine (RU→EN, platform-specific)
+- [x] 15. AI Content Adaptation Engine (RU→EN, platform-specific)
 
   **What to do**:
   - Create adaptation engine in `src/lib/ai/adaptation-engine.ts` that orchestrates the full pipeline:
@@ -1390,7 +1390,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/lib/ai/adaptation-engine.ts`, `src/lib/inngest/functions/ai/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 16. Channel Profiling — AI Analyzes Past Posts for Tone/Niche
+- [x] 16. Channel Profiling — AI Analyzes Past Posts for Tone/Niche
 
   **What to do**:
   - Create channel profiler in `src/lib/ai/channel-profiler.ts`:
@@ -1450,7 +1450,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/lib/ai/channel-profiler.ts`, `src/lib/inngest/functions/ai/profile-channel.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 17. LinkedIn OAuth + Posting Integration
+- [x] 17. LinkedIn OAuth + Posting Integration
 
   **What to do**:
   - Implement LinkedIn OAuth 2.0 with PKCE flow:
@@ -1530,7 +1530,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/app/api/auth/linkedin/**`, `src/lib/platforms/linkedin.ts`, `src/lib/inngest/functions/platforms/post-to-linkedin.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 18. Twitter/X OAuth + Posting Integration
+- [x] 18. Twitter/X OAuth + Posting Integration
 
   **What to do**:
   - Implement Twitter OAuth 2.0 with PKCE flow:
@@ -1602,7 +1602,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/app/api/auth/twitter/**`, `src/lib/platforms/twitter.ts`, `src/lib/inngest/functions/platforms/post-to-twitter.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 19. Cross-Post Workflow UI (select → adapt → preview → schedule/post)
+- [x] 19. Cross-Post Workflow UI (select → adapt → preview → schedule/post)
 
   **What to do**:
   - Create the core cross-posting workflow at `src/app/(dashboard)/crosspost/`:
@@ -1693,7 +1693,7 @@ Max Concurrent: 7 (Wave 1)
 
 ---
 
-- [ ] 20. Analytics Data Collection — Track Cross-Post Performance
+- [x] 20. Analytics Data Collection — Track Cross-Post Performance
 
   **What to do**:
   - Create analytics data models and collection service at `src/lib/analytics/`:
@@ -1777,7 +1777,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/lib/analytics/**`, `src/inngest/functions/analytics/**`, `drizzle/migrations/`
   - Pre-commit: `bun test --run`
 
-- [ ] 21. Analytics Dashboard UI — Charts, Metrics Cards, Best Times Heatmap
+- [x] 21. Analytics Dashboard UI — Charts, Metrics Cards, Best Times Heatmap
 
   **What to do**:
   - Create analytics dashboard at `src/app/(dashboard)/analytics/page.tsx`:
@@ -1872,7 +1872,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/app/(dashboard)/analytics/**`, `src/components/analytics/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 22. Stripe Billing Integration + Subscription Tiers
+- [x] 22. Stripe Billing Integration + Subscription Tiers
 
   **What to do**:
   - Install Stripe SDK: `stripe` + `@stripe/stripe-js`
@@ -1969,7 +1969,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/lib/billing/**`, `src/app/api/billing/**`, `src/app/(dashboard)/billing/**`
   - Pre-commit: `bun test --run`
 
-- [ ] 23. Usage Tracking + Tier Enforcement (Free/Plus/Pro Limits)
+- [x] 23. Usage Tracking + Tier Enforcement (Free/Plus/Pro Limits)
 
   **What to do**:
   - Create usage tracking service at `src/lib/billing/usage.ts`:
@@ -2054,7 +2054,7 @@ Max Concurrent: 7 (Wave 1)
   - Files: `src/lib/billing/usage.ts`, `src/lib/billing/enforce.ts`
   - Pre-commit: `bun test --run`
 
-- [ ] 24. Welcome Message Template Editor
+- [x] 24. Welcome Message Template Editor
 
   **What to do**:
   - Create welcome message feature at `src/app/(dashboard)/channels/[channelId]/welcome/`:
