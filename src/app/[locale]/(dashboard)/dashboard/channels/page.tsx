@@ -5,22 +5,26 @@ import { ConnectChannelWizard } from "@/components/channels/connect-channel-wiza
 import { listChannels } from "@/server/actions/channels";
 import { getTelegramClient } from "@/lib/telegram/client";
 
-export default async function ChannelsPage() {
-  const t = await getTranslations("channels");
-
-  // Fetch bot username for the connect wizard
-  let botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "bot";
-  try {
-    if (!process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME) {
-      const tgClient = getTelegramClient();
-      const me = await tgClient.getMe();
-      botUsername = me.username ?? "bot";
-    }
-  } catch {
-    // Use fallback value
+async function resolveBotUsername(): Promise<string> {
+  if (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME) {
+    return process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
   }
 
-  const channelsResult = await listChannels();
+  try {
+    const tgClient = getTelegramClient();
+    const me = await tgClient.getMe();
+    return me.username ?? "bot";
+  } catch {
+    return "bot";
+  }
+}
+
+export default async function ChannelsPage() {
+  const [t, botUsername, channelsResult] = await Promise.all([
+    getTranslations("channels"),
+    resolveBotUsername(),
+    listChannels(),
+  ]);
 
   if (!channelsResult.success) {
     return (

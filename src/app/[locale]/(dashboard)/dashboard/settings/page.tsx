@@ -9,9 +9,7 @@ import { getSettings } from "@/server/actions/settings";
 import type { PlanTier, SubscriptionStatus } from "@/lib/billing/types";
 
 export default async function SettingsPage() {
-  const t = await getTranslations("settings");
-
-  const settingsResult = await getSettings();
+  const [t, settingsResult] = await Promise.all([getTranslations("settings"), getSettings()]);
   const settings = settingsResult.success ? settingsResult.data : null;
 
   return (

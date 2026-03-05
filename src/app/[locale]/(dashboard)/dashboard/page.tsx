@@ -22,9 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 
 export default async function DashboardPage() {
-  const t = await getTranslations("dashboard");
-
-  const [dashboardResult, draftsIdeasResult, publishedResult] = await Promise.all([
+  const [t, dashboardResult, draftsIdeasResult, publishedResult] = await Promise.all([
+    getTranslations("dashboard"),
     getDashboardHomeData(),
     getDraftsAndIdeas(),
     getContentByStatus("published", { limit: 100 }),
@@ -130,15 +129,6 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-semibold">{t("upcomingScheduleTitle")}</span>
-              <Link
-                href="/dashboard/schedule"
-                className="text-muted-foreground hover:text-foreground text-xs underline-offset-2 transition-colors hover:underline"
-              >
-                {t("viewCalendar")}
-              </Link>
-            </div>
             <UpcomingPosts posts={upcomingPosts.slice(0, 3)} />
           </div>
 

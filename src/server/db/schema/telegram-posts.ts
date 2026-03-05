@@ -5,26 +5,34 @@ import {
   text,
   jsonb,
   timestamp,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { telegramChannels } from "./telegram-channels";
 import { crossPosts } from "./cross-posts";
 
-export const telegramPosts = pgTable("telegram_posts", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  channelId: uuid("channel_id")
-    .references(() => telegramChannels.id, { onDelete: "cascade" })
-    .notNull(),
-  telegramMessageId: integer("telegram_message_id"),
-  contentRaw: text("content_raw"),
-  contentParsed: jsonb("content_parsed"),
-  mediaUrls: jsonb("media_urls").default([]),
-  views: integer("views").default(0),
-  forwards: integer("forwards").default(0),
-  reactions: jsonb("reactions").default({}),
-  postedAt: timestamp("posted_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-});
+export const telegramPosts = pgTable(
+  "telegram_posts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    channelId: uuid("channel_id")
+      .references(() => telegramChannels.id, { onDelete: "cascade" })
+      .notNull(),
+    telegramMessageId: integer("telegram_message_id"),
+    contentRaw: text("content_raw"),
+    contentParsed: jsonb("content_parsed"),
+    mediaUrls: jsonb("media_urls").default([]),
+    views: integer("views").default(0),
+    forwards: integer("forwards").default(0),
+    reactions: jsonb("reactions").default({}),
+    postedAt: timestamp("posted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("telegram_posts_channel_posted_at_idx").on(table.channelId, table.postedAt),
+    index("telegram_posts_channel_message_id_idx").on(table.channelId, table.telegramMessageId),
+  ],
+);
 
 export const telegramPostsRelations = relations(
   telegramPosts,

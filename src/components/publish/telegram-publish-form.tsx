@@ -40,10 +40,11 @@ import type { Channel } from "@/server/actions/channels";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type PublishMode = "now" | "schedule";
+type PublishChannel = Pick<Channel, "id" | "title" | "username">;
 
 type TelegramPublishFormProps = {
   content: ContentItem | null;
-  channels: Channel[];
+  channels: PublishChannel[];
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────

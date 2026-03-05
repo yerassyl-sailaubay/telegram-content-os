@@ -11,7 +11,6 @@
  */
 
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import * as crypto from "crypto";
 
 export const runtime = "nodejs";
@@ -22,7 +21,7 @@ async function getLinkedIn() {
   return linkedin;
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   const clientId = process.env.LINKEDIN_CLIENT_ID;
   if (!clientId) {
     return NextResponse.json({ error: "LINKEDIN_CLIENT_ID is not configured" }, { status: 500 });
@@ -70,19 +69,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     maxAge: 600, // 10 minutes
     path: "/",
   });
-
-  // Pass through userId if provided as query param (for linking account)
-  const url = new URL(request.url);
-  const userId = url.searchParams.get("userId");
-  if (userId) {
-    response.cookies.set("linkedin_user_id", userId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 600,
-      path: "/",
-    });
-  }
 
   return response;
 }

@@ -764,5 +764,80 @@
     "develop": "Develop",
     "developing": "Developing...",
     "developingToast": "Developing your idea with AI! Check the library shortly."
+  },
+  "landing": {
+    "nav": {
+      "logo": "Telegram Content OS",
+      "login": "Sign in",
+      "getStarted": "Get Started"
+    },
+    "hero": {
+      "badge": "AI-Powered Content OS",
+      "title": "Turn Telegram Content Into",
+      "titleHighlight": "Multi-Platform Magic",
+      "subtitle": "Import posts from your Telegram channels, adapt them with AI for LinkedIn and Twitter, schedule smart, and track every engagement — all in one place.",
+      "ctaLogin": "Sign in",
+      "ctaSignup": "Start for Free",
+      "ctaNote": "No credit card required · Free plan available"
+    },
+    "features": {
+      "badge": "Everything You Need",
+      "title": "Built for Telegram Creators",
+      "subtitle": "A complete content operating system that turns your Telegram channel into a multi-platform content machine.",
+      "items": [
+        {
+          "title": "AI Content Adaptation",
+          "description": "Automatically translate and reformat your Russian Telegram posts for LinkedIn and Twitter audiences with context-aware AI."
+        },
+        {
+          "title": "Smart Scheduling",
+          "description": "Schedule posts at optimal times with a visual calendar. Set recurring schedules and never miss a posting window."
+        },
+        {
+          "title": "Cross-Platform Analytics",
+          "description": "Track engagement, views, and follower growth across all your platforms in one unified analytics dashboard."
+        },
+        {
+          "title": "Content from Any URL",
+          "description": "Import content from YouTube videos, blog articles, or any web page and transform them into Telegram posts instantly."
+        }
+      ]
+    },
+    "howItWorks": {
+      "badge": "How It Works",
+      "title": "From Telegram to Everywhere",
+      "subtitle": "Three steps to multiply your content reach without the extra work.",
+      "steps": [
+        {
+          "step": "01",
+          "title": "Connect Your Channel",
+          "description": "Add our bot as an admin to your Telegram channel. Your posts start flowing in automatically via webhook."
+        },
+        {
+          "step": "02",
+          "title": "AI Adapts Your Content",
+          "description": "Our AI translates and reformats each post for the target platform — preserving your voice while optimizing for the audience."
+        },
+        {
+          "step": "03",
+          "title": "Publish & Track",
+          "description": "Post immediately or schedule for later. Then watch the analytics roll in from LinkedIn, Twitter, and Telegram together."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Ready to Grow Beyond Telegram?",
+      "subtitle": "Join creators who are already multiplying their reach with AI-powered cross-posting.",
+      "button": "Get Started Free",
+      "note": "Free plan · No credit card · 2 minute setup"
+    },
+    "footer": {
+      "copyright": "© 2025 Telegram Content OS. All rights reserved.",
+      "links": {
+        "dashboard": "Dashboard",
+        "login": "Sign in",
+        "signup": "Sign up"
+      }
+    }
   }
 }

@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, Plus } from "lucide-react";
+import { CalendarDays, Clock, Plus, ArrowRight } from "lucide-react";
 import type { UpcomingPost } from "@/server/actions/dashboard";
 
 type UpcomingPostsProps = {
@@ -43,8 +43,15 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
   if (posts.length === 0) {
     return (
       <Card data-testid="upcoming-posts">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base font-semibold">{t("upcomingPostsTitle")}</CardTitle>
+          <Link
+            href="/dashboard/schedule"
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs underline-offset-2 transition-colors hover:underline"
+          >
+            {t("viewCalendar")}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
@@ -65,8 +72,15 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
 
   return (
     <Card data-testid="upcoming-posts">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base font-semibold">{t("upcomingPostsTitle")}</CardTitle>
+        <Link
+          href="/dashboard/schedule"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs underline-offset-2 transition-colors hover:underline"
+        >
+          {t("viewCalendar")}
+          <ArrowRight className="h-3 w-3" />
+        </Link>
       </CardHeader>
       <CardContent className="p-0">
         <ul className="divide-y">

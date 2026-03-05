@@ -23,6 +23,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const createCheckoutSessionPromise = import("@/lib/billing/checkout");
     const body = (await request.json()) as { priceId?: string };
 
     if (!body.priceId) {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { createCheckoutSession } = await import("@/lib/billing/checkout");
+    const { createCheckoutSession } = await createCheckoutSessionPromise;
 
     const origin = request.nextUrl.origin;
     const session = await createCheckoutSession({

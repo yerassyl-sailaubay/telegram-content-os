@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
 import { usageTracking } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { PLANS } from "./plans";
 import { getCurrentMonth, getUserTier } from "./usage";
 
@@ -102,29 +102,21 @@ export async function enforceAiQuota(userId: string): Promise<AiQuotaCheckResult
 export async function incrementAiUsage(userId: string): Promise<void> {
   const month = getCurrentMonth();
 
-  const existing = await db
-    .select({ id: usageTracking.id, aiCallsCount: usageTracking.aiCallsCount })
-    .from(usageTracking)
-    .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)))
-    .limit(1);
-
-  if (existing.length > 0) {
-    const current = existing[0]!.aiCallsCount ?? 0;
-    await db
-      .update(usageTracking)
-      .set({
-        aiCallsCount: current + 1,
-        updatedAt: new Date(),
-      })
-      .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)));
-  } else {
-    await db.insert(usageTracking).values({
+  await db
+    .insert(usageTracking)
+    .values({
       userId,
       month,
       crossPostsCount: 0,
       aiCallsCount: 1,
+    })
+    .onConflictDoUpdate({
+      target: [usageTracking.userId, usageTracking.month],
+      set: {
+        aiCallsCount: sql`${usageTracking.aiCallsCount} + 1`,
+        updatedAt: new Date(),
+      },
     });
-  }
 }
 
 export async function withAiQuotaCheck<T>(userId: string, action: () => Promise<T>): Promise<T> {

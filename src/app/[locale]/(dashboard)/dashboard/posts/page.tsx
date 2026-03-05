@@ -5,9 +5,8 @@ import { listContent } from "@/server/actions/content";
 import { listChannels } from "@/server/actions/channels";
 
 export default async function PostsPage() {
-  const t = await getTranslations("content");
-
-  const [contentResult, channelsResult] = await Promise.all([
+  const [t, contentResult, channelsResult] = await Promise.all([
+    getTranslations("content"),
     listContent({ perPage: 50 }),
     listChannels(),
   ]);

@@ -15,8 +15,7 @@ type PostsPageProps = {
 };
 
 export default async function PostsPage({ searchParams }: PostsPageProps) {
-  const t = await getTranslations("content");
-  const params = await searchParams;
+  const [t, params] = await Promise.all([getTranslations("content"), searchParams]);
 
   const page = parseInt(params.page ?? "1", 10);
   const sort = (params.sort as "newest" | "oldest") ?? "newest";

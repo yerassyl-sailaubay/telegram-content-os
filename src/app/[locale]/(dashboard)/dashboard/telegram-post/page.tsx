@@ -4,10 +4,11 @@ import { TelegramPostComposer } from "@/components/telegram-post/telegram-post-c
 import { getConnectedChannels } from "@/server/actions/telegram-post";
 
 export default async function TelegramPostPage() {
-  const t = await getTranslations("telegramPost");
+  const [t, channelsResult] = await Promise.all([
+    getTranslations("telegramPost"),
+    getConnectedChannels(),
+  ]);
 
-  // Fetch connected channels
-  const channelsResult = await getConnectedChannels();
   const channels = channelsResult.success ? channelsResult.data : [];
 
   return (
