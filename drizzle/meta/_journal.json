@@ -15,6 +15,13 @@
       "when": 1772651478782,
       "tag": "0001_supabase_best_practices",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772722800000,
+      "tag": "0002_content_library_pivot_columns",
+      "breakpoints": true
     }
   ]
 }

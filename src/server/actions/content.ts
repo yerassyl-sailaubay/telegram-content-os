@@ -68,6 +68,22 @@ export type CreateContentItemInput = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function getActionErrorMessage(error: unknown, fallback: string): string {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+
+  const maybeCause = (error as { cause?: unknown }).cause;
+  if (maybeCause && typeof maybeCause === "object" && "message" in maybeCause) {
+    const causeMessage = (maybeCause as { message?: unknown }).message;
+    if (typeof causeMessage === "string" && causeMessage.trim().length > 0) {
+      return `${error.message}\nCause: ${causeMessage}`;
+    }
+  }
+
+  return error.message || fallback;
+}
+
 async function getCurrentUserId(): Promise<string> {
   const supabase = await createClient();
   const {
@@ -394,26 +410,36 @@ export async function createContentItem(
       return { success: false, error: "Title is required" };
     }
 
+    const normalizedTitle = input.title.trim();
+    const normalizedContent = input.content ?? "";
+    const normalizedStatus: ContentStatus = input.status ?? "draft";
+    const normalizedChannelId = input.channelId ?? null;
+    const normalizedSourceUrl = input.sourceUrl ?? null;
+    const normalizedSourceMetadata = input.sourceMetadata ?? null;
+    const normalizedCategory = input.category?.trim() || null;
+    const normalizedTags = input.tags?.map((t) => t.trim()).filter(Boolean) ?? [];
+    const normalizedSourceType = input.sourceType ?? null;
+
     const [item] = await db
       .insert(contentLibrary)
       .values({
         userId,
-        title: input.title.trim(),
-        content: input.content ?? "",
-        sourceType: input.sourceType ?? null,
-        status: input.status ?? "draft",
-        channelId: input.channelId ?? null,
-        sourceUrl: input.sourceUrl ?? null,
-        sourceMetadata: input.sourceMetadata ?? null,
-        category: input.category?.trim() || null,
-        tags: input.tags?.map((t) => t.trim()).filter(Boolean) ?? [],
+        title: normalizedTitle,
+        content: normalizedContent,
+        sourceType: normalizedSourceType,
+        status: normalizedStatus,
+        channelId: normalizedChannelId,
+        sourceUrl: normalizedSourceUrl,
+        sourceMetadata: normalizedSourceMetadata,
+        category: normalizedCategory,
+        tags: normalizedTags,
         isTemplate: false,
       })
       .returning();
 
     return { success: true, data: item };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to create content item";
+    const message = getActionErrorMessage(error, "Failed to create content item");
     return { success: false, error: message };
   }
 }

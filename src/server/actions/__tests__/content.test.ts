@@ -6,6 +6,7 @@ const {
   mockUser,
   mockReturning,
   mockInsert,
+  mockValues,
   mockUpdate,
   mockDelete,
   mockSelect,
@@ -15,6 +16,7 @@ const {
   mockUser: { id: "user-123", email: "test@example.com" },
   mockReturning: vi.fn(),
   mockInsert: vi.fn(),
+  mockValues: vi.fn(),
   mockUpdate: vi.fn(),
   mockDelete: vi.fn(),
   mockSelect: vi.fn(),
@@ -53,7 +55,10 @@ function createMutationChain() {
   const chain: Record<string, unknown> = {};
   chain.from = vi.fn().mockReturnValue(chain);
   chain.where = vi.fn().mockReturnValue(chain);
-  chain.values = vi.fn().mockReturnValue(chain);
+  chain.values = vi.fn((...args: unknown[]) => {
+    mockValues(...args);
+    return chain;
+  });
   chain.set = vi.fn().mockReturnValue(chain);
   chain.returning = mockReturning;
   return chain;
@@ -537,6 +542,17 @@ describe("createContentItem", () => {
     if (result.success) {
       expect(result.data.status).toBe("draft");
     }
+    expect(mockValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceType: null,
+        status: "draft",
+        channelId: null,
+        sourceUrl: null,
+        sourceMetadata: null,
+        category: null,
+        tags: [],
+      }),
+    );
     expect(mockInsert).toHaveBeenCalled();
   });
 
@@ -545,6 +561,28 @@ describe("createContentItem", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error).toBe("Title is required");
+    }
+  });
+
+  it("includes db cause details when insert fails", async () => {
+    const dbError = new Error("Failed query: insert into content_library...");
+    (dbError as Error & { cause?: Error }).cause = new Error(
+      'column "parent_id" of relation "content_library" does not exist',
+    );
+    mockReturning.mockRejectedValueOnce(dbError);
+
+    const result = await createContentItem({
+      title: "Idea",
+      content: "Idea",
+      sourceType: "idea",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Failed query: insert into content_library...");
+      expect(result.error).toContain(
+        'column "parent_id" of relation "content_library" does not exist',
+      );
     }
   });
 });
