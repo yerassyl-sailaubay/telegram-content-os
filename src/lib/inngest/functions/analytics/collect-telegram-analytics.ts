@@ -171,14 +171,24 @@ export const collectTelegramAnalytics = inngest.createFunction(
 
           // Upsert channel metrics — we use linkedin as placeholder platform since
           // channel_metrics tracks source channel performance across platforms
-          await db.insert(channelMetrics).values({
-            channelId: channel.id,
-            platform: "linkedin", // Source channel is Telegram; tracking engagement across platforms
-            date: today,
-            totalPosts: posts.length,
-            totalEngagement,
-            followerCountSnapshot: memberCount,
-          });
+          await db
+            .insert(channelMetrics)
+            .values({
+              channelId: channel.id,
+              platform: "linkedin", // Source channel is Telegram; tracking engagement across platforms
+              date: today,
+              totalPosts: posts.length,
+              totalEngagement,
+              followerCountSnapshot: memberCount,
+            })
+            .onConflictDoUpdate({
+              target: [channelMetrics.channelId, channelMetrics.platform, channelMetrics.date],
+              set: {
+                totalPosts: posts.length,
+                totalEngagement,
+                followerCountSnapshot: memberCount,
+              },
+            });
 
           return { postsProcessed: processed, error: null };
         },

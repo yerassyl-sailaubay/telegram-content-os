@@ -157,29 +157,21 @@ export async function updateProfile(input: {
       .set({ name: input.name.trim(), updatedAt: new Date() })
       .where(eq(users.id, userId));
 
-    // Upsert preferences for timezone and language
-    const existing = await db
-      .select({ id: userPreferences.id })
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, userId))
-      .limit(1);
-
-    if (existing.length > 0) {
-      await db
-        .update(userPreferences)
-        .set({
-          timezone: input.timezone,
-          language: input.language,
-          updatedAt: new Date(),
-        })
-        .where(eq(userPreferences.userId, userId));
-    } else {
-      await db.insert(userPreferences).values({
+    await db
+      .insert(userPreferences)
+      .values({
         userId,
         timezone: input.timezone,
         language: input.language,
+      })
+      .onConflictDoUpdate({
+        target: userPreferences.userId,
+        set: {
+          timezone: input.timezone,
+          language: input.language,
+          updatedAt: new Date(),
+        },
       });
-    }
 
     revalidatePath("/dashboard/settings");
 
@@ -205,28 +197,21 @@ export async function updatePreferences(
     const authUser = await getCurrentUser();
     const userId = authUser.id;
 
-    const existing = await db
-      .select({ id: userPreferences.id })
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, userId))
-      .limit(1);
-
-    if (existing.length > 0) {
-      await db
-        .update(userPreferences)
-        .set({
-          aiModel: input.aiModel,
-          adaptationTone: input.adaptationTone,
-          updatedAt: new Date(),
-        })
-        .where(eq(userPreferences.userId, userId));
-    } else {
-      await db.insert(userPreferences).values({
+    await db
+      .insert(userPreferences)
+      .values({
         userId,
         aiModel: input.aiModel,
         adaptationTone: input.adaptationTone,
+      })
+      .onConflictDoUpdate({
+        target: userPreferences.userId,
+        set: {
+          aiModel: input.aiModel,
+          adaptationTone: input.adaptationTone,
+          updatedAt: new Date(),
+        },
       });
-    }
 
     revalidatePath("/dashboard/settings");
 

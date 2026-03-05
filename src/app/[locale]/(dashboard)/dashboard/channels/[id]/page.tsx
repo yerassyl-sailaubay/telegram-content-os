@@ -29,10 +29,11 @@ type ChannelDetailPageProps = {
 
 export default async function ChannelDetailPage({ params }: ChannelDetailPageProps) {
   const { id } = await params;
-  const t = await getTranslations("channels");
-  const tCommon = await getTranslations("common");
-
-  const result = await getChannelDetails(id);
+  const [t, tCommon, result] = await Promise.all([
+    getTranslations("channels"),
+    getTranslations("common"),
+    getChannelDetails(id),
+  ]);
 
   if (!result.success) {
     notFound();

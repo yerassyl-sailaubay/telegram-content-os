@@ -4,10 +4,7 @@ import { CrossPostWizard } from "@/components/crosspost/crosspost-wizard";
 import { getCrossPostUsage } from "@/server/actions/crosspost";
 
 export default async function CrossPostPage() {
-  const t = await getTranslations("crosspost");
-
-  // Pre-fetch quota for display
-  const usageResult = await getCrossPostUsage();
+  const [t, usageResult] = await Promise.all([getTranslations("crosspost"), getCrossPostUsage()]);
   const usage = usageResult.success ? usageResult.data : null;
 
   return (

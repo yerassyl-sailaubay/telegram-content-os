@@ -14,10 +14,8 @@ type WelcomePageProps = {
 
 export default async function WelcomePage({ params }: WelcomePageProps) {
   const { id } = await params;
-  const t = await getTranslations("welcome");
+  const [t, channelResult] = await Promise.all([getTranslations("welcome"), getChannelDetails(id)]);
 
-  // Verify channel exists and user has access
-  const channelResult = await getChannelDetails(id);
   if (!channelResult.success) {
     notFound();
   }

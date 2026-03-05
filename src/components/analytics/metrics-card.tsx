@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -29,27 +28,21 @@ export function MetricsCard({
 
   return (
     <Card
-      className={cn("relative overflow-hidden", className)}
+      className={cn("relative !gap-0 overflow-hidden !py-0", className)}
       data-testid="metrics-card"
     >
-      <CardContent className="pt-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {title}
             </p>
-            <p className="text-3xl font-bold tracking-tight">{value}</p>
+            <p className="text-2xl font-bold tracking-tight">{value}</p>
             {hasTrend && (
               <div className="flex items-center gap-1 text-xs">
-                {isUp && (
-                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                )}
-                {isDown && (
-                  <TrendingDown className="h-3.5 w-3.5 text-rose-500" />
-                )}
-                {isFlat && (
-                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
-                )}
+                {isUp && <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
+                {isDown && <TrendingDown className="h-3.5 w-3.5 text-rose-500" />}
+                {isFlat && <Minus className="text-muted-foreground h-3.5 w-3.5" />}
                 <span
                   className={cn(
                     "font-medium",
@@ -61,13 +54,11 @@ export function MetricsCard({
                   {isUp && "+"}
                   {trend}%
                 </span>
-                {trendLabel && (
-                  <span className="text-muted-foreground">{trendLabel}</span>
-                )}
+                {trendLabel && <span className="text-muted-foreground">{trendLabel}</span>}
               </div>
             )}
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
             {icon}
           </div>
         </div>

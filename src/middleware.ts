@@ -27,6 +27,7 @@ export async function middleware(request: NextRequest) {
 
   // For auth-protected routes, run Supabase session check
   const needsAuthCheck =
+    effectivePath === "/" ||
     effectivePath.startsWith("/dashboard") ||
     effectivePath === "/login" ||
     effectivePath === "/signup";
@@ -57,6 +58,13 @@ export async function middleware(request: NextRequest) {
       const locale = match?.[1] || routing.defaultLocale;
       const url = request.nextUrl.clone();
       url.pathname = `/${locale}/dashboard`;
+      return NextResponse.redirect(url);
+    }
+
+    if (effectivePath === "/") {
+      const locale = match?.[1] || routing.defaultLocale;
+      const url = request.nextUrl.clone();
+      url.pathname = user ? `/${locale}/dashboard` : `/${locale}/login`;
       return NextResponse.redirect(url);
     }
 

@@ -4,7 +4,7 @@ import { db } from "@/server/db";
 import { telegramChannels, telegramPosts } from "@/server/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { getTelegramClient } from "@/lib/telegram/client";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -54,23 +54,35 @@ export async function listChannels(): Promise<ActionResult<ChannelWithPostCount[
       .where(eq(telegramChannels.userId, userId))
       .orderBy(desc(telegramChannels.connectedAt));
 
-    const channelsWithCounts = await Promise.all(
-      channels.map(async (channel) => {
-        const [postStats] = await db
-          .select({
-            count: sql<number>`count(*)::int`,
-            lastPostAt: sql<Date | null>`max(${telegramPosts.postedAt})`,
-          })
-          .from(telegramPosts)
-          .where(eq(telegramPosts.channelId, channel.id));
+    if (channels.length === 0) {
+      return { success: true, data: [] };
+    }
 
-        return {
-          ...channel,
-          postCount: postStats?.count ?? 0,
-          lastPostAt: postStats?.lastPostAt ?? null,
-        };
-      }),
+    const channelIds = channels.map((channel) => channel.id);
+
+    const postStatsRows = await db
+      .select({
+        channelId: telegramPosts.channelId,
+        count: sql<number>`count(*)::int`,
+        lastPostAt: sql<Date | null>`max(${telegramPosts.postedAt})`,
+      })
+      .from(telegramPosts)
+      .where(inArray(telegramPosts.channelId, channelIds))
+      .groupBy(telegramPosts.channelId);
+
+    const postStatsByChannelId = new Map(
+      postStatsRows.map((row) => [row.channelId, row] as const),
     );
+
+    const channelsWithCounts = channels.map((channel) => {
+      const postStats = postStatsByChannelId.get(channel.id);
+
+      return {
+        ...channel,
+        postCount: postStats?.count ?? 0,
+        lastPostAt: postStats?.lastPostAt ?? null,
+      };
+    });
 
     return { success: true, data: channelsWithCounts };
   } catch (error) {

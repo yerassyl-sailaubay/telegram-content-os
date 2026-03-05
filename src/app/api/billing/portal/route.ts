@@ -20,19 +20,27 @@ async function getDb() {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = await getSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const [
+      {
+        data: { user },
+      },
+      db,
+      { subscriptions },
+      { eq },
+    ] = await Promise.all([
+      supabase.auth.getUser(),
+      getDb(),
+      import("@/server/db/schema"),
+      import("drizzle-orm"),
+    ]);
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Fetch subscription to get Stripe Customer ID
-    const db = await getDb();
-    const { subscriptions } = await import("@/server/db/schema");
-    const { eq } = await import("drizzle-orm");
+    const portalSessionPromise = import("@/lib/billing/portal");
 
+    // Fetch subscription to get Stripe Customer ID
     const rows = await db
       .select({ stripeCustomerId: subscriptions.stripeCustomerId })
       .from(subscriptions)
@@ -48,7 +56,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { createPortalSession } = await import("@/lib/billing/portal");
+    const { createPortalSession } = await portalSessionPromise;
 
     const origin = request.nextUrl.origin;
     const session = await createPortalSession({

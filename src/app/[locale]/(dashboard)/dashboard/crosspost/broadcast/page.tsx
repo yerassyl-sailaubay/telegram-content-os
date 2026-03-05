@@ -4,9 +4,10 @@ import { BroadcastForm } from "@/components/crosspost/broadcast-form";
 import { getConnectedPlatforms } from "@/server/actions/crosspost";
 
 export default async function BroadcastPage() {
-  const t = await getTranslations("broadcast");
-
-  const platformsResult = await getConnectedPlatforms();
+  const [t, platformsResult] = await Promise.all([
+    getTranslations("broadcast"),
+    getConnectedPlatforms(),
+  ]);
   const connectedPlatforms = platformsResult.success ? platformsResult.data : [];
 
   return (

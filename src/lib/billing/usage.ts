@@ -11,7 +11,7 @@
 
 import { db } from "@/server/db";
 import { usageTracking, subscriptions } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { PLANS } from "./plans";
 import type { PlanTier } from "./types";
 
@@ -113,34 +113,19 @@ export async function getRemainingQuota(userId: string): Promise<QuotaInfo> {
 export async function incrementUsage(userId: string): Promise<void> {
   const month = getCurrentMonth();
 
-  // Check if a row exists for this user+month
-  const existing = await db
-    .select({ id: usageTracking.id, crossPostsCount: usageTracking.crossPostsCount })
-    .from(usageTracking)
-    .where(
-      and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)),
-    )
-    .limit(1);
-
-  if (existing.length > 0) {
-    // Row exists — increment
-    const current = existing[0]!.crossPostsCount ?? 0;
-    await db
-      .update(usageTracking)
-      .set({
-        crossPostsCount: current + 1,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)),
-      );
-  } else {
-    // No existing row — insert
-    await db.insert(usageTracking).values({
+  await db
+    .insert(usageTracking)
+    .values({
       userId,
       month,
       crossPostsCount: 1,
       aiCallsCount: 0,
+    })
+    .onConflictDoUpdate({
+      target: [usageTracking.userId, usageTracking.month],
+      set: {
+        crossPostsCount: sql`${usageTracking.crossPostsCount} + 1`,
+        updatedAt: new Date(),
+      },
     });
-  }
 }

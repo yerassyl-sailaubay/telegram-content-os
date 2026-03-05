@@ -5,9 +5,7 @@ import { listChannels } from "@/server/actions/channels";
 import { getCalendarSuggestions } from "@/server/actions/calendar";
 
 export default async function SchedulePage() {
-  const t = await getTranslations("nav");
-
-  const channelsResult = await listChannels();
+  const [t, channelsResult] = await Promise.all([getTranslations("nav"), listChannels()]);
   const rawChannels = channelsResult.success ? channelsResult.data : [];
 
   const channels = rawChannels.map((ch) => ({

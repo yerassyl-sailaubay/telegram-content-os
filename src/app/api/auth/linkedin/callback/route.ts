@@ -32,14 +32,14 @@ async function getSchema() {
   return schema;
 }
 
+async function getSupabaseClient() {
+  const { createClient } = await import("@/lib/supabase/server");
+  return createClient();
+}
+
 async function getLinkedIn() {
   const linkedin = await import("@/lib/platforms/linkedin");
   return linkedin;
-}
-
-async function getEq() {
-  const { eq, and } = await import("drizzle-orm");
-  return { eq, and };
 }
 
 async function getEncryption() {
@@ -91,7 +91,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const cookieStore = await request.cookies;
   const storedState = cookieStore.get("linkedin_oauth_state")?.value;
   const codeVerifier = cookieStore.get("linkedin_code_verifier")?.value;
-  const userId = cookieStore.get("linkedin_user_id")?.value;
 
   if (!storedState || storedState !== state) {
     return NextResponse.json(
@@ -107,15 +106,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  if (!userId) {
-    return NextResponse.json(
-      { error: "Missing user ID — please restart the connection flow" },
-      { status: 400 },
-    );
+  const supabase = await getSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    const dashboardUrl = new URL("/dashboard/settings", appUrl);
+    dashboardUrl.searchParams.set("linkedin_error", "not_authenticated");
+    return NextResponse.redirect(dashboardUrl.toString());
   }
 
   try {
-    const linkedin = await getLinkedIn();
+    const linkedinPromise = getLinkedIn();
+    const encryptionPromise = getEncryption();
+    const dbPromise = getDb();
+    const schemaPromise = getSchema();
+    const linkedin = await linkedinPromise;
 
     // Step 1: Exchange code for tokens
     const tokens = await linkedin.exchangeCodeForTokens({
@@ -127,44 +134,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
     // Step 2: Get user profile info
-    const userInfo = await linkedin.getUserInfo(tokens.accessToken);
+    const [userInfo, { encrypt }, db, { platformConnections }] = await Promise.all([
+      linkedin.getUserInfo(tokens.accessToken),
+      encryptionPromise,
+      dbPromise,
+      schemaPromise,
+    ]);
 
     // Step 3: Encrypt tokens
-    const { encrypt } = await getEncryption();
     const accessTokenEncrypted = encrypt(tokens.accessToken);
     const refreshTokenEncrypted = encrypt(tokens.refreshToken);
 
-    // Step 4: Upsert platform connection in DB
-    const db = await getDb();
-    const { platformConnections } = await getSchema();
-    const { eq, and } = await getEq();
-
-    // Check if connection already exists for this user + platform
-    const existing = await db
-      .select({ id: platformConnections.id })
-      .from(platformConnections)
-      .where(
-        and(eq(platformConnections.userId, userId), eq(platformConnections.platform, "linkedin")),
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      // Update existing connection
-      await db
-        .update(platformConnections)
-        .set({
-          accessTokenEncrypted,
-          refreshTokenEncrypted,
-          tokenExpiresAt: tokens.expiresAt,
-          platformUserId: userInfo.sub,
-          platformUsername: userInfo.name,
-          updatedAt: new Date(),
-        })
-        .where(eq(platformConnections.id, existing[0]!.id));
-    } else {
-      // Create new connection
-      await db.insert(platformConnections).values({
-        userId,
+    // Step 4: Upsert platform connection in DB (atomic)
+    await db
+      .insert(platformConnections)
+      .values({
+        userId: user.id,
         platform: "linkedin",
         accessTokenEncrypted,
         refreshTokenEncrypted,
@@ -172,8 +157,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         platformUserId: userInfo.sub,
         platformUsername: userInfo.name,
         connectedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [platformConnections.userId, platformConnections.platform],
+        set: {
+          accessTokenEncrypted,
+          refreshTokenEncrypted,
+          tokenExpiresAt: tokens.expiresAt,
+          platformUserId: userInfo.sub,
+          platformUsername: userInfo.name,
+          updatedAt: new Date(),
+        },
       });
-    }
 
     // Step 5: Clear OAuth cookies and redirect to dashboard
     const dashboardUrl = new URL("/dashboard/settings", appUrl);
@@ -182,7 +177,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     response.cookies.delete("linkedin_code_verifier");
     response.cookies.delete("linkedin_oauth_state");
-    response.cookies.delete("linkedin_user_id");
 
     return response;
   } catch (err) {

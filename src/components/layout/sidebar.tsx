@@ -63,6 +63,7 @@ type NavItem = {
 
 const primaryNavItems: NavItem[] = [
   { key: "dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { key: "telegramPost", icon: MessageSquare, href: "/dashboard/telegram-post" },
   { key: "create", icon: Link2, href: "/dashboard/create" },
   { key: "posts", icon: FileText, href: "/dashboard/posts" },
   { key: "schedule", icon: Calendar, href: "/dashboard/schedule" },
@@ -70,12 +71,10 @@ const primaryNavItems: NavItem[] = [
 ];
 
 const secondaryNavItems: NavItem[] = [
-  { key: "crosspost", icon: Send, href: "/dashboard/crosspost", muted: true },
   { key: "analytics", icon: BarChart3, href: "/dashboard/analytics" },
   { key: "media", icon: ImageIcon, href: "/dashboard/media" },
   { key: "billing", icon: CreditCard, href: "/dashboard/billing" },
   { key: "settings", icon: Settings, href: "/dashboard/settings" },
-  { key: "telegramPost", icon: MessageSquare, href: "/dashboard/telegram-post" },
 ];
 
 type AppSidebarProps = {

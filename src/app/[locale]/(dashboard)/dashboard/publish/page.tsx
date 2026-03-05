@@ -9,8 +9,7 @@ export default async function PublishPage({
 }: {
   searchParams: Promise<{ contentId?: string }>;
 }) {
-  const t = await getTranslations("publish");
-  const params = await searchParams;
+  const [t, params] = await Promise.all([getTranslations("publish"), searchParams]);
 
   const [contentResult, channelsResult] = await Promise.all([
     params.contentId ? getContent(params.contentId) : Promise.resolve(null),
@@ -19,7 +18,11 @@ export default async function PublishPage({
 
   const content = contentResult && contentResult.success ? contentResult.data : null;
   const channels = channelsResult.success
-    ? channelsResult.data.map(({ postCount: _pc, lastPostAt: _la, ...channel }) => channel)
+    ? channelsResult.data.map((channel) => ({
+        id: channel.id,
+        title: channel.title,
+        username: channel.username,
+      }))
     : [];
 
   return (

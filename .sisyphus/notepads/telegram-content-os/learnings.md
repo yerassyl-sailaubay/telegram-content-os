@@ -879,3 +879,29 @@ The codebase is well-architected for adding Google support, but requires signifi
 **Quick Win**: Switch to Google models via OpenRouter (update 3 model IDs in `AI_MODELS`)
 
 **Long-term**: Add native Google AI client with provider factory (requires factory pattern, 12 file updates, extensive testing)
+
+## 2026-03-05 Landing Page Implementation
+
+**Task**: Replace minimal "Welcome to Telegram Content OS" page with full marketing landing page.
+
+**Files created/modified**:
+
+- `src/app/[locale]/page.tsx` — Full landing page replacing the 45-line stub; now uses `LandingPage`, `CtaSection`, `LandingFooter` sub-components in the same file
+- `src/components/landing/hero-section.tsx` — Hero with dot-grid BG, gradient orb, headline with underline accent, dual CTA buttons, and a dashboard mockup preview card
+- `src/components/landing/features-section.tsx` — 4-feature grid using `Card`/`CardContent` from shadcn with Lucide icons
+- `src/components/landing/how-it-works-section.tsx` — 3-step section with numbered circles and a decorative connector line on desktop
+- `src/messages/en.json` — Added `landing` namespace (nav, hero, features, howItWorks, cta, footer)
+- `src/messages/ru.json` — Same `landing` namespace fully translated to Russian
+- `tsconfig.json` — Added `telegram-content-os-landing` to `exclude` (pre-existing stray untracked directory was causing TypeScript build failure)
+
+**Key patterns used**:
+
+- `"use client"` on all landing components (they use `useTranslations`, `useLocale` hooks)
+- `t.raw("items")` for array translations in features and how-it-works (typed as `Array<{...}>`)
+- Server component `page.tsx` delegates to `LandingPage` client-friendly function that uses `useTranslations`
+- Auth error redirect logic from original page preserved intact
+- `LanguageSwitcher` reused in the sticky nav header
+- Sticky nav with `backdrop-blur-md` + `bg-background/80` for glassmorphism effect
+- No new dependencies added — uses existing `lucide-react`, shadcn/ui, next-intl, Tailwind CSS 4
+
+**Build result**: ✓ Passes cleanly (52 static/dynamic routes generated)

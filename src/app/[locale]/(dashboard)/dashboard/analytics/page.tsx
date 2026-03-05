@@ -20,8 +20,8 @@ export default async function AnalyticsPage() {
   return (
     <>
       <PageHeader title={tNav("analytics")} />
-      <AnalyticsDashboard initialData={initialData} initialError={initialError} />
-      <div className="mt-10 space-y-6">
+
+      <div className="space-y-6">
         <div className="border-b pb-2">
           <h2 className="text-xl font-semibold tracking-tight">
             {tAnalytics("telegramAnalyticsTitle")}
@@ -31,6 +31,10 @@ export default async function AnalyticsPage() {
           </p>
         </div>
         <TelegramAnalytics channels={channels} />
+      </div>
+
+      <div className="mt-10">
+        <AnalyticsDashboard initialData={initialData} initialError={initialError} />
       </div>
     </>
   );

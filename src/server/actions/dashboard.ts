@@ -50,19 +50,6 @@ export type DashboardHomeData = {
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
-async function getCurrentUserId(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  return user.id;
-}
-
 async function getCurrentUserInfo(): Promise<{
   id: string;
   email: string | null;
@@ -179,9 +166,11 @@ export async function getDashboardHomeData(): Promise<ActionResult<DashboardHome
       .select({
         id: schedules.id,
         scheduledAt: schedules.scheduledAt,
-        crossPostId: schedules.crossPostId,
+        platform: crossPosts.platform,
+        adaptedContent: crossPosts.adaptedContent,
       })
       .from(schedules)
+      .leftJoin(crossPosts, eq(crossPosts.id, schedules.crossPostId))
       .where(
         and(
           eq(schedules.userId, userId),
@@ -192,32 +181,18 @@ export async function getDashboardHomeData(): Promise<ActionResult<DashboardHome
       .orderBy(schedules.scheduledAt)
       .limit(5);
 
-    // Fetch cross post content for each upcoming schedule
-    const upcomingPosts: UpcomingPost[] = [];
-    for (const sched of upcomingSchedules) {
-      if (!sched.crossPostId) continue;
-
-      const crossPostRows = await db
-        .select({
-          platform: crossPosts.platform,
-          adaptedContent: crossPosts.adaptedContent,
-        })
-        .from(crossPosts)
-        .where(eq(crossPosts.id, sched.crossPostId))
-        .limit(1);
-
-      const cp = crossPostRows[0];
-      const snippet = cp?.adaptedContent
-        ? cp.adaptedContent.slice(0, 60) + (cp.adaptedContent.length > 60 ? "…" : "")
+    const upcomingPosts: UpcomingPost[] = upcomingSchedules.map((sched) => {
+      const snippet = sched.adaptedContent
+        ? sched.adaptedContent.slice(0, 60) + (sched.adaptedContent.length > 60 ? "…" : "")
         : null;
 
-      upcomingPosts.push({
+      return {
         id: sched.id,
-        platform: cp?.platform ?? "linkedin",
+        platform: sched.platform ?? "linkedin",
         contentSnippet: snippet,
         scheduledAt: sched.scheduledAt,
-      });
-    }
+      };
+    });
 
     // ── Engagement sparkline (last 7 days) ───────────────────────────────
     const sparklineMap = new Map<string, number>();

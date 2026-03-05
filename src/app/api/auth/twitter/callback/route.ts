@@ -50,12 +50,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // 3. Lazy imports
-  const { exchangeCodeForTokens, getTwitterUserInfo } = await import(
-    "@/lib/platforms/twitter"
-  );
-  const { encrypt } = await import("@/lib/platforms/encryption");
-
   const clientId = process.env.TWITTER_CLIENT_ID;
   const clientSecret = process.env.TWITTER_CLIENT_SECRET;
 
@@ -67,7 +61,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const redirectUri = `${url.origin}/api/auth/twitter/callback`;
 
+  const twitterPromise = import("@/lib/platforms/twitter");
+  const encryptionPromise = import("@/lib/platforms/encryption");
+  const dbPromise = import("@/server/db");
+  const schemaPromise = import("@/server/db/schema");
+  const supabaseUserPromise = (async () => {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    return supabase.auth.getUser();
+  })();
+
   try {
+    const [{ exchangeCodeForTokens, getTwitterUserInfo }, { encrypt }] = await Promise.all([
+      twitterPromise,
+      encryptionPromise,
+    ]);
+
     // 4. Exchange authorization code for tokens
     const tokens = await exchangeCodeForTokens({
       code,
@@ -78,55 +87,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
     // 5. Fetch user info
-    const userInfo = await getTwitterUserInfo(tokens.access_token);
+    const [
+      userInfo,
+      { db },
+      { platformConnections },
+      {
+        data: { user },
+      },
+    ] = await Promise.all([
+      getTwitterUserInfo(tokens.access_token),
+      dbPromise,
+      schemaPromise,
+      supabaseUserPromise,
+    ]);
 
     // 6. Encrypt tokens
     const accessTokenEncrypted = encrypt(tokens.access_token);
     const refreshTokenEncrypted = encrypt(tokens.refresh_token);
     const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
-    // 7. Store in DB (lazy imports)
-    const { db } = await import("@/server/db");
-    const { platformConnections } = await import("@/server/db/schema");
-    const { eq, and } = await import("drizzle-orm");
-
-    // Get the authenticated user (from session/auth)
-    const { createClient } = await import("@/lib/supabase/server");
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    // 7. Store in DB
     if (!user) {
       return NextResponse.redirect(`${settingsUrl}?error=not_authenticated`);
     }
 
-    // Upsert: update existing connection or create new one
-    const existing = await db
-      .select({ id: platformConnections.id })
-      .from(platformConnections)
-      .where(
-        and(
-          eq(platformConnections.userId, user.id),
-          eq(platformConnections.platform, "twitter"),
-        ),
-      )
-      .limit(1);
-
-    if (existing.length > 0) {
-      await db
-        .update(platformConnections)
-        .set({
-          accessTokenEncrypted,
-          refreshTokenEncrypted,
-          tokenExpiresAt,
-          platformUserId: userInfo.id,
-          platformUsername: userInfo.username,
-          updatedAt: new Date(),
-        })
-        .where(eq(platformConnections.id, existing[0]!.id));
-    } else {
-      await db.insert(platformConnections).values({
+    // Upsert platform connection atomically
+    await db
+      .insert(platformConnections)
+      .values({
         userId: user.id,
         platform: "twitter",
         accessTokenEncrypted,
@@ -134,8 +122,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         tokenExpiresAt,
         platformUserId: userInfo.id,
         platformUsername: userInfo.username,
+      })
+      .onConflictDoUpdate({
+        target: [platformConnections.userId, platformConnections.platform],
+        set: {
+          accessTokenEncrypted,
+          refreshTokenEncrypted,
+          tokenExpiresAt,
+          platformUserId: userInfo.id,
+          platformUsername: userInfo.username,
+          updatedAt: new Date(),
+        },
       });
-    }
 
     // 8. Clear cookies and redirect to settings
     const response = NextResponse.redirect(
