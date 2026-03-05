@@ -66,6 +66,21 @@ export type CreateContentItemInput = {
   tags?: string[];
 };
 
+const CONTENT_SOURCE_TYPES: ReadonlySet<ContentSourceType> = new Set([
+  "telegram_import",
+  "idea",
+  "repurposed",
+  "external_source",
+  "ai_generated",
+]);
+
+const CONTENT_STATUSES: ReadonlySet<ContentStatus> = new Set([
+  "draft",
+  "published",
+  "archived",
+  "scheduled",
+]);
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getActionErrorMessage(error: unknown, fallback: string): string {
@@ -412,13 +427,20 @@ export async function createContentItem(
 
     const normalizedTitle = input.title.trim();
     const normalizedContent = input.content ?? "";
-    const normalizedStatus: ContentStatus = input.status ?? "draft";
-    const normalizedChannelId = input.channelId ?? null;
-    const normalizedSourceUrl = input.sourceUrl ?? null;
-    const normalizedSourceMetadata = input.sourceMetadata ?? null;
+    const normalizedStatus: ContentStatus =
+      input.status && CONTENT_STATUSES.has(input.status) ? input.status : "draft";
+    const normalizedChannelId = input.channelId?.trim() ? input.channelId.trim() : null;
+    const normalizedSourceUrl = input.sourceUrl?.trim() ? input.sourceUrl.trim() : null;
+    const normalizedSourceMetadata =
+      input.sourceMetadata &&
+      typeof input.sourceMetadata === "object" &&
+      !Array.isArray(input.sourceMetadata)
+        ? input.sourceMetadata
+        : null;
     const normalizedCategory = input.category?.trim() || null;
     const normalizedTags = input.tags?.map((t) => t.trim()).filter(Boolean) ?? [];
-    const normalizedSourceType = input.sourceType ?? null;
+    const normalizedSourceType =
+      input.sourceType && CONTENT_SOURCE_TYPES.has(input.sourceType) ? input.sourceType : null;
 
     const [item] = await db
       .insert(contentLibrary)

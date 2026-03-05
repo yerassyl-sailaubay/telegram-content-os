@@ -556,6 +556,44 @@ describe("createContentItem", () => {
     expect(mockInsert).toHaveBeenCalled();
   });
 
+  it("normalizes empty optional fields to null", async () => {
+    const mockItem = {
+      id: "content-new-3",
+      userId: "user-123",
+      title: "Quick Note",
+      content: "",
+      sourceType: null,
+      status: "draft",
+      channelId: null,
+      sourceUrl: null,
+      sourceMetadata: null,
+      category: null,
+      tags: [],
+      isTemplate: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockReturning.mockResolvedValueOnce([mockItem]);
+
+    const result = await createContentItem({
+      title: "Quick Note",
+      channelId: "   ",
+      sourceUrl: "",
+      sourceMetadata: "" as unknown as Record<string, unknown>,
+      sourceType: "idea",
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channelId: null,
+        sourceUrl: null,
+        sourceMetadata: null,
+        sourceType: "idea",
+      }),
+    );
+  });
+
   it("returns error when title is empty", async () => {
     const result = await createContentItem({ title: "" });
     expect(result.success).toBe(false);

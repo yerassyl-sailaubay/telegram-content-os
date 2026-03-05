@@ -86,11 +86,33 @@ create index if not exists schedules_recurrence_scheduled_at_idx
 create index if not exists schedules_cross_post_id_idx
   on public.schedules (cross_post_id);
 
-create index if not exists schedules_content_library_id_idx
-  on public.schedules (content_library_id);
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'schedules'
+      and column_name = 'content_library_id'
+  ) then
+    create index if not exists schedules_content_library_id_idx
+      on public.schedules (content_library_id);
+  end if;
+end $$;
 
-create index if not exists schedules_channel_id_idx
-  on public.schedules (channel_id);
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'schedules'
+      and column_name = 'channel_id'
+  ) then
+    create index if not exists schedules_channel_id_idx
+      on public.schedules (channel_id);
+  end if;
+end $$;
 
 create index if not exists cross_posts_user_created_at_idx
   on public.cross_posts (user_id, created_at);
@@ -122,17 +144,50 @@ create index if not exists recurring_schedules_channel_id_idx
 create index if not exists content_library_user_created_at_idx
   on public.content_library (user_id, created_at);
 
-create index if not exists content_library_user_status_created_at_idx
-  on public.content_library (user_id, status, created_at);
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'content_library'
+      and column_name = 'status'
+  ) then
+    create index if not exists content_library_user_status_created_at_idx
+      on public.content_library (user_id, status, created_at);
+  end if;
+end $$;
 
 create index if not exists content_library_user_category_idx
   on public.content_library (user_id, category);
 
-create index if not exists content_library_channel_id_idx
-  on public.content_library (channel_id);
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'content_library'
+      and column_name = 'channel_id'
+  ) then
+    create index if not exists content_library_channel_id_idx
+      on public.content_library (channel_id);
+  end if;
+end $$;
 
-create index if not exists content_library_parent_id_idx
-  on public.content_library (parent_id);
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'content_library'
+      and column_name = 'parent_id'
+  ) then
+    create index if not exists content_library_parent_id_idx
+      on public.content_library (parent_id);
+  end if;
+end $$;
 
 create index if not exists content_library_tags_gin_idx
   on public.content_library using gin (tags jsonb_path_ops);
