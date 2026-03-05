@@ -24,7 +24,7 @@ export function WelcomeSection({ userName, userEmail }: WelcomeSectionProps) {
 
   return (
     <div data-testid="welcome-section" className="space-y-1">
-      <h1 className="text-2xl font-bold tracking-tight">
+      <h1 className="max-w-[calc(100vw-2rem)] truncate text-2xl font-bold tracking-tight md:max-w-2xl">
         {t("welcomeBack", { name: displayName })}
       </h1>
       <p className="text-muted-foreground text-sm">{today}</p>

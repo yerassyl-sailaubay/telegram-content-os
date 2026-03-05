@@ -135,7 +135,7 @@ export default async function DashboardPage() {
 
         {data && (
           <details className="group">
-            <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs font-medium transition-colors select-none">
+            <summary className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex cursor-pointer items-center rounded-md p-2 pr-4 text-xs font-medium transition-colors select-none">
               {t("crossPostStatsToggle")}
             </summary>
             <div className="mt-3">

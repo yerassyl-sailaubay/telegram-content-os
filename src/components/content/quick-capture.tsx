@@ -72,7 +72,7 @@ export function QuickCapture({ onSaved }: { onSaved?: () => void }) {
           size="sm"
           data-testid="quick-capture-submit"
           disabled={isPending || !text.trim()}
-          className="shrink-0 gap-1.5"
+          className="shrink-0 gap-1.5 bg-slate-800 text-white hover:bg-slate-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:hover:bg-slate-300 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-slate-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
         >
           {isPending ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -175,7 +175,6 @@ export function AppSidebar({ userEmail, isAdmin = false }: AppSidebarProps) {
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{userEmail ?? "User"}</span>
-                    <span className="text-muted-foreground truncate text-xs">{userEmail}</span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4" />
                 </SidebarMenuButton>
