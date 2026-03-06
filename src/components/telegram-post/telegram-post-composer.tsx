@@ -32,8 +32,15 @@ import {
   Sparkles,
   X,
   RefreshCw,
+  CalendarClock,
+  FileCheck,
 } from "lucide-react";
-import { postToTelegram, uploadImageForPost } from "@/server/actions/telegram-post";
+import {
+  postToTelegram,
+  uploadImageForPost,
+  saveTelegramDraft,
+  scheduleTelegramPost,
+} from "@/server/actions/telegram-post";
 import {
   generatePostWithAI,
   analyzeChannelVoice,
@@ -55,26 +62,78 @@ interface ChannelProfile {
   generatedAt: Date;
 }
 
-interface TelegramPostComposerProps {
-  initialChannels: Channel[];
+interface TelegramDraftItem {
+  id: string;
+  content: string | null;
+  channelId: string | null;
+  sourceMetadata: unknown;
 }
 
-export function TelegramPostComposer({ initialChannels }: TelegramPostComposerProps) {
+interface TelegramComposerMetadata {
+  parseMode?: "HTML" | "MarkdownV2";
+  imageUrl: string | null;
+}
+
+interface TelegramPostComposerProps {
+  initialChannels: Channel[];
+  initialDraft?: TelegramDraftItem | null;
+}
+
+function readTelegramComposerMetadata(sourceMetadata: unknown): TelegramComposerMetadata {
+  if (!sourceMetadata || typeof sourceMetadata !== "object" || Array.isArray(sourceMetadata)) {
+    return { parseMode: undefined, imageUrl: null };
+  }
+
+  const metadata = sourceMetadata as Record<string, unknown>;
+  const composer = metadata.telegramComposer;
+
+  if (!composer || typeof composer !== "object" || Array.isArray(composer)) {
+    return { parseMode: undefined, imageUrl: null };
+  }
+
+  const parsedComposer = composer as Record<string, unknown>;
+  const parseModeRaw = parsedComposer.parseMode;
+  const imageUrlRaw = parsedComposer.imageUrl;
+
+  const parseMode =
+    parseModeRaw === "HTML" || parseModeRaw === "MarkdownV2" ? parseModeRaw : undefined;
+
+  return {
+    parseMode,
+    imageUrl: typeof imageUrlRaw === "string" && imageUrlRaw.length > 0 ? imageUrlRaw : null,
+  };
+}
+
+export function TelegramPostComposer({
+  initialChannels,
+  initialDraft = null,
+}: TelegramPostComposerProps) {
   const t = useTranslations("telegramPost");
   const tAi = useTranslations("aiWriter");
   const tCommon = useTranslations("common");
 
+  const initialMetadata = readTelegramComposerMetadata(initialDraft?.sourceMetadata);
+
   const [channels] = useState<Channel[]>(initialChannels);
-  const [selectedChannel, setSelectedChannel] = useState<string>("");
-  const [content, setContent] = useState("");
-  const [parseMode, setParseMode] = useState<"HTML" | "MarkdownV2" | undefined>(undefined);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(initialDraft?.id ?? null);
+  const [selectedChannel, setSelectedChannel] = useState<string>(initialDraft?.channelId ?? "");
+  const [content, setContent] = useState(initialDraft?.content ?? "");
+  const [parseMode, setParseMode] = useState<"HTML" | "MarkdownV2" | undefined>(
+    initialMetadata.parseMode,
+  );
+  const [imageUrl, setImageUrl] = useState<string | null>(initialMetadata.imageUrl);
   const [isUploading, setIsUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
+
+  const [composeMode, setComposeMode] = useState<"post" | "schedule">("post");
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
 
   // AI Writer state
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
@@ -87,16 +146,41 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
 
   const charCount = content.length;
   const maxChars = 4096; // Telegram message limit
+  const minScheduleDate = new Date().toISOString().split("T")[0];
 
   function resolveErrorMessage(error: unknown): string {
     return error instanceof Error && error.message ? error.message : tCommon("error");
+  }
+
+  function canSubmitComposer() {
+    return Boolean(selectedChannel && (content.trim() || imageUrl) && charCount <= maxChars);
+  }
+
+  function buildScheduleIso(): { iso: string | null; error: string | null } {
+    if (!scheduleDate || !scheduleTime) {
+      return { iso: null, error: t("scheduleDateTimeRequired") };
+    }
+
+    const scheduledDate = new Date(`${scheduleDate}T${scheduleTime}:00`);
+
+    if (Number.isNaN(scheduledDate.getTime())) {
+      return { iso: null, error: t("scheduleInvalidDate") };
+    }
+
+    if (scheduledDate.getTime() <= Date.now()) {
+      return { iso: null, error: t("schedulePastError") };
+    }
+
+    return {
+      iso: scheduledDate.toISOString(),
+      error: null,
+    };
   }
 
   const handleChannelChange = async (channelId: string) => {
     setSelectedChannel(channelId);
     setResult(null);
 
-    // Load channel profile
     if (!channelId) {
       setChannelProfile(null);
       return;
@@ -154,7 +238,7 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
   };
 
   const handleSubmit = () => {
-    if (!selectedChannel || (!content.trim() && !imageUrl)) return;
+    if (!canSubmitComposer()) return;
 
     setResult(null);
     startTransition(async () => {
@@ -174,6 +258,10 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
           setContent("");
           setImageUrl(null);
           setSelectedChannel("");
+          setDraftId(null);
+          setScheduleDate("");
+          setScheduleTime("");
+          setComposeMode("post");
         } else {
           setResult({
             success: false,
@@ -187,6 +275,78 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
         });
       }
     });
+  };
+
+  const handleSaveDraft = async () => {
+    if (!content.trim() && !imageUrl) return;
+
+    setIsSavingDraft(true);
+    setResult(null);
+
+    try {
+      const response = await saveTelegramDraft({
+        contentId: draftId ?? undefined,
+        channelId: selectedChannel || undefined,
+        content: content.trim(),
+        parseMode,
+        imageUrl: imageUrl || undefined,
+      });
+
+      if (response.success) {
+        setDraftId(response.data.id);
+        setResult({ success: true, message: t("draftSaved") });
+      } else {
+        setResult({ success: false, message: response.error });
+      }
+    } catch (error) {
+      setResult({ success: false, message: resolveErrorMessage(error) });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleSchedule = async () => {
+    if (!selectedChannel) {
+      setResult({ success: false, message: t("selectChannelFirst") });
+      return;
+    }
+
+    if (!content.trim() && !imageUrl) {
+      setResult({ success: false, message: t("contentRequired") });
+      return;
+    }
+
+    const { iso, error } = buildScheduleIso();
+    if (error || !iso) {
+      setResult({ success: false, message: error ?? tCommon("error") });
+      return;
+    }
+
+    setIsScheduling(true);
+    setResult(null);
+
+    try {
+      const response = await scheduleTelegramPost({
+        contentId: draftId ?? undefined,
+        channelId: selectedChannel,
+        content: content.trim(),
+        parseMode,
+        imageUrl: imageUrl || undefined,
+        scheduledAt: iso,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+
+      if (response.success) {
+        setDraftId(response.data.id);
+        setResult({ success: true, message: t("scheduleSuccess") });
+      } else {
+        setResult({ success: false, message: response.error });
+      }
+    } catch (error) {
+      setResult({ success: false, message: resolveErrorMessage(error) });
+    } finally {
+      setIsScheduling(false);
+    }
   };
 
   const handleAnalyzeChannel = async () => {
@@ -443,6 +603,92 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
               </div>
             </div>
 
+            {/* Draft + Schedule Controls */}
+            <div className="space-y-3 rounded-lg border p-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  data-testid="save-draft-button"
+                  onClick={handleSaveDraft}
+                  disabled={isSavingDraft || (!content.trim() && !imageUrl) || charCount > maxChars}
+                >
+                  {isSavingDraft ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("savingDraft")}
+                    </>
+                  ) : (
+                    <>
+                      <FileCheck className="mr-2 h-4 w-4" />
+                      {t("saveDraft")}
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant={composeMode === "schedule" ? "default" : "outline"}
+                  className="w-full"
+                  data-testid="schedule-mode-button"
+                  onClick={() =>
+                    setComposeMode((prev) => (prev === "schedule" ? "post" : "schedule"))
+                  }
+                >
+                  <CalendarClock className="mr-2 h-4 w-4" />
+                  {t("scheduleMode")}
+                </Button>
+              </div>
+
+              {composeMode === "schedule" && (
+                <div className="space-y-3" data-testid="schedule-options">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="schedule-date">{t("scheduleDate")}</Label>
+                      <Input
+                        id="schedule-date"
+                        data-testid="schedule-date-input"
+                        type="date"
+                        value={scheduleDate}
+                        min={minScheduleDate}
+                        onChange={(e) => setScheduleDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="schedule-time">{t("scheduleTime")}</Label>
+                      <Input
+                        id="schedule-time"
+                        data-testid="schedule-time-input"
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(e) => setScheduleTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    className="w-full"
+                    data-testid="schedule-submit-button"
+                    onClick={handleSchedule}
+                    disabled={
+                      isScheduling || !canSubmitComposer() || !scheduleDate || !scheduleTime
+                    }
+                  >
+                    {isScheduling ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("schedulingPost")}
+                      </>
+                    ) : (
+                      <>
+                        <CalendarClock className="mr-2 h-4 w-4" />
+                        {t("schedulePost")}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+
             {/* Result Message */}
             {result && (
               <div
@@ -463,28 +709,25 @@ export function TelegramPostComposer({ initialChannels }: TelegramPostComposerPr
             )}
 
             {/* Submit Button */}
-            <Button
-              onClick={handleSubmit}
-              disabled={
-                !selectedChannel ||
-                (!content.trim() && !imageUrl) ||
-                charCount > maxChars ||
-                isPending
-              }
-              className="w-full"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("posting")}
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  {t("postToTelegram")}
-                </>
-              )}
-            </Button>
+            {composeMode === "post" && (
+              <Button
+                onClick={handleSubmit}
+                disabled={!canSubmitComposer() || isPending}
+                className="w-full"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("posting")}
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    {t("postToTelegram")}
+                  </>
+                )}
+              </Button>
+            )}
           </CardContent>
         </Card>
 

@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/server/db";
-import { telegramChannels, telegramPosts } from "@/server/db/schema";
+import { contentLibrary, telegramChannels, telegramPosts } from "@/server/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { getTelegramClient } from "@/lib/telegram/client";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { publishToTelegram } from "./publish-telegram";
 
 export type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
@@ -22,6 +23,30 @@ export interface TelegramPostResult {
   postedAt: Date;
 }
 
+export interface SaveTelegramDraftInput {
+  contentId?: string;
+  channelId?: string;
+  content: string;
+  parseMode?: "HTML" | "MarkdownV2";
+  imageUrl?: string;
+}
+
+export interface SaveTelegramDraftResult {
+  id: string;
+  status: "draft" | "scheduled";
+}
+
+export interface ScheduleTelegramPostInput extends SaveTelegramDraftInput {
+  channelId: string;
+  scheduledAt: string;
+  timezone?: string;
+}
+
+export interface ScheduleTelegramPostResult {
+  id: string;
+  status: "scheduled";
+}
+
 async function getCurrentUserId(): Promise<string> {
   const supabase = await createClient();
   const {
@@ -33,6 +58,223 @@ async function getCurrentUserId(): Promise<string> {
   }
 
   return user.id;
+}
+
+function buildDraftTitle(content: string, imageUrl?: string): string {
+  const collapsedContent = content.trim().replace(/\s+/g, " ");
+  if (collapsedContent.length > 0) {
+    return collapsedContent.slice(0, 80);
+  }
+  if (imageUrl) {
+    return "Image post draft";
+  }
+  return "Untitled draft";
+}
+
+function normalizeSourceMetadata(
+  existingMetadata: unknown,
+  input: SaveTelegramDraftInput,
+): Record<string, unknown> {
+  const base =
+    existingMetadata && typeof existingMetadata === "object" && !Array.isArray(existingMetadata)
+      ? ({ ...existingMetadata } as Record<string, unknown>)
+      : {};
+
+  const existingTelegramComposer =
+    base.telegramComposer &&
+    typeof base.telegramComposer === "object" &&
+    !Array.isArray(base.telegramComposer)
+      ? ({ ...base.telegramComposer } as Record<string, unknown>)
+      : {};
+
+  return {
+    ...base,
+    telegramComposer: {
+      ...existingTelegramComposer,
+      parseMode: input.parseMode ?? null,
+      imageUrl: input.imageUrl ?? null,
+    },
+  };
+}
+
+async function ensureOwnedChannel(userId: string, channelId?: string) {
+  if (!channelId) {
+    return null;
+  }
+
+  const [channel] = await db
+    .select({
+      id: telegramChannels.id,
+    })
+    .from(telegramChannels)
+    .where(and(eq(telegramChannels.id, channelId), eq(telegramChannels.userId, userId)))
+    .limit(1);
+
+  if (!channel) {
+    return null;
+  }
+
+  return channel;
+}
+
+function revalidateContentPaths(contentId?: string) {
+  revalidatePath("/ru/dashboard/posts");
+  revalidatePath("/en/dashboard/posts");
+  revalidatePath("/ru/dashboard/telegram-post");
+  revalidatePath("/en/dashboard/telegram-post");
+
+  if (contentId) {
+    revalidatePath(`/ru/dashboard/posts/${contentId}/edit`);
+    revalidatePath(`/en/dashboard/posts/${contentId}/edit`);
+  }
+}
+
+export async function saveTelegramDraft(
+  input: SaveTelegramDraftInput,
+): Promise<ActionResult<SaveTelegramDraftResult>> {
+  try {
+    const userId = await getCurrentUserId();
+    const normalizedContent = input.content?.trim() ?? "";
+
+    if (!normalizedContent && !input.imageUrl) {
+      return { success: false, error: "Content or image is required" };
+    }
+
+    if (input.channelId) {
+      const channel = await ensureOwnedChannel(userId, input.channelId);
+      if (!channel) {
+        return { success: false, error: "Channel not found" };
+      }
+    }
+
+    const title = buildDraftTitle(normalizedContent, input.imageUrl);
+
+    if (input.contentId) {
+      const [existing] = await db
+        .select({
+          id: contentLibrary.id,
+          sourceMetadata: contentLibrary.sourceMetadata,
+          status: contentLibrary.status,
+        })
+        .from(contentLibrary)
+        .where(and(eq(contentLibrary.id, input.contentId), eq(contentLibrary.userId, userId)))
+        .limit(1);
+
+      if (!existing) {
+        return { success: false, error: "Content not found" };
+      }
+
+      const metadata = normalizeSourceMetadata(existing.sourceMetadata, input);
+
+      const [updated] = await db
+        .update(contentLibrary)
+        .set({
+          title,
+          content: normalizedContent,
+          channelId: input.channelId ?? null,
+          status: existing.status === "scheduled" ? "scheduled" : "draft",
+          sourceMetadata: metadata,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(contentLibrary.id, input.contentId), eq(contentLibrary.userId, userId)))
+        .returning({
+          id: contentLibrary.id,
+          status: contentLibrary.status,
+        });
+
+      if (!updated) {
+        return { success: false, error: "Failed to update draft" };
+      }
+
+      revalidateContentPaths(updated.id);
+      return {
+        success: true,
+        data: {
+          id: updated.id,
+          status: updated.status === "scheduled" ? "scheduled" : "draft",
+        },
+      };
+    }
+
+    const metadata = normalizeSourceMetadata(null, input);
+
+    const [created] = await db
+      .insert(contentLibrary)
+      .values({
+        userId,
+        title,
+        content: normalizedContent,
+        status: "draft",
+        channelId: input.channelId ?? null,
+        sourceMetadata: metadata,
+      })
+      .returning({
+        id: contentLibrary.id,
+        status: contentLibrary.status,
+      });
+
+    if (!created) {
+      return { success: false, error: "Failed to save draft" };
+    }
+
+    revalidateContentPaths(created.id);
+    return {
+      success: true,
+      data: { id: created.id, status: "draft" },
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to save draft";
+    return { success: false, error: message };
+  }
+}
+
+export async function scheduleTelegramPost(
+  input: ScheduleTelegramPostInput,
+): Promise<ActionResult<ScheduleTelegramPostResult>> {
+  try {
+    if (!input.channelId) {
+      return { success: false, error: "Channel ID is required" };
+    }
+
+    if (!input.scheduledAt) {
+      return { success: false, error: "Scheduled time is required" };
+    }
+
+    const draftResult = await saveTelegramDraft({
+      contentId: input.contentId,
+      channelId: input.channelId,
+      content: input.content,
+      parseMode: input.parseMode,
+      imageUrl: input.imageUrl,
+    });
+
+    if (!draftResult.success) {
+      return draftResult;
+    }
+
+    const publishResult = await publishToTelegram(
+      draftResult.data.id,
+      input.channelId,
+      input.scheduledAt,
+      input.timezone ?? "UTC",
+    );
+
+    if (!publishResult.success) {
+      return { success: false, error: publishResult.error };
+    }
+
+    revalidateContentPaths(draftResult.data.id);
+    return {
+      success: true,
+      data: {
+        id: draftResult.data.id,
+        status: "scheduled",
+      },
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to schedule post";
+    return { success: false, error: message };
+  }
 }
 
 /**

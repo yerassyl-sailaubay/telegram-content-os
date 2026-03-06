@@ -206,7 +206,7 @@ export function ContentCard({ item, onArchived, onEdit }: ContentCardProps) {
                 {t("actionRepurpose")}
               </DropdownMenuItem>
               <DropdownMenuItem asChild data-testid="action-publish-telegram">
-                <Link href={`/dashboard/telegramPost?contentId=${item.id}`}>
+                <Link href={`/dashboard/telegram-post?contentId=${item.id}`}>
                   <Send className="h-4 w-4" />
                   {t("actionPublishTelegram")}
                 </Link>

@@ -663,6 +663,8 @@
   "telegramPost": {
     "pageTitle": "Post to Telegram",
     "pageDescription": "Create and publish posts directly to your Telegram channels",
+    "editPageTitle": "Edit Telegram Post",
+    "editPageDescription": "Update your saved draft or scheduled post",
     "title": "New Telegram Post",
     "description": "Compose a message and publish it to your connected Telegram channels",
     "selectChannel": "Select Channel",
@@ -686,7 +688,21 @@
     "image": "Image",
     "addImage": "Add Image",
     "uploading": "Uploading...",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "saveDraft": "Save Draft",
+    "savingDraft": "Saving Draft...",
+    "draftSaved": "Draft saved successfully!",
+    "scheduleMode": "Schedule",
+    "scheduleDate": "Date",
+    "scheduleTime": "Time",
+    "schedulePost": "Schedule Post",
+    "schedulingPost": "Scheduling...",
+    "scheduleSuccess": "Post scheduled successfully!",
+    "selectChannelFirst": "Select a channel first",
+    "contentRequired": "Content or image is required",
+    "scheduleDateTimeRequired": "Select both date and time",
+    "scheduleInvalidDate": "Invalid schedule date",
+    "schedulePastError": "Cannot schedule in the past"
   },
   "aiWriter": {
     "generateWithAI": "Generate with AI",
@@ -858,77 +874,146 @@
   },
   "landing": {
     "nav": {
-      "logo": "Telegram Content OS",
-      "login": "Sign in",
-      "getStarted": "Get Started"
+      "logo": "Teleflow",
+      "links": {
+        "product": "Product",
+        "systems": "Systems",
+        "integrations": "Integrations",
+        "pricing": "Pricing"
+      },
+      "login": "Log in",
+      "getStarted": "Start for free"
     },
     "hero": {
-      "badge": "AI-Powered Content OS",
-      "title": "Turn Telegram Content Into",
-      "titleHighlight": "Multi-Platform Magic",
-      "subtitle": "Import posts from your Telegram channels, adapt them with AI for LinkedIn and Twitter, schedule smart, and track every engagement — all in one place.",
-      "ctaLogin": "Sign in",
-      "ctaSignup": "Start for Free",
-      "ctaNote": "No credit card required · Free plan available"
+      "badge": "Meet the Telegram Content OS",
+      "title": "The OS for",
+      "titleItalic": "Telegram Creators.",
+      "subtitle": "The all-in-one AI engine to ingest, generate, schedule, and scale your Telegram channel.",
+      "ctaPrimary": "Start Building for Free",
+      "ctaSecondary": "View Features"
     },
-    "features": {
-      "badge": "Everything You Need",
-      "title": "Built for Telegram Creators",
-      "subtitle": "A complete content operating system that turns your Telegram channel into a multi-platform content machine.",
-      "items": [
-        {
-          "title": "AI Content Adaptation",
-          "description": "Automatically translate and reformat your Russian Telegram posts for LinkedIn and Twitter audiences with context-aware AI."
+    "lifecycle": {
+      "windowTitle": "Content Lifecycle",
+      "ingest": {
+        "title": "Ingest",
+        "subtitle": "Telegram Bot",
+        "status": "Voice memo received..."
+      },
+      "ai": {
+        "title": "AI Engine",
+        "subtitle": "Tone Profiling",
+        "status": "Analyzing voice"
+      },
+      "platforms": {
+        "telegram": "Telegram",
+        "twitter": "Twitter / X",
+        "linkedin": "LinkedIn"
+      }
+    },
+    "integrations": {
+      "label": "Integrated Platforms",
+      "items": {
+        "telegram": "Telegram",
+        "twitter": "X",
+        "linkedin": "LinkedIn"
+      }
+    },
+    "systems": {
+      "title": "Systems for Scale",
+      "subtitle": "Built for high-volume creators. One workflow from Telegram to LinkedIn and X.",
+      "cards": {
+        "tone": {
+          "title": "AI Tone Profiling",
+          "description": "Our AI analyzes your post history to model your voice, vocabulary, and cadence so generated posts still sound like you.",
+          "tags": {
+            "casual": "casual pacing",
+            "jargon": "tech jargon",
+            "optimistic": "optimistic tone"
+          },
+          "result": "Profile generated"
         },
-        {
-          "title": "Smart Scheduling",
-          "description": "Schedule posts at optimal times with a visual calendar. Set recurring schedules and never miss a posting window."
+        "ingestion": {
+          "title": "Smart Ingestion",
+          "description": "Forward messages, voice notes, images, or docs to the bot. Teleflow extracts, categorizes, and prepares content instantly."
         },
-        {
-          "title": "Cross-Platform Analytics",
-          "description": "Track engagement, views, and follower growth across all your platforms in one unified analytics dashboard."
+        "adaptation": {
+          "title": "Multi-Step Adaptation",
+          "description": "Translate raw ideas into clear copy, then apply platform-specific formatting for LinkedIn and X.",
+          "stepOne": "1. Translation & Cleanup",
+          "stepTwo": "2. Platform Styling (X Thread)"
         },
-        {
-          "title": "Content from Any URL",
-          "description": "Import content from YouTube videos, blog articles, or any web page and transform them into Telegram posts instantly."
+        "dashboard": {
+          "title": "Visual Content OS",
+          "description": "Run your pipeline from one dashboard with visual scheduling, recurring posting, and cross-platform analytics."
         }
-      ]
+      }
     },
-    "howItWorks": {
-      "badge": "How It Works",
-      "title": "From Telegram to Everywhere",
-      "subtitle": "Three steps to multiply your content reach without the extra work.",
-      "steps": [
-        {
-          "step": "01",
-          "title": "Connect Your Channel",
-          "description": "Add our bot as an admin to your Telegram channel. Your posts start flowing in automatically via webhook."
+    "pricing": {
+      "title": "Simple pricing by AI usage",
+      "subtitle": "Choose a plan based on how much content you generate each month.",
+      "period": "/month",
+      "stripeNote": "Secure payments powered by Stripe.",
+      "plans": {
+        "free": {
+          "name": "Free",
+          "price": "$0",
+          "audience": "For trying the workflow end-to-end",
+          "cta": "Start free",
+          "features": {
+            "quota": "50 AI generations per month",
+            "noCard": "No credit card required",
+            "telegram": "Telegram-first core workflow"
+          }
         },
-        {
-          "step": "02",
-          "title": "AI Adapts Your Content",
-          "description": "Our AI translates and reformats each post for the target platform — preserving your voice while optimizing for the audience."
+        "plus": {
+          "name": "Plus",
+          "badge": "Most popular",
+          "price": "$19",
+          "audience": "For active solo creators",
+          "cta": "Choose Plus",
+          "features": {
+            "quota": "500 AI generations per month",
+            "generation": "AI generation and adaptation",
+            "crosspost": "Cross-posting to LinkedIn and X"
+          }
         },
-        {
-          "step": "03",
-          "title": "Publish & Track",
-          "description": "Post immediately or schedule for later. Then watch the analytics roll in from LinkedIn, Twitter, and Telegram together."
+        "pro": {
+          "name": "Pro",
+          "price": "$49",
+          "audience": "For high-volume creators and agencies",
+          "cta": "Choose Pro",
+          "features": {
+            "quota": "Unlimited AI generations",
+            "highVolume": "Built for high posting volume",
+            "allCore": "Access to all core features"
+          }
         }
-      ]
-    },
-    "cta": {
-      "title": "Ready to Grow Beyond Telegram?",
-      "subtitle": "Join creators who are already multiplying their reach with AI-powered cross-posting.",
-      "button": "Get Started Free",
-      "note": "Free plan · No credit card · 2 minute setup"
+      }
     },
     "footer": {
-      "copyright": "© 2025 Telegram Content OS. All rights reserved.",
-      "links": {
-        "dashboard": "Dashboard",
-        "login": "Sign in",
-        "signup": "Sign up"
-      }
+      "logo": "Teleflow",
+      "tagline": "The publishing engine built for Telegram creators.",
+      "platform": {
+        "heading": "Platform",
+        "routingEngine": "AI Generation",
+        "aiFormatting": "Adaptation",
+        "analytics": "Analytics",
+        "integrations": "Scheduling"
+      },
+      "company": {
+        "heading": "Company",
+        "about": "About Us",
+        "careers": "Careers",
+        "changelog": "Changelog",
+        "contact": "Contact"
+      },
+      "legal": {
+        "heading": "Legal",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      },
+      "copyright": "© 2026 Teleflow. All rights reserved.",
+      "status": "Systems operational"
     }
   }
 }
