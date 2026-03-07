@@ -54,9 +54,7 @@ export function validateScheduleTime(
  * Create a new schedule. Stores the UTC time in DB and emits an Inngest
  * event that will fire at the scheduled time.
  */
-export async function createSchedule(
-  input: CreateScheduleInput,
-): Promise<ScheduleResult> {
+export async function createSchedule(input: CreateScheduleInput): Promise<ScheduleResult> {
   const validation = validateScheduleTime(input.scheduledAt, input.timezone);
   if ("error" in validation) {
     return { success: false, error: validation.error };
@@ -94,10 +92,7 @@ export async function createSchedule(
  * Cancel a pending schedule. Marks it as cancelled in DB.
  * The Inngest function will check the status before executing.
  */
-export async function cancelSchedule(
-  scheduleId: string,
-  userId: string,
-): Promise<ScheduleResult> {
+export async function cancelSchedule(scheduleId: string, userId: string): Promise<ScheduleResult> {
   const [updated] = await db
     .update(schedules)
     .set({
@@ -127,9 +122,7 @@ export async function cancelSchedule(
  * Reschedule a pending post to a new time.
  * Cancels the old schedule and creates a logical "update" (same row, new time).
  */
-export async function reschedulePost(
-  input: RescheduleInput,
-): Promise<ScheduleResult> {
+export async function reschedulePost(input: RescheduleInput): Promise<ScheduleResult> {
   const validation = validateScheduleTime(input.newScheduledAt, input.timezone);
   if ("error" in validation) {
     return { success: false, error: validation.error };
@@ -177,11 +170,7 @@ export async function reschedulePost(
  * Fetch schedules for a user within a date range (UTC).
  * Used by the calendar to display scheduled posts.
  */
-export async function getSchedulesInRange(
-  userId: string,
-  startUtc: Date,
-  endUtc: Date,
-) {
+export async function getSchedulesInRange(userId: string, startUtc: Date, endUtc: Date) {
   return db.query.schedules.findMany({
     where: and(
       eq(schedules.userId, userId),
@@ -190,6 +179,7 @@ export async function getSchedulesInRange(
     ),
     with: {
       crossPost: true,
+      contentLibraryItem: true,
     },
     orderBy: (s, { asc }) => [asc(s.scheduledAt)],
   });
@@ -203,6 +193,7 @@ export async function getScheduleById(scheduleId: string, userId: string) {
     where: and(eq(schedules.id, scheduleId), eq(schedules.userId, userId)),
     with: {
       crossPost: true,
+      contentLibraryItem: true,
     },
   });
 }

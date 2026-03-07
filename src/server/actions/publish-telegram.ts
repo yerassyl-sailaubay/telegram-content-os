@@ -65,21 +65,41 @@ export async function publishToTelegram(
         return { success: false, error: "Cannot schedule in the past" };
       }
 
-      await db.insert(schedules).values({
-        userId: user.id,
-        contentLibraryId: contentId,
-        targetType: "telegram_publish",
-        channelId,
-        scheduledAt: scheduledTime,
-        timezone: timezone ?? "UTC",
-        status: "pending",
-      });
+      const [createdSchedule] = await db
+        .insert(schedules)
+        .values({
+          userId: user.id,
+          contentLibraryId: contentId,
+          targetType: "telegram_publish",
+          channelId,
+          scheduledAt: scheduledTime,
+          timezone: timezone ?? "UTC",
+          status: "pending",
+        })
+        .returning({ id: schedules.id });
 
-      await inngest.send({
-        name: "telegram/post.publish",
-        data: eventData,
-        ts: scheduledTime.getTime(),
-      });
+      if (!createdSchedule) {
+        return { success: false, error: "Failed to create schedule" };
+      }
+
+      try {
+        await inngest.send({
+          name: "telegram/post.publish",
+          data: {
+            ...eventData,
+            scheduleId: createdSchedule.id,
+          },
+          ts: scheduledTime.getTime(),
+        });
+      } catch (error) {
+        await db
+          .update(schedules)
+          .set({ status: "failed", updatedAt: new Date() })
+          .where(eq(schedules.id, createdSchedule.id));
+
+        const message = error instanceof Error ? error.message : "Failed to queue scheduled post";
+        return { success: false, error: message };
+      }
 
       await db
         .update(contentLibrary)

@@ -191,6 +191,7 @@
     "scheduleUpdated": "Расписание обновлено",
     "linkedin": "LinkedIn",
     "twitter": "Twitter / X",
+    "telegram": "Telegram",
     "recurrence": "Повторение",
     "recurrenceHint": "Настройте повторяющееся расписание для автоматического создания публикаций."
   },

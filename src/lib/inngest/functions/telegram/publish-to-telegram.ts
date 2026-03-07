@@ -5,6 +5,7 @@ interface PublishToTelegramEvent {
     contentId: string;
     userId: string;
     channelId: string;
+    scheduleId?: string;
     scheduledAt?: string;
   };
 }
@@ -65,113 +66,181 @@ export const publishToTelegram = inngest.createFunction(
   },
   { event: "telegram/post.publish" },
   async ({ event, step }) => {
-    const { contentId, channelId } = (event as PublishToTelegramEvent).data;
+    const { contentId, channelId, scheduleId } = (event as PublishToTelegramEvent).data;
 
-    const content = await step.run("load-content", async () => {
-      const { db } = await import("@/server/db");
-      const { contentLibrary } = await import("@/server/db/schema");
-      const { eq } = await import("drizzle-orm");
+    try {
+      const content = await step.run("load-content", async () => {
+        const { db } = await import("@/server/db");
+        const { contentLibrary } = await import("@/server/db/schema");
+        const { eq } = await import("drizzle-orm");
 
-      const rows = await db
-        .select()
-        .from(contentLibrary)
-        .where(eq(contentLibrary.id, contentId))
-        .limit(1);
+        const rows = await db
+          .select()
+          .from(contentLibrary)
+          .where(eq(contentLibrary.id, contentId))
+          .limit(1);
 
-      if (rows.length === 0) {
-        throw new Error(`Content ${contentId} not found`);
+        if (rows.length === 0) {
+          throw new Error(`Content ${contentId} not found`);
+        }
+
+        const row = rows[0]!;
+        if (!PUBLISHABLE_STATUSES.has(row.status ?? "")) {
+          throw new Error(`Cannot publish content with status '${row.status}'`);
+        }
+
+        return { id: row.id, text: row.content ?? "", status: row.status };
+      });
+
+      const channel = await step.run("load-channel", async () => {
+        const { db } = await import("@/server/db");
+        const { telegramChannels } = await import("@/server/db/schema");
+        const { eq } = await import("drizzle-orm");
+
+        const rows = await db
+          .select()
+          .from(telegramChannels)
+          .where(eq(telegramChannels.id, channelId))
+          .limit(1);
+
+        if (rows.length === 0) {
+          throw new Error(`Telegram channel ${channelId} not found`);
+        }
+
+        const row = rows[0]!;
+        let botToken: string | undefined;
+
+        if (row.botTokenEncrypted) {
+          try {
+            const { decrypt } = await import("@/lib/platforms/encryption");
+            botToken = decrypt(row.botTokenEncrypted);
+          } catch {
+            // Backward compatibility for older plaintext values.
+            botToken = row.botTokenEncrypted;
+          }
+        }
+
+        if (!botToken) {
+          botToken = process.env.TELEGRAM_BOT_TOKEN;
+        }
+
+        if (!botToken) {
+          throw new Error("Telegram bot token is not configured");
+        }
+
+        return {
+          chatId: row.telegramChatId,
+          botToken,
+        };
+      });
+
+      if (scheduleId) {
+        await step.run("mark-schedule-processing", async () => {
+          const { db } = await import("@/server/db");
+          const { schedules } = await import("@/server/db/schema");
+          const { eq } = await import("drizzle-orm");
+
+          await db
+            .update(schedules)
+            .set({ status: "processing", updatedAt: new Date() })
+            .where(eq(schedules.id, scheduleId));
+        });
       }
 
-      const row = rows[0]!;
-      if (!PUBLISHABLE_STATUSES.has(row.status ?? "")) {
-        throw new Error(`Cannot publish content with status '${row.status}'`);
+      const detected = await step.run("detect-format", async () => {
+        return detectFormat(content.text);
+      });
+
+      await step.run("publish", async () => {
+        const { getTelegramClient } = await import("@/lib/telegram/client");
+
+        const client = getTelegramClient(channel.botToken);
+        const chatId = channel.chatId;
+
+        switch (detected.format) {
+          case "text": {
+            const escaped = escapeMarkdownV2(content.text);
+            await client.sendMessage(chatId, escaped, { parse_mode: "MarkdownV2" });
+            break;
+          }
+          case "photo": {
+            const caption = stripImageUrls(content.text, detected.imageUrls);
+            const escaped = escapeMarkdownV2(caption);
+            await client.sendPhoto(chatId, detected.imageUrls[0]!, {
+              caption: escaped,
+              parse_mode: "MarkdownV2",
+            });
+            break;
+          }
+          case "media_group": {
+            const caption = stripImageUrls(content.text, detected.imageUrls);
+            const escaped = escapeMarkdownV2(caption);
+            const media = detected.imageUrls.map((url, i) => ({
+              type: "photo" as const,
+              media: url,
+              ...(i === 0 ? { caption: escaped, parse_mode: "MarkdownV2" as const } : {}),
+            }));
+            await client.sendMediaGroup(chatId, media);
+            break;
+          }
+          case "poll": {
+            const { question, options } = detected.pollData!;
+            await client.sendPoll(chatId, question, options);
+            break;
+          }
+        }
+      });
+
+      await step.run("update-content-status", async () => {
+        const { db } = await import("@/server/db");
+        const { contentLibrary } = await import("@/server/db/schema");
+        const { eq } = await import("drizzle-orm");
+
+        await db
+          .update(contentLibrary)
+          .set({ status: "published", updatedAt: new Date() })
+          .where(eq(contentLibrary.id, contentId));
+      });
+
+      if (scheduleId) {
+        await step.run("mark-schedule-completed", async () => {
+          const { db } = await import("@/server/db");
+          const { schedules } = await import("@/server/db/schema");
+          const { eq } = await import("drizzle-orm");
+
+          await db
+            .update(schedules)
+            .set({
+              status: "completed",
+              processedAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(schedules.id, scheduleId));
+        });
       }
 
-      return { id: row.id, text: row.content ?? "", status: row.status };
-    });
-
-    const channel = await step.run("load-channel", async () => {
-      const { db } = await import("@/server/db");
-      const { telegramChannels } = await import("@/server/db/schema");
-      const { eq } = await import("drizzle-orm");
-
-      const rows = await db
-        .select()
-        .from(telegramChannels)
-        .where(eq(telegramChannels.id, channelId))
-        .limit(1);
-
-      if (rows.length === 0) {
-        throw new Error(`Telegram channel ${channelId} not found`);
-      }
-
-      const row = rows[0]!;
       return {
-        chatId: row.telegramChatId,
-        botToken: row.botTokenEncrypted as string,
+        status: "published",
+        contentId,
+        channelId,
+        scheduleId,
+        format: detected.format,
       };
-    });
+    } catch (error) {
+      if (scheduleId) {
+        await step.run("mark-schedule-failed", async () => {
+          const { db } = await import("@/server/db");
+          const { schedules } = await import("@/server/db/schema");
+          const { eq } = await import("drizzle-orm");
 
-    const detected = await step.run("detect-format", async () => {
-      return detectFormat(content.text);
-    });
-
-    await step.run("publish", async () => {
-      const { TelegramClient } = await import("@/lib/telegram/client");
-
-      const client = new TelegramClient(channel.botToken);
-      const chatId = channel.chatId;
-
-      switch (detected.format) {
-        case "text": {
-          const escaped = escapeMarkdownV2(content.text);
-          await client.sendMessage(chatId, escaped, { parse_mode: "MarkdownV2" });
-          break;
-        }
-        case "photo": {
-          const caption = stripImageUrls(content.text, detected.imageUrls);
-          const escaped = escapeMarkdownV2(caption);
-          await client.sendPhoto(chatId, detected.imageUrls[0]!, {
-            caption: escaped,
-            parse_mode: "MarkdownV2",
-          });
-          break;
-        }
-        case "media_group": {
-          const caption = stripImageUrls(content.text, detected.imageUrls);
-          const escaped = escapeMarkdownV2(caption);
-          const media = detected.imageUrls.map((url, i) => ({
-            type: "photo" as const,
-            media: url,
-            ...(i === 0 ? { caption: escaped, parse_mode: "MarkdownV2" as const } : {}),
-          }));
-          await client.sendMediaGroup(chatId, media);
-          break;
-        }
-        case "poll": {
-          const { question, options } = detected.pollData!;
-          await client.sendPoll(chatId, question, options);
-          break;
-        }
+          await db
+            .update(schedules)
+            .set({ status: "failed", updatedAt: new Date() })
+            .where(eq(schedules.id, scheduleId));
+        });
       }
-    });
 
-    await step.run("update-status", async () => {
-      const { db } = await import("@/server/db");
-      const { contentLibrary } = await import("@/server/db/schema");
-      const { eq } = await import("drizzle-orm");
-
-      await db
-        .update(contentLibrary)
-        .set({ status: "published", updatedAt: new Date() })
-        .where(eq(contentLibrary.id, contentId));
-    });
-
-    return {
-      status: "published",
-      contentId,
-      channelId,
-      format: detected.format,
-    };
+      throw error;
+    }
   },
 );

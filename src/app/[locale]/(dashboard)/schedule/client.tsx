@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CalendarPlus } from "lucide-react";
+import { mapScheduleRowsToItems, type CalendarScheduleRow } from "./schedule-mapper";
 
 export function SchedulePageClient() {
   const t = useTranslations("schedule");
@@ -60,22 +61,12 @@ export function SchedulePageClient() {
       const rangeEnd = new Date(end);
       rangeEnd.setMonth(rangeEnd.getMonth() + 2);
 
-      const data = await getSchedulesForCalendar(rangeStart.toISOString(), rangeEnd.toISOString());
+      const data = (await getSchedulesForCalendar(
+        rangeStart.toISOString(),
+        rangeEnd.toISOString(),
+      )) as CalendarScheduleRow[];
 
-      setSchedules(
-        data.map((s) => ({
-          id: s.id,
-          scheduledAt: s.scheduledAt!,
-          timezone: s.timezone,
-          status: s.status as ScheduleItem["status"],
-          crossPost: s.crossPost
-            ? {
-                platform: s.crossPost.platform as "linkedin" | "twitter",
-                adaptedContent: s.crossPost.adaptedContent,
-              }
-            : null,
-        })),
-      );
+      setSchedules(mapScheduleRowsToItems(data));
     } catch {
       // Silently fail — empty calendar
     } finally {

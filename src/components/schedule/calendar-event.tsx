@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { formatInTz } from "@/lib/scheduling/timezone";
-import { Linkedin, Twitter, Clock, X } from "lucide-react";
+import { Linkedin, Twitter, Clock, X, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +13,7 @@ type CalendarEventProps = {
   id: string;
   scheduledAt: Date;
   timezone: string;
-  platform: "linkedin" | "twitter";
+  platform: "linkedin" | "twitter" | "telegram";
   status: ScheduleStatus;
   contentPreview?: string | null;
   onCancel?: (id: string) => void;
@@ -22,9 +22,13 @@ type CalendarEventProps = {
   className?: string;
 };
 
-const platformIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+const platformIcons: Record<
+  "linkedin" | "twitter" | "telegram",
+  React.ComponentType<{ className?: string }>
+> = {
   linkedin: Linkedin,
   twitter: Twitter,
+  telegram: Send,
 };
 
 const statusColors: Record<ScheduleStatus, string> = {
@@ -64,17 +68,13 @@ export function CalendarEvent({
         className={cn(
           "group flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors",
           "hover:bg-accent cursor-pointer",
-          status === "cancelled" && "opacity-50 line-through",
+          status === "cancelled" && "line-through opacity-50",
           className,
         )}
       >
         <PlatformIcon className="h-3 w-3 shrink-0" />
         <span className="font-mono tabular-nums">{timeStr}</span>
-        {contentPreview && (
-          <span className="truncate text-muted-foreground">
-            {contentPreview}
-          </span>
-        )}
+        {contentPreview && <span className="text-muted-foreground truncate">{contentPreview}</span>}
       </div>
     );
   }
@@ -95,33 +95,30 @@ export function CalendarEvent({
               "flex h-7 w-7 items-center justify-center rounded-md",
               platform === "linkedin"
                 ? "bg-[#0A66C2]/10 text-[#0A66C2]"
-                : "bg-foreground/10 text-foreground",
+                : platform === "telegram"
+                  ? "bg-[#26A5E4]/10 text-[#26A5E4]"
+                  : "bg-foreground/10 text-foreground",
             )}
           >
             <PlatformIcon className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-sm font-medium leading-none">
-              {t(platform as "linkedin" | "twitter")}
+            <p className="text-sm leading-none font-medium">
+              {t(platform as "linkedin" | "twitter" | "telegram")}
             </p>
-            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
               <Clock className="h-3 w-3" />
               <span className="font-mono tabular-nums">{timeStr}</span>
             </p>
           </div>
         </div>
-        <Badge
-          variant="outline"
-          className={cn("text-[10px] font-medium", statusColors[status])}
-        >
+        <Badge variant="outline" className={cn("text-[10px] font-medium", statusColors[status])}>
           {t(statusKey)}
         </Badge>
       </div>
 
       {contentPreview && (
-        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-          {contentPreview}
-        </p>
+        <p className="text-muted-foreground mt-2 line-clamp-2 text-xs">{contentPreview}</p>
       )}
 
       {status === "pending" && (onCancel || onReschedule) && (
@@ -140,7 +137,7 @@ export function CalendarEvent({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+              className="text-destructive hover:text-destructive h-6 px-2 text-xs"
               onClick={() => onCancel(id)}
             >
               <X className="mr-1 h-3 w-3" />

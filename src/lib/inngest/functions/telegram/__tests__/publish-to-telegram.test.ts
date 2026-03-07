@@ -1,32 +1,43 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockDbSelect, mockDbUpdate, mockDbSet, mockDbLimit, mockTelegramClient } = vi.hoisted(
-  () => {
-    const mockTelegramClient = {
-      sendMessage: vi.fn(),
-      sendPhoto: vi.fn(),
-      sendMediaGroup: vi.fn(),
-      sendPoll: vi.fn(),
-    };
+const {
+  mockDbSelect,
+  mockDbUpdate,
+  mockDbSet,
+  mockDbLimit,
+  mockTelegramClient,
+  mockGetTelegramClient,
+  mockDecrypt,
+} = vi.hoisted(() => {
+  const mockTelegramClient = {
+    sendMessage: vi.fn(),
+    sendPhoto: vi.fn(),
+    sendMediaGroup: vi.fn(),
+    sendPoll: vi.fn(),
+  };
 
-    const mockDbLimit = vi.fn();
-    const mockDbWhere = vi.fn(() => ({ limit: mockDbLimit }));
-    const mockDbFrom = vi.fn(() => ({ where: mockDbWhere }));
-    const mockDbSelect = vi.fn(() => ({ from: mockDbFrom }));
-    const mockDbSet = vi.fn(() => ({ where: vi.fn() }));
-    const mockDbUpdate = vi.fn(() => ({ set: mockDbSet }));
+  const mockGetTelegramClient = vi.fn(() => mockTelegramClient);
+  const mockDecrypt = vi.fn((value: string) => value);
 
-    return {
-      mockDbSelect,
-      mockDbUpdate,
-      mockDbFrom,
-      mockDbWhere,
-      mockDbSet,
-      mockDbLimit,
-      mockTelegramClient,
-    };
-  },
-);
+  const mockDbLimit = vi.fn();
+  const mockDbWhere = vi.fn(() => ({ limit: mockDbLimit }));
+  const mockDbFrom = vi.fn(() => ({ where: mockDbWhere }));
+  const mockDbSelect = vi.fn(() => ({ from: mockDbFrom }));
+  const mockDbSet = vi.fn(() => ({ where: vi.fn() }));
+  const mockDbUpdate = vi.fn(() => ({ set: mockDbSet }));
+
+  return {
+    mockDbSelect,
+    mockDbUpdate,
+    mockDbFrom,
+    mockDbWhere,
+    mockDbSet,
+    mockDbLimit,
+    mockTelegramClient,
+    mockGetTelegramClient,
+    mockDecrypt,
+  };
+});
 
 vi.mock("@/server/db", () => ({
   db: {
@@ -42,6 +53,7 @@ vi.mock("@/server/db/schema", () => ({
     telegramChatId: "telegram_chat_id",
     botTokenEncrypted: "bot_token_encrypted",
   },
+  schedules: { id: "id", status: "status", processedAt: "processed_at", updatedAt: "updated_at" },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -49,9 +61,11 @@ vi.mock("drizzle-orm", () => ({
 }));
 
 vi.mock("@/lib/telegram/client", () => ({
-  TelegramClient: vi.fn(function () {
-    return mockTelegramClient;
-  }),
+  getTelegramClient: mockGetTelegramClient,
+}));
+
+vi.mock("@/lib/platforms/encryption", () => ({
+  decrypt: mockDecrypt,
 }));
 
 vi.mock("@/lib/telegram/types", () => ({
@@ -83,6 +97,7 @@ function createEvent(
     contentId: string;
     userId: string;
     channelId: string;
+    scheduleId: string;
     scheduledAt: string;
   }> = {},
 ) {
@@ -92,6 +107,7 @@ function createEvent(
       contentId: overrides.contentId ?? "content-uuid-1",
       userId: overrides.userId ?? "user-uuid-1",
       channelId: overrides.channelId ?? "channel-uuid-1",
+      ...(overrides.scheduleId ? { scheduleId: overrides.scheduleId } : {}),
       ...(overrides.scheduledAt ? { scheduledAt: overrides.scheduledAt } : {}),
     },
   };
@@ -120,6 +136,7 @@ function setupDbMocks(
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.TELEGRAM_BOT_TOKEN = "env-fallback-token";
 });
 
 describe("publishToTelegram", () => {
@@ -367,5 +384,92 @@ describe("publishToTelegram", () => {
 
     expect(mockDbUpdate).toHaveBeenCalled();
     expect(mockDbSet).toHaveBeenCalledWith(expect.objectContaining({ status: "published" }));
+  });
+
+  it("falls back to TELEGRAM_BOT_TOKEN when channel token is null", async () => {
+    const event = createEvent();
+    const step = createMockStep();
+
+    setupDbMocks(
+      {
+        id: "content-uuid-1",
+        content: "Fallback token post",
+        status: "draft",
+        userId: "user-uuid-1",
+      },
+      {
+        id: "channel-uuid-1",
+        telegramChatId: "-1001234567890",
+        botTokenEncrypted: null,
+      },
+    );
+
+    mockTelegramClient.sendMessage.mockResolvedValue({ message_id: 48 });
+
+    await runHandler(event, step);
+
+    expect(mockGetTelegramClient).toHaveBeenCalledWith("env-fallback-token");
+  });
+
+  it("updates schedule status from processing to completed when scheduleId is provided", async () => {
+    const event = createEvent({ scheduleId: "schedule-uuid-1" });
+    const step = createMockStep();
+
+    setupDbMocks(
+      {
+        id: "content-uuid-1",
+        content: "Scheduled run",
+        status: "scheduled",
+        userId: "user-uuid-1",
+      },
+      {
+        id: "channel-uuid-1",
+        telegramChatId: "-1001234567890",
+        botTokenEncrypted: null,
+      },
+    );
+
+    mockTelegramClient.sendMessage.mockResolvedValue({ message_id: 49 });
+
+    await runHandler(event, step);
+
+    const statuses = mockDbSet.mock.calls
+      .map((call) => call[0]?.status)
+      .filter((status) => typeof status === "string");
+
+    expect(statuses).toContain("processing");
+    expect(statuses).toContain("completed");
+    expect(statuses).toContain("published");
+  });
+
+  it("marks schedule as failed when publish throws and scheduleId is provided", async () => {
+    const event = createEvent({ scheduleId: "schedule-uuid-2" });
+    const step = createMockStep();
+
+    setupDbMocks(
+      {
+        id: "content-uuid-1",
+        content: "Scheduled fail run",
+        status: "scheduled",
+        userId: "user-uuid-1",
+      },
+      {
+        id: "channel-uuid-1",
+        telegramChatId: "-1001234567890",
+        botTokenEncrypted: null,
+      },
+    );
+
+    const { TelegramApiError } = await import("@/lib/telegram/types");
+    mockTelegramClient.sendMessage.mockRejectedValue(new TelegramApiError("Forbidden", 403));
+
+    await expect(runHandler(event, step)).rejects.toThrow(/forbidden/i);
+
+    const statuses = mockDbSet.mock.calls
+      .map((call) => call[0]?.status)
+      .filter((status) => typeof status === "string");
+
+    expect(statuses).toContain("failed");
+    expect(statuses).not.toContain("completed");
   });
 });

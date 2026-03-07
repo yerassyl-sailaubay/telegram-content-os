@@ -191,6 +191,7 @@
     "scheduleUpdated": "Schedule updated",
     "linkedin": "LinkedIn",
     "twitter": "Twitter / X",
+    "telegram": "Telegram",
     "recurrence": "Recurrence",
     "recurrenceHint": "Set up a recurring schedule to automatically create posts on a regular basis."
   },

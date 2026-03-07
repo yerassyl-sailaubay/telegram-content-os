@@ -86,6 +86,7 @@ import { publishToTelegram } from "../publish-telegram";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockReturning.mockReset();
   selectResults.length = 0;
   mockInngestSend.mockResolvedValue(undefined);
 });
@@ -134,6 +135,7 @@ describe("publishToTelegram", () => {
     expect(mockInngestSend).toHaveBeenCalledTimes(1);
     const eventArg = mockInngestSend.mock.calls[0][0];
     expect(eventArg.name).toBe("telegram/post.publish");
+    expect(eventArg.data.scheduleId).toBe("schedule-1");
     expect(eventArg.ts).toBe(new Date(futureDate).getTime());
 
     expect(mockUpdate).toHaveBeenCalled();

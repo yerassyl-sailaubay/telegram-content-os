@@ -41,10 +41,8 @@ export type ScheduleItem = {
   scheduledAt: Date | string;
   timezone: string | null;
   status: "pending" | "processing" | "completed" | "failed" | "cancelled";
-  crossPost: {
-    platform: "linkedin" | "twitter";
-    adaptedContent: string | null;
-  } | null;
+  platform: "linkedin" | "twitter" | "telegram";
+  contentPreview: string | null;
 };
 
 type ScheduleCalendarProps = {
@@ -128,7 +126,7 @@ export function ScheduleCalendar({
           </h2>
         </div>
 
-        <div className="flex items-center rounded-lg border bg-muted/30 p-0.5">
+        <div className="bg-muted/30 flex items-center rounded-lg border p-0.5">
           {(["month", "week", "day"] as CalendarView[]).map((v) => {
             const Icon = viewIcons[v];
             return (
@@ -136,10 +134,7 @@ export function ScheduleCalendar({
                 key={v}
                 variant={view === v ? "secondary" : "ghost"}
                 size="sm"
-                className={cn(
-                  "h-7 gap-1.5 px-3 text-xs font-medium",
-                  view === v && "shadow-sm",
-                )}
+                className={cn("h-7 gap-1.5 px-3 text-xs font-medium", view === v && "shadow-sm")}
                 onClick={() => setView(v)}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -219,12 +214,9 @@ function MonthView({
   return (
     <div className="overflow-hidden rounded-lg border">
       {/* Day names header */}
-      <div className="grid grid-cols-7 border-b bg-muted/30">
+      <div className="bg-muted/30 grid grid-cols-7 border-b">
         {dayNames.map((name) => (
-          <div
-            key={name}
-            className="p-2 text-center text-xs font-medium text-muted-foreground"
-          >
+          <div key={name} className="text-muted-foreground p-2 text-center text-xs font-medium">
             {name}
           </div>
         ))}
@@ -241,7 +233,7 @@ function MonthView({
             <div
               key={day.toISOString()}
               className={cn(
-                "group relative min-h-[100px] border-b border-r p-1.5 transition-colors",
+                "group relative min-h-[100px] border-r border-b p-1.5 transition-colors",
                 i % 7 === 6 && "border-r-0",
                 !inMonth && "bg-muted/20",
                 "hover:bg-accent/30 cursor-pointer",
@@ -270,16 +262,16 @@ function MonthView({
                     id={s.id}
                     scheduledAt={new Date(s.scheduledAt)}
                     timezone={timezone}
-                    platform={s.crossPost?.platform ?? "linkedin"}
+                    platform={s.platform}
                     status={s.status}
-                    contentPreview={s.crossPost?.adaptedContent}
+                    contentPreview={s.contentPreview}
                     compact
                     onCancel={onCancelSchedule}
                     onReschedule={onRescheduleClick}
                   />
                 ))}
                 {daySchedules.length > 3 && (
-                  <span className="block text-center text-[10px] text-muted-foreground">
+                  <span className="text-muted-foreground block text-center text-[10px]">
                     +{daySchedules.length - 3} more
                   </span>
                 )}
@@ -317,7 +309,7 @@ function WeekView({
   return (
     <div className="overflow-auto rounded-lg border">
       {/* Header with day names */}
-      <div className="sticky top-0 z-10 grid grid-cols-[60px_repeat(7,1fr)] border-b bg-background">
+      <div className="bg-background sticky top-0 z-10 grid grid-cols-[60px_repeat(7,1fr)] border-b">
         <div className="border-r p-2" />
         {days.map((day) => (
           <div
@@ -327,15 +319,8 @@ function WeekView({
               isToday(day) && "bg-primary/5",
             )}
           >
-            <p className="text-xs text-muted-foreground">
-              {format(day, "EEE")}
-            </p>
-            <p
-              className={cn(
-                "text-lg font-semibold",
-                isToday(day) && "text-primary",
-              )}
-            >
+            <p className="text-muted-foreground text-xs">{format(day, "EEE")}</p>
+            <p className={cn("text-lg font-semibold", isToday(day) && "text-primary")}>
               {format(day, "d")}
             </p>
           </div>
@@ -347,18 +332,14 @@ function WeekView({
         {hours.map((hour) => (
           <React.Fragment key={hour}>
             {/* Time label */}
-            <div className="relative border-b border-r p-1 text-right">
-              <span className="text-[10px] font-mono text-muted-foreground">
+            <div className="relative border-r border-b p-1 text-right">
+              <span className="text-muted-foreground font-mono text-[10px]">
                 {String(hour).padStart(2, "0")}:00
               </span>
             </div>
             {/* Day columns */}
             {days.map((day) => {
-              const daySchedules = getSchedulesForDay(
-                schedules,
-                day,
-                timezone,
-              ).filter((s) => {
+              const daySchedules = getSchedulesForDay(schedules, day, timezone).filter((s) => {
                 const local = utcToLocal(new Date(s.scheduledAt), timezone);
                 return getHours(local) === hour;
               });
@@ -367,7 +348,7 @@ function WeekView({
                 <div
                   key={`${day.toISOString()}-${hour}`}
                   className={cn(
-                    "min-h-[48px] border-b border-r p-0.5 last:border-r-0 transition-colors",
+                    "min-h-[48px] border-r border-b p-0.5 transition-colors last:border-r-0",
                     "hover:bg-accent/20 cursor-pointer",
                     isToday(day) && "bg-primary/[0.02]",
                   )}
@@ -379,9 +360,9 @@ function WeekView({
                       id={s.id}
                       scheduledAt={new Date(s.scheduledAt)}
                       timezone={timezone}
-                      platform={s.crossPost?.platform ?? "linkedin"}
+                      platform={s.platform}
                       status={s.status}
-                      contentPreview={s.crossPost?.adaptedContent}
+                      contentPreview={s.contentPreview}
                       compact
                       onCancel={onCancelSchedule}
                       onReschedule={onRescheduleClick}
@@ -420,19 +401,17 @@ function DayView({
   return (
     <div className="overflow-auto rounded-lg border">
       {/* Day header */}
-      <div className="sticky top-0 z-10 border-b bg-background p-3">
+      <div className="bg-background sticky top-0 z-10 border-b p-3">
         <div className="flex items-center gap-2">
           {isToday(currentDate) && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+            <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs font-medium">
               Today
             </span>
           )}
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {format(currentDate, "EEEE, MMMM d, yyyy")}
           </span>
-          <span className="text-xs text-muted-foreground">
-            · {daySchedules.length} scheduled
-          </span>
+          <span className="text-muted-foreground text-xs">· {daySchedules.length} scheduled</span>
         </div>
       </div>
 
@@ -447,8 +426,8 @@ function DayView({
           return (
             <React.Fragment key={hour}>
               {/* Time label */}
-              <div className="flex items-start justify-end border-b border-r p-2">
-                <span className="font-mono text-xs text-muted-foreground">
+              <div className="flex items-start justify-end border-r border-b p-2">
+                <span className="text-muted-foreground font-mono text-xs">
                   {String(hour).padStart(2, "0")}:00
                 </span>
               </div>
@@ -467,9 +446,9 @@ function DayView({
                       id={s.id}
                       scheduledAt={new Date(s.scheduledAt)}
                       timezone={timezone}
-                      platform={s.crossPost?.platform ?? "linkedin"}
+                      platform={s.platform}
                       status={s.status}
-                      contentPreview={s.crossPost?.adaptedContent}
+                      contentPreview={s.contentPreview}
                       onCancel={onCancelSchedule}
                       onReschedule={onRescheduleClick}
                     />
