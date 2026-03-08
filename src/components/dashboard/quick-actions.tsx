@@ -16,7 +16,11 @@ export function QuickActions() {
           {t("actionNewPost")}
         </Link>
       </Button>
-      <Button variant="secondary" asChild>
+      <Button
+        variant="outline"
+        asChild
+        className="border-primary/20 bg-primary/5 hover:bg-primary/10"
+      >
         <Link href="/dashboard/create">
           <Link2 className="mr-2 h-4 w-4" />
           {t("actionCreateFromUrl")}

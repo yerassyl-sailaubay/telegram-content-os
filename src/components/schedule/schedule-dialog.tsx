@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TimezoneSelect } from "./timezone-select";
-import { Calendar, Clock, Loader2, Repeat } from "lucide-react";
+import { Calendar, Clock, Loader2, Repeat, Send } from "lucide-react";
 
 type ScheduleDialogProps = {
   open: boolean;
@@ -46,7 +46,6 @@ export function ScheduleDialog({
   const t = useTranslations("schedule");
   const tCommon = useTranslations("common");
 
-  const [platform, setPlatform] = React.useState<string>("");
   const [date, setDate] = React.useState<string>(
     initialDate ? format(initialDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
   );
@@ -66,16 +65,11 @@ export function ScheduleDialog({
         setTime(`${String(initialHour).padStart(2, "0")}:00`);
       }
       setError(null);
-      setPlatform("");
     }
   }, [open, initialDate, initialHour]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!platform) {
-      setError(t("selectPlatform"));
-      return;
-    }
 
     setLoading(true);
     setError(null);
@@ -86,7 +80,7 @@ export function ScheduleDialog({
       const scheduledAt = new Date(year!, month! - 1, day!, hours, minutes);
 
       await onSubmit({
-        platform,
+        platform: "telegram",
         scheduledAt,
         timezone,
       });
@@ -104,27 +98,13 @@ export function ScheduleDialog({
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            {t("newSchedule")}
+            <Send className="h-5 w-5" />
+            {t("telegramSchedule")}
           </DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
+          <DialogDescription>{t("telegramDescription")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Platform */}
-          <div className="space-y-2">
-            <Label>{t("platform")}</Label>
-            <Select value={platform} onValueChange={setPlatform}>
-              <SelectTrigger>
-                <SelectValue placeholder={t("selectPlatform")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="linkedin">{t("linkedin")}</SelectItem>
-                <SelectItem value="twitter">{t("twitter")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -169,7 +149,7 @@ export function ScheduleDialog({
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("newSchedule")}
+              {t("scheduleTelegram")}
             </Button>
           </DialogFooter>
         </form>
