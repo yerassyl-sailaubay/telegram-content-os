@@ -15,10 +15,10 @@ components/
 ├── channels/         # Channel list/settings/connect/profile
 ├── content/          # Content library, filters, quick capture, repurpose modal
 ├── create/           # URL input + source ingestion UX
-├── crosspost/        # Crosspost wizard + broadcast form
 ├── dashboard/        # Dashboard widgets (welcome, stats, activity, upcoming)
-├── landing/          # Landing sections (hero, features, how-it-works)
+├── landing/          # Placeholder directory (currently empty)
 ├── layout/           # Shell, sidebar, headers
+├── marketing/        # Production landing page component
 ├── media/            # Media grid/upload/cards
 ├── posts/            # Post empty states and supporting UI
 ├── preview/          # LinkedIn/Twitter preview cards
@@ -26,7 +26,7 @@ components/
 ├── schedule/         # Calendar + recurring + schedule dialog
 ├── settings/         # Profile, connections, AI prefs, billing tabs
 ├── telegram-post/    # Telegram post composer
-├── ui/               # shadcn/ui primitives (27 files)
+├── ui/               # shadcn/ui primitives
 ├── welcome/          # Welcome template editor
 ├── language-switcher.tsx
 ├── media-picker.tsx
@@ -39,10 +39,9 @@ components/
 | Task                             | Location                                                   |
 | -------------------------------- | ---------------------------------------------------------- |
 | Add admin UI                     | `src/components/admin/`                                    |
-| Add landing section              | `src/components/landing/`                                  |
+| Add landing section              | `src/components/marketing/`                                |
 | Add content library UI           | `src/components/content/`                                  |
 | Add source-ingestion UI          | `src/components/create/`                                   |
-| Add crosspost flow UI            | `src/components/crosspost/`                                |
 | Add analytics visualizations     | `src/components/analytics/`                                |
 | Add telegram publish/composer UX | `src/components/publish/`, `src/components/telegram-post/` |
 | Add dashboard widget             | `src/components/dashboard/`                                |
@@ -62,3 +61,8 @@ components/
 - Do NOT hand-edit shadcn-managed primitives in `components/ui` if they should stay CLI-syncable.
 - Do NOT couple unrelated feature folders directly; lift reusable pieces appropriately.
 - Do NOT hardcode locale/user-facing copy in components; use translations.
+
+## NOTES
+
+- `content/`, `schedule/`, and `channels/` are the densest feature folders; prefer focused edits and add tests when expanding them.
+- `marketing/landing-page.tsx`, `telegram-post/telegram-post-composer.tsx`, and `admin/admin-console.tsx` are large files; extend carefully before adding more surface area.
