@@ -42,8 +42,8 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
 
   if (posts.length === 0) {
     return (
-      <Card data-testid="upcoming-posts">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card data-testid="upcoming-posts" className="border-border/70 bg-card/95 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-base font-semibold">{t("upcomingPostsTitle")}</CardTitle>
           <Link
             href="/dashboard/schedule"
@@ -54,7 +54,7 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
           </Link>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed py-10 text-center">
             <CalendarDays className="text-muted-foreground/40 h-8 w-8" />
             <p className="text-muted-foreground text-sm font-medium">{t("upcomingEmpty")}</p>
             <p className="text-muted-foreground text-xs">{t("upcomingEmptyDescription")}</p>
@@ -71,8 +71,8 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
   }
 
   return (
-    <Card data-testid="upcoming-posts">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card data-testid="upcoming-posts" className="border-border/70 bg-card/95 shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-base font-semibold">{t("upcomingPostsTitle")}</CardTitle>
         <Link
           href="/dashboard/schedule"
@@ -85,8 +85,8 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
       <CardContent className="p-0">
         <ul className="divide-y">
           {posts.map((post) => (
-            <li key={post.id} className="flex items-start gap-3 px-6 py-3">
-              <div className="mt-0.5 flex-shrink-0">
+            <li key={post.id} className="flex items-start gap-4 px-6 py-4">
+              <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border bg-blue-500/10">
                 <Clock className="h-4 w-4 text-blue-500" />
               </div>
               <div className="min-w-0 flex-1">

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { RefreshCw, AlertCircle } from "lucide-react";
+import { RefreshCw, AlertCircle, Clock3, SignalHigh, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -55,6 +55,13 @@ function formatHour(h: number): string {
   if (h < 12) return `${h}am`;
   if (h === 12) return "12pm";
   return `${h - 12}pm`;
+}
+
+function getBestHeatmapSlot(data: HeatmapEntry[]) {
+  return data.reduce<HeatmapEntry | null>((best, entry) => {
+    if (!best || entry.avgViews > best.avgViews) return entry;
+    return best;
+  }, null);
 }
 
 function getIntensityClass(value: number, max: number): string {
@@ -205,6 +212,18 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
     null,
   );
 
+  const bestHeatmapSlot = React.useMemo(
+    () => getBestHeatmapSlot(heatmapData?.heatmap ?? []),
+    [heatmapData],
+  );
+  const topPerformingPost = React.useMemo(() => {
+    const posts = performanceData?.posts ?? [];
+    return posts.reduce<ContentPerformanceResult["posts"][number] | null>((best, post) => {
+      if (!best || post.views > best.views) return post;
+      return best;
+    }, null);
+  }, [performanceData]);
+
   async function loadData(cId: string, range: TelegramDateRange) {
     if (!cId) return;
     setIsLoading(true);
@@ -232,21 +251,18 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
     }
   }
 
-  // Load on mount when channel is available
   React.useEffect(() => {
     if (channelId) {
       void loadData(channelId, dateRange);
     }
-  }, []);
+  }, [channelId, dateRange]);
 
   function handleChannelChange(id: string) {
     setChannelId(id);
-    void loadData(id, dateRange);
   }
 
   function handleDateRangeChange(range: TelegramDateRange) {
     setDateRange(range);
-    void loadData(channelId, range);
   }
 
   if (channels.length === 0) {
@@ -259,7 +275,7 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
 
   return (
     <div data-testid="telegram-analytics" className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="border-border/70 bg-card/95 flex flex-wrap items-center justify-between gap-3 rounded-3xl border px-4 py-3 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           <Select value={channelId} onValueChange={handleChannelChange}>
             <SelectTrigger className="h-9 w-[200px] text-sm">
@@ -289,12 +305,17 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
           </div>
         </div>
 
-        {isLoading && (
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
-            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-            {t("loading")}
-          </div>
-        )}
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          <span className="border-border/70 bg-muted/50 rounded-full border px-3 py-1.5">
+            {t(`range_${dateRange}`)}
+          </span>
+          {isLoading && (
+            <span className="flex items-center gap-2">
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+              {t("loading")}
+            </span>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -311,6 +332,73 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
           </Button>
         </div>
       )}
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
+              <SignalHigh className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
+                {t("telegramInsightGrowthLabel")}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {growthData
+                  ? t("growthRate", { rate: Math.abs(growthData.rate) })
+                  : t("insightEmpty")}
+              </p>
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-4 text-sm leading-6">
+            {t("telegramInsightGrowthNote")}
+          </p>
+        </div>
+
+        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
+              <Clock3 className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
+                {t("telegramInsightSlotLabel")}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {bestHeatmapSlot
+                  ? `${DAY_SHORT[bestHeatmapSlot.day]} ${formatHour(bestHeatmapSlot.hour)}`
+                  : t("insightEmpty")}
+              </p>
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-4 text-sm leading-6">
+            {bestHeatmapSlot
+              ? t("telegramInsightSlotNote", { count: bestHeatmapSlot.avgViews })
+              : t("telegramInsightSlotFallback")}
+          </p>
+        </div>
+
+        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
+              <Trophy className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
+                {t("telegramInsightTopPostLabel")}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {topPerformingPost ? topPerformingPost.views.toLocaleString() : t("insightEmpty")}
+              </p>
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-4 text-sm leading-6">
+            {topPerformingPost
+              ? t("telegramInsightTopPostNote")
+              : t("telegramInsightTopPostFallback")}
+          </p>
+        </div>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <GrowthChart

@@ -57,8 +57,7 @@ type SortIconProps = {
 };
 
 function SortIcon({ sortKey, currentKey, dir }: SortIconProps) {
-  if (sortKey !== currentKey)
-    return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />;
+  if (sortKey !== currentKey) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />;
   if (dir === "asc") return <ArrowUp className="ml-1 h-3 w-3" />;
   return <ArrowDown className="ml-1 h-3 w-3" />;
 }
@@ -104,11 +103,9 @@ export function PostsTable({ data }: PostsTableProps) {
   const isEmpty = sorted.length === 0;
 
   return (
-    <Card data-testid="posts-table">
+    <Card data-testid="posts-table" className="border-border/70 bg-card/95 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
-          {t("recentPosts")}
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">{t("recentPosts")}</CardTitle>
         <Select value={platformFilter} onValueChange={setPlatformFilter}>
           <SelectTrigger className="h-8 w-[140px] text-xs">
             <SelectValue />
@@ -122,14 +119,10 @@ export function PostsTable({ data }: PostsTableProps) {
       </CardHeader>
       <CardContent className="p-0">
         {isEmpty ? (
-          <div className="flex h-[200px] items-center justify-center text-center p-8">
+          <div className="flex h-[200px] items-center justify-center p-8 text-center">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                {t("noDataYet")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("noDataDescription")}
-              </p>
+              <p className="text-muted-foreground text-sm font-medium">{t("noDataYet")}</p>
+              <p className="text-muted-foreground text-xs">{t("noDataDescription")}</p>
             </div>
           </div>
         ) : (
@@ -148,11 +141,7 @@ export function PostsTable({ data }: PostsTableProps) {
                       onClick={() => handleSort("postedAt")}
                     >
                       {t("postedAt")}
-                      <SortIcon
-                        sortKey="postedAt"
-                        currentKey={sortKey}
-                        dir={sortDir}
-                      />
+                      <SortIcon sortKey="postedAt" currentKey={sortKey} dir={sortDir} />
                     </Button>
                   </TableHead>
                   <TableHead className="text-right">
@@ -163,11 +152,7 @@ export function PostsTable({ data }: PostsTableProps) {
                       onClick={() => handleSort("impressions")}
                     >
                       {t("impressions")}
-                      <SortIcon
-                        sortKey="impressions"
-                        currentKey={sortKey}
-                        dir={sortDir}
-                      />
+                      <SortIcon sortKey="impressions" currentKey={sortKey} dir={sortDir} />
                     </Button>
                   </TableHead>
                   <TableHead className="text-right">
@@ -178,11 +163,7 @@ export function PostsTable({ data }: PostsTableProps) {
                       onClick={() => handleSort("totalEngagement")}
                     >
                       {t("engagement")}
-                      <SortIcon
-                        sortKey="totalEngagement"
-                        currentKey={sortKey}
-                        dir={sortDir}
-                      />
+                      <SortIcon sortKey="totalEngagement" currentKey={sortKey} dir={sortDir} />
                     </Button>
                   </TableHead>
                 </TableRow>
@@ -191,7 +172,7 @@ export function PostsTable({ data }: PostsTableProps) {
                 {sorted.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="max-w-[280px] py-3">
-                      <p className="truncate text-xs text-muted-foreground">
+                      <p className="text-muted-foreground truncate text-xs">
                         {truncate(row.adaptedContent)}
                       </p>
                     </TableCell>
@@ -211,15 +192,13 @@ export function PostsTable({ data }: PostsTableProps) {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={
-                          row.status === "published" ? "default" : "outline"
-                        }
+                        variant={row.status === "published" ? "default" : "outline"}
                         className="text-xs capitalize"
                       >
                         {row.status ?? "—"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="text-muted-foreground text-xs">
                       {formatDate(row.postedAt)}
                     </TableCell>
                     <TableCell className="text-right text-xs">

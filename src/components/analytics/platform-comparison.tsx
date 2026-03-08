@@ -45,65 +45,39 @@ export function PlatformComparison({ data }: PlatformComparisonProps) {
   });
 
   return (
-    <Card data-testid="platform-comparison">
+    <Card data-testid="platform-comparison" className="border-border/70 bg-card/95 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">
-          {t("platformComparison")}
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">{t("platformComparison")}</CardTitle>
       </CardHeader>
       <CardContent>
         {isEmpty ? (
           <div className="flex h-[240px] items-center justify-center text-center">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                {t("noDataYet")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("noDataDescription")}
-              </p>
+              <p className="text-muted-foreground text-sm font-medium">{t("noDataYet")}</p>
+              <p className="text-muted-foreground text-xs">{t("noDataDescription")}</p>
             </div>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 4, right: 16, left: -16, bottom: 0 }}
-            >
+            <BarChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis
-                dataKey="metric"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-              />
+              <XAxis dataKey="metric" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
               <Tooltip
                 contentStyle={{
                   borderRadius: "8px",
-                  border: "1px solid hsl(var(--border))",
-                  background: "hsl(var(--popover))",
-                  color: "hsl(var(--popover-foreground))",
+                  border: "1px solid var(--border)",
+                  background: "var(--popover)",
+                  color: "var(--popover-foreground)",
                   fontSize: "12px",
                 }}
               />
-              <Legend
-                wrapperStyle={{ fontSize: "12px" }}
-                iconType="circle"
-                iconSize={8}
-              />
+              <Legend wrapperStyle={{ fontSize: "12px" }} iconType="circle" iconSize={8} />
               {data.map((platform) => (
                 <Bar
                   key={platform.platform}
                   dataKey={platform.platform}
-                  name={
-                    platform.platform === "linkedin"
-                      ? "LinkedIn"
-                      : "Twitter / X"
-                  }
+                  name={platform.platform === "linkedin" ? "LinkedIn" : "Twitter / X"}
                   fill={getPlatformColor(platform.platform)}
                   radius={[3, 3, 0, 0]}
                 />

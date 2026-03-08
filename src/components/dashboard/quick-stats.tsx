@@ -23,21 +23,25 @@ export function QuickStatsSection({ data }: QuickStatsProps) {
         title={t("statCrossPosts")}
         value={crossPostValue}
         icon={<Share2 className="h-5 w-5" />}
+        description={t("statCrossPostsDescription")}
       />
       <MetricsCard
         title={t("statScheduled")}
         value={data.scheduledCount}
         icon={<CalendarClock className="h-5 w-5" />}
+        description={t("statScheduledDescription")}
       />
       <MetricsCard
         title={t("statWeeklyEngagement")}
         value={data.weeklyEngagement.toLocaleString()}
         icon={<TrendingUp className="h-5 w-5" />}
+        description={t("statWeeklyEngagementDescription")}
       />
       <MetricsCard
         title={t("statConnectedPlatforms")}
         value={data.connectedPlatforms}
         icon={<Plug className="h-5 w-5" />}
+        description={t("statConnectedPlatformsDescription")}
       />
     </div>
   );

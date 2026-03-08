@@ -31,11 +31,7 @@ function formatDate(dateStr: string, range: DateRange): string {
   return date.toLocaleDateString("en", { month: "short", day: "numeric" });
 }
 
-export function EngagementChart({
-  data,
-  dateRange,
-  onDateRangeChange,
-}: EngagementChartProps) {
+export function EngagementChart({ data, dateRange, onDateRangeChange }: EngagementChartProps) {
   const t = useTranslations("analytics");
 
   const isEmpty = data.every((d) => d.total === 0);
@@ -46,11 +42,9 @@ export function EngagementChart({
   }));
 
   return (
-    <Card data-testid="engagement-chart">
+    <Card data-testid="engagement-chart" className="border-border/70 bg-card/95 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
-          {t("engagementOverTime")}
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">{t("engagementOverTime")}</CardTitle>
         <div className="flex gap-1">
           {DATE_RANGES.map((range) => (
             <Button
@@ -69,46 +63,26 @@ export function EngagementChart({
         {isEmpty ? (
           <div className="flex h-[240px] items-center justify-center text-center">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                {t("noDataYet")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("noDataDescription")}
-              </p>
+              <p className="text-muted-foreground text-sm font-medium">{t("noDataYet")}</p>
+              <p className="text-muted-foreground text-xs">{t("noDataDescription")}</p>
             </div>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={240}>
-            <LineChart
-              data={chartData}
-              margin={{ top: 4, right: 16, left: -16, bottom: 0 }}
-            >
+            <LineChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-              />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
               <Tooltip
                 contentStyle={{
                   borderRadius: "8px",
-                  border: "1px solid hsl(var(--border))",
-                  background: "hsl(var(--popover))",
-                  color: "hsl(var(--popover-foreground))",
+                  border: "1px solid var(--border)",
+                  background: "var(--popover)",
+                  color: "var(--popover-foreground)",
                   fontSize: "12px",
                 }}
               />
-              <Legend
-                wrapperStyle={{ fontSize: "12px" }}
-                iconType="circle"
-                iconSize={8}
-              />
+              <Legend wrapperStyle={{ fontSize: "12px" }} iconType="circle" iconSize={8} />
               <Line
                 type="monotone"
                 dataKey="linkedin"

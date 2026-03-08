@@ -40,14 +40,28 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "pageDescription": "Track your publishing rhythm, queue work, and spot the next operational move from one home screen.",
     "welcomeMessage": "Welcome to Telegram Content OS",
     "quickActions": "Quick Actions",
     "welcomeBack": "Welcome back, {name}",
     "welcomeFallbackName": "there",
+    "heroEyebrow": "Publishing operations",
+    "heroSummary": "This view is built to help you see what needs attention first: quota, upcoming publishing volume, and any gaps forming in the next seven days.",
+    "heroCalloutLabel": "Schedule gaps",
+    "heroCalloutDescription": "Unfilled publishing days over the next week. Tightening this number usually improves consistency fastest.",
+    "heroStatAi": "Current AI usage against your available allowance.",
+    "heroStatUpcoming": "Posts already scheduled and ready to ship next.",
+    "heroStatPublished": "What made it out this week across your current workflow.",
+    "captureCardTitle": "Capture the next idea instantly",
+    "captureCardDescription": "Drop raw thinking here and turn it into a draft without breaking your flow.",
     "statCrossPosts": "Cross-Posts",
+    "statCrossPostsDescription": "How much of your repurposing allowance has been used so far.",
     "statScheduled": "Scheduled",
+    "statScheduledDescription": "Posts currently lined up and waiting to go out.",
     "statWeeklyEngagement": "Weekly Engagement",
+    "statWeeklyEngagementDescription": "Combined reactions, clicks, and shares collected over the last 7 days.",
     "statConnectedPlatforms": "Connected Platforms",
+    "statConnectedPlatformsDescription": "External destinations that are currently wired into the workflow.",
     "actionNewCrossPost": "New Cross-Post",
     "actionQuickBroadcast": "Quick Broadcast",
     "actionViewSchedule": "View Schedule",
@@ -66,11 +80,17 @@
     "sparklineLabel": "Engagement",
     "captureTitle": "Capture an Idea",
     "contentStatsTitle": "Content Overview",
+    "contentStatsDescription": "These numbers help you understand whether your pipeline is still generating enough material for the schedule you want to run.",
     "statIdeas": "Ideas",
+    "statIdeasDescription": "Loose concepts and seeds that can be shaped into future posts.",
     "statDrafts": "Drafts",
+    "statDraftsDescription": "Pieces that are already underway and ready for editing or adaptation.",
     "statPublishedThisWeek": "Published This Week",
+    "statPublishedDescription": "What has gone live recently, so you can sense current output momentum.",
     "statAiGenerations": "AI Generations",
+    "statAiDescription": "Useful for pacing how much generation volume you want this month.",
     "calendarGapsAlert": "You have {count} content gaps in the next 7 days.",
+    "calendarGapsDetail": "If you fill these gaps early, the rest of the publishing week becomes easier to manage.",
     "calendarGapsCta": "View Calendar",
     "upcomingScheduleTitle": "Upcoming Schedule",
     "viewCalendar": "View all",
@@ -486,15 +506,41 @@
     "loading": "Refreshing...",
     "errorTitle": "Failed to load analytics",
     "retry": "Try again",
+    "pageDescription": "Monitor channel growth, compare cross-platform output, and spot the patterns worth scaling.",
+    "heroEyebrow": "Analytics command center",
+    "heroTitle": "See what is working without leaving the publishing workflow.",
+    "heroSummary": "The analytics surface is designed to keep planning, execution, and measurement close together so your next editorial decision can happen quickly.",
+    "heroCards": {
+      "channelsLabel": "Channels watched",
+      "channelsNote": "Telegram channels currently feeding data into your analytics layer.",
+      "focusLabel": "Current leader",
+      "focusNote": "The platform generating the strongest engagement in the loaded window.",
+      "volumeLabel": "Measured engagement",
+      "volumeNote": "Total engagement captured in the current dashboard snapshot."
+    },
     "allChannels": "All channels",
     "totalCrossPosts": "Cross-Posts",
+    "overviewCrossPostsDescription": "How many cross-post records were created in the selected time window.",
     "totalEngagement": "Total Engagement",
+    "overviewEngagementDescription": "Combined likes, comments, shares, and clicks across linked platforms.",
     "avgEngagementRate": "Avg. Engagement Rate",
+    "overviewRateDescription": "A quick way to compare quality of response across different volumes.",
     "activePlatforms": "Active Platforms",
+    "overviewPlatformsDescription": "Platforms that are producing measurable output in the current range.",
     "engagementOverTime": "Engagement Over Time",
     "range_7d": "7d",
     "range_30d": "30d",
     "range_90d": "90d",
+    "insightChannelLabel": "Channel scope",
+    "insightAllChannelsValue": "Full workspace",
+    "insightChannelNote": "Use the filter to narrow the dashboard to one Telegram channel when you want a tighter read.",
+    "insightPlatformLabel": "Top platform",
+    "insightPlatformNote": "{count} total interactions led the current mix.",
+    "insightPlatformFallback": "Cross-post to at least one external platform to compare performance here.",
+    "insightTopPostLabel": "Top post",
+    "insightTopPostNote": "Highest total engagement among the recent posts loaded into the dashboard.",
+    "insightTopPostFallback": "Once recent posts accumulate, this card surfaces the strongest performer.",
+    "insightEmpty": "No signal yet",
     "platformComparison": "Platform Comparison",
     "metric_likes": "Likes",
     "metric_comments": "Comments",
@@ -517,8 +563,11 @@
     "noDataDescription": "Cross-post your first content to see analytics here",
     "telegramAnalyticsTitle": "Telegram Channel Analytics",
     "telegramAnalyticsDescription": "Subscriber growth, best posting times, and top-performing content for your Telegram channels",
+    "crossPlatformTitle": "Cross-platform analytics",
+    "crossPlatformDescription": "Track the downstream effect of adaptation and distribution work across your non-Telegram surfaces.",
     "subscriberGrowth": "Subscriber Growth",
     "growthRate": "+{rate}%",
+    "growthRateNegative": "-{rate}%",
     "growthStable": "Stable",
     "subscribers": "Subscribers",
     "noGrowthData": "No growth data yet",
@@ -533,7 +582,15 @@
     "tableForwards": "Forwards",
     "tableDate": "Date",
     "noChannelsForTelegram": "No Telegram channels connected. Connect a channel to view analytics.",
-    "selectChannel": "Select channel"
+    "selectChannel": "Select channel",
+    "telegramInsightGrowthLabel": "Channel trend",
+    "telegramInsightGrowthNote": "A compact view of whether the selected Telegram channel is gaining or losing momentum.",
+    "telegramInsightSlotLabel": "Best posting slot",
+    "telegramInsightSlotNote": "{count} average views currently mark the strongest slot in the heatmap.",
+    "telegramInsightSlotFallback": "Once enough posts are measured, this card highlights the strongest publishing window.",
+    "telegramInsightTopPostLabel": "Top Telegram post",
+    "telegramInsightTopPostNote": "Highest view count among the top-performing posts returned for the selected channel.",
+    "telegramInsightTopPostFallback": "When Telegram post data is available, this will highlight the strongest performer."
   },
   "welcome": {
     "pageTitle": "Welcome Message",
@@ -878,92 +935,314 @@
       "logo": "Teleflow",
       "links": {
         "product": "Product",
-        "systems": "Systems",
-        "integrations": "Integrations",
+        "workflow": "Workflow",
+        "proof": "Why it works",
         "pricing": "Pricing"
       },
       "login": "Log in",
       "getStarted": "Start for free"
     },
     "hero": {
-      "badge": "Meet the Telegram Content OS",
-      "title": "The OS for",
-      "titleItalic": "Telegram Creators.",
-      "subtitle": "The all-in-one AI engine to ingest, generate, schedule, and scale your Telegram channel.",
-      "ctaPrimary": "Start Building for Free",
-      "ctaSecondary": "View Features"
-    },
-    "lifecycle": {
-      "windowTitle": "Content Lifecycle",
-      "ingest": {
-        "title": "Ingest",
-        "subtitle": "Telegram Bot",
-        "status": "Voice memo received..."
+      "badge": "Telegram-first content operating system",
+      "title": "Run your Telegram content operation",
+      "titleAccent": "from one calm workspace.",
+      "subtitle": "Send posts, voice notes, articles, or YouTube links into Teleflow. It imports the raw material, profiles your tone, turns it into drafts, schedules the queue, and shows what worked.",
+      "ctaPrimary": "Create your workspace",
+      "ctaSecondary": "See the workflow",
+      "steps": {
+        "capture": "Send to bot",
+        "library": "Content library",
+        "draft": "AI draft",
+        "edit": "Edit",
+        "schedule": "Schedule",
+        "analytics": "Analytics"
       },
-      "ai": {
-        "title": "AI Engine",
-        "subtitle": "Tone Profiling",
-        "status": "Analyzing voice"
+      "promise": {
+        "capture": "Capture directly through your Telegram bot",
+        "adapt": "Generate drafts shaped by your channel's voice",
+        "measure": "Schedule, publish, and review analytics in one place"
+      },
+      "stats": {
+        "intake": {
+          "label": "Input layer",
+          "value": "Bot + sources",
+          "note": "Posts, voice notes, articles, and videos enter the same library."
+        },
+        "pipeline": {
+          "label": "AI system",
+          "value": "Tone profiled",
+          "note": "Teleflow learns cadence and vocabulary from your published channel history."
+        },
+        "cadence": {
+          "label": "Output loop",
+          "value": "Queue on rhythm",
+          "note": "Scheduling and recurring slots keep the calendar moving."
+        }
+      },
+      "visual": {
+        "eyebrow": "Operating canvas",
+        "title": "How the workflow moves through the app",
+        "live": "Workflow active",
+        "inputLabel": "Input layer",
+        "outputLabel": "Workspace outputs",
+        "sources": {
+          "voice": {
+            "title": "Voice notes",
+            "subtitle": "Captured through the Telegram bot"
+          },
+          "messages": {
+            "title": "Imported posts",
+            "subtitle": "Existing channel history and saved drafts"
+          },
+          "docs": {
+            "title": "Articles + docs",
+            "subtitle": "Source material for new posts"
+          },
+          "links": {
+            "title": "YouTube links",
+            "subtitle": "External intake for generation"
+          }
+        },
+        "router": {
+          "label": "AI operator",
+          "title": "Profile tone, prepare drafts, route next steps",
+          "description": "Teleflow turns messy raw input into a queue-ready workflow so capture, drafting, scheduling, and analytics stay connected.",
+          "chips": {
+            "voice": "Tone profile active",
+            "draft": "Draft structure prepared",
+            "schedule": "Next slot suggested"
+          }
+        },
+        "destinations": {
+          "library": {
+            "title": "Draft library",
+            "subtitle": "Captured and generated posts"
+          },
+          "queue": {
+            "title": "Schedule queue",
+            "subtitle": "Review state, recurring slots, publish timing"
+          },
+          "analytics": {
+            "title": "Analytics loop",
+            "subtitle": "Performance signals for the next plan"
+          }
+        },
+        "insights": {
+          "quota": {
+            "title": "Usage visibility",
+            "value": "Billing-aware AI",
+            "note": "Generation stays connected to plan limits and usage."
+          },
+          "queue": {
+            "title": "Workflow state",
+            "value": "Queue in motion",
+            "note": "Review, schedule, and publish states stay visible in one place."
+          },
+          "loop": {
+            "title": "Feedback loop",
+            "value": "Post-performance ready",
+            "note": "Views and engagement can feed directly into the next batch."
+          }
+        }
       },
       "platforms": {
-        "telegram": "Telegram",
-        "twitter": "Twitter / X",
-        "linkedin": "LinkedIn"
+        "capture": "Telegram bot intake",
+        "schedule": "Calendar + queue",
+        "analytics": "Feedback loop"
       }
     },
-    "integrations": {
-      "label": "Integrated Platforms",
-      "items": {
-        "telegram": "Telegram",
-        "twitter": "X",
-        "linkedin": "LinkedIn"
-      }
-    },
-    "systems": {
-      "title": "Systems for Scale",
-      "subtitle": "Built for high-volume creators. One workflow from Telegram to LinkedIn and X.",
+    "proof": {
+      "label": "Why creators switch",
+      "title": "Built for Telegram creators who publish like operators.",
+      "subtitle": "The product connects intake, drafting, scheduling, and analytics so the workflow finally feels like one system.",
       "cards": {
-        "tone": {
-          "title": "AI Tone Profiling",
-          "description": "Our AI analyzes your post history to model your voice, vocabulary, and cadence so generated posts still sound like you.",
-          "tags": {
-            "casual": "casual pacing",
-            "jargon": "tech jargon",
-            "optimistic": "optimistic tone"
+        "telegram": {
+          "title": "Telegram becomes the capture layer",
+          "description": "Connect the bot once and raw material starts landing in the same library: posts, voice notes, drafts, and source links.",
+          "detail": "You stop losing ideas between chats, notes apps, and forgotten tabs."
+        },
+        "voice": {
+          "title": "AI learns from what you already publish",
+          "description": "Teleflow analyzes channel history before generation so drafts stay closer to your cadence, vocabulary, and structure.",
+          "detail": "The goal is useful first drafts that still feel like your channel."
+        },
+        "loop": {
+          "title": "Scheduling and analytics stay attached",
+          "description": "The same workspace tracks queue health, publishing rhythm, and the performance signals that shape the next posts.",
+          "detail": "No spreadsheet handoff. No separate reporting ritual."
+        }
+      }
+    },
+    "workflow": {
+      "label": "Workflow",
+      "title": "One system from raw input to performance review.",
+      "subtitle": "Each stage removes a specific operational bottleneck in a Telegram creator's publishing loop.",
+      "note": "You keep editorial judgment. Teleflow handles intake, drafting, scheduling, and the repetitive follow-through around publishing.",
+      "steps": {
+        "capture": {
+          "title": "Capture the signal while it is fresh",
+          "description": "Forward a post, record a voice note, or drop a link. Teleflow imports it and tags it for the next action.",
+          "detail": "Telegram-native intake lowers friction and protects ideas from getting lost."
+        },
+        "shape": {
+          "title": "Turn it into drafts you can actually use",
+          "description": "Generate from ideas or sources, repurpose existing posts, and clean up structure with your tone profile acting as guardrails.",
+          "detail": "The AI layer behaves like an operator, not a slot machine."
+        },
+        "distribute": {
+          "title": "Move the queue with a real schedule",
+          "description": "Publish immediately, add items to the calendar, or use recurring slots so the queue keeps moving without manual juggling.",
+          "detail": "Scheduling stops being a side spreadsheet and becomes part of the system."
+        },
+        "learn": {
+          "title": "Review what worked and plan the next batch",
+          "description": "Track channel growth, post performance, and timing patterns without leaving the workspace.",
+          "detail": "A tighter feedback loop leads to better editorial decisions."
+        }
+      }
+    },
+    "system": {
+      "label": "Inside the product",
+      "title": "A creator control room for Telegram-first publishing.",
+      "subtitle": "Teleflow combines capture, library, AI generation, scheduling, and analytics so the workflow feels coherent from end to end.",
+      "cards": {
+        "capture": {
+          "title": "Capture anything worth turning into content",
+          "description": "Posts, voice notes, articles, and documents come in messy. The app organizes them into usable draft material.",
+          "footer": "The raw material you already create becomes the start of the workflow."
+        },
+        "voice": {
+          "title": "Model tone before generating volume",
+          "description": "Voice profiling keeps the AI anchored to how you already sound instead of drifting into generic phrasing.",
+          "footer": "Consistency becomes part of the system, not a manual edit pass."
+        },
+        "adapt": {
+          "title": "Generate variants without losing the idea",
+          "description": "Turn one source into fresh drafts, summaries, and optional cross-post versions while keeping the original signal intact.",
+          "footer": "Repurposing stays connected to the source and the voice profile."
+        },
+        "schedule": {
+          "title": "Run a cadence instead of reacting post by post",
+          "description": "Visual scheduling and recurring slots help you publish on rhythm instead of relying on memory.",
+          "footer": "The calendar becomes an operating tool, not a reminder list."
+        },
+        "analytics": {
+          "title": "Keep the feedback loop close",
+          "description": "Views, engagement, and timing signals stay near the queue so the next plan can be evidence-based.",
+          "footer": "What performs well should influence what gets drafted next."
+        }
+      },
+      "visuals": {
+        "capture": {
+          "items": {
+            "voice": "Voice note",
+            "messages": "Message batch",
+            "links": "Article link"
           },
-          "result": "Profile generated"
+          "router": {
+            "title": "Intake router",
+            "status": "Live",
+            "languageLabel": "Language",
+            "languageValue": "Auto-detected",
+            "intentLabel": "Intent",
+            "intentValue": "Draft + queue"
+          }
         },
-        "ingestion": {
-          "title": "Smart Ingestion",
-          "description": "Forward messages, voice notes, images, or docs to the bot. Teleflow extracts, categorizes, and prepares content instantly."
+        "voice": {
+          "title": "Tone map",
+          "status": "Locked",
+          "bars": {
+            "cadence": "Cadence",
+            "vocabulary": "Vocabulary",
+            "hook": "Hook style"
+          },
+          "matched": "Matched"
         },
-        "adaptation": {
-          "title": "Multi-Step Adaptation",
-          "description": "Translate raw ideas into clear copy, then apply platform-specific formatting for LinkedIn and X.",
-          "stepOne": "1. Translation & Cleanup",
-          "stepTwo": "2. Platform Styling (X Thread)"
+        "adapt": {
+          "sourceTitle": "Source draft",
+          "sourceBody": "A long-form Telegram idea with context, examples, and the creator's real voice captured in one place.",
+          "outputTitle": "Ready-to-use versions",
+          "outputs": {
+            "telegram": "Telegram-ready edit",
+            "crosspost": "Optional external variant"
+          }
         },
-        "dashboard": {
-          "title": "Visual Content OS",
-          "description": "Run your pipeline from one dashboard with visual scheduling, recurring posting, and cross-platform analytics."
+        "schedule": {
+          "days": {
+            "mon": "Mon",
+            "wed": "Wed",
+            "fri": "Fri"
+          },
+          "states": {
+            "queue": "Queue",
+            "repurpose": "Repurpose",
+            "publish": "Publish"
+          }
+        },
+        "analytics": {
+          "title": "Feedback loop",
+          "status": "Active",
+          "stats": {
+            "windowLabel": "Best window",
+            "windowValue": "Wed, 10:00",
+            "channelLabel": "Top channel",
+            "channelValue": "Telegram core",
+            "formatLabel": "Winning format",
+            "formatValue": "How-to posts"
+          }
+        }
+      }
+    },
+    "comparison": {
+      "label": "Operational difference",
+      "title": "What changes when the workflow becomes one system.",
+      "subtitle": "Teleflow is strongest when you want fewer broken handoffs between capture, writing, scheduling, and measurement.",
+      "cta": "Create workspace",
+      "headers": {
+        "category": "Stage",
+        "manual": "Manual stack",
+        "teleflow": "Teleflow"
+      },
+      "rows": {
+        "capture": {
+          "title": "Capture",
+          "manual": "Ideas live in notes, saved messages, and forgotten tabs.",
+          "teleflow": "Inputs are routed into one Telegram-native intake flow."
+        },
+        "repurpose": {
+          "title": "Repurposing",
+          "manual": "Each platform rewrite starts from scratch or from copied prompts.",
+          "teleflow": "One source can become multiple ready-to-publish versions."
+        },
+        "planning": {
+          "title": "Planning",
+          "manual": "Scheduling is a separate spreadsheet or a last-minute scramble.",
+          "teleflow": "Calendar, recurring rhythms, and execution sit in the same workspace."
+        },
+        "analytics": {
+          "title": "Analytics",
+          "manual": "Performance is scattered across dashboards and never fully feeds back into planning.",
+          "teleflow": "Channel growth and content performance stay close to the publishing workflow."
         }
       }
     },
     "pricing": {
-      "title": "Simple pricing by AI usage",
-      "subtitle": "Choose a plan based on how much content you generate each month.",
+      "label": "Pricing",
+      "title": "Pricing that matches how much of the system you use.",
+      "subtitle": "Start with the workflow, then scale AI generation and operational depth when your publishing cadence grows.",
       "period": "/month",
-      "stripeNote": "Secure payments powered by Stripe.",
+      "note": "Secure payments powered by Stripe. Upgrade when your publishing cadence needs more throughput.",
       "plans": {
         "free": {
           "name": "Free",
           "price": "$0",
-          "audience": "For trying the workflow end-to-end",
+          "audience": "For first-time setup",
+          "description": "A low-risk way to test Telegram intake, AI drafting, and the core workflow.",
           "cta": "Start free",
           "features": {
+            "telegram": "Telegram-first capture and drafting",
             "quota": "50 AI generations per month",
-            "noCard": "No credit card required",
-            "telegram": "Telegram-first core workflow"
+            "capture": "No credit card required"
           }
         },
         "plus": {
@@ -971,50 +1250,100 @@
           "badge": "Most popular",
           "price": "$19",
           "audience": "For active solo creators",
+          "description": "For creators who publish consistently and want drafting, scheduling, and optional external adaptation in one product.",
           "cta": "Choose Plus",
           "features": {
             "quota": "500 AI generations per month",
-            "generation": "AI generation and adaptation",
-            "crosspost": "Cross-posting to LinkedIn and X"
+            "adaptation": "AI generation and adaptation",
+            "crosspost": "Optional external platform adaptations",
+            "analytics": "Cross-platform analytics"
           }
         },
         "pro": {
           "name": "Pro",
           "price": "$49",
           "audience": "For high-volume creators and agencies",
+          "description": "For teams running heavier publishing volume, more channels, and a tighter operational cadence.",
           "cta": "Choose Pro",
           "features": {
-            "quota": "Unlimited AI generations",
-            "highVolume": "Built for high posting volume",
-            "allCore": "Access to all core features"
+            "unlimited": "Unlimited AI generations",
+            "calendar": "Advanced scheduling and recurring flows",
+            "channels": "High-volume channel operations",
+            "priority": "Priority access to core features"
           }
+        }
+      }
+    },
+    "faq": {
+      "label": "FAQ",
+      "title": "Questions creators ask before switching.",
+      "subtitle": "Most objections come down to fit, voice, and how much of the workflow you want in one place.",
+      "toggle": "Open",
+      "items": {
+        "voice": {
+          "question": "Will the AI still sound like me?",
+          "answer": "That is the goal. Teleflow profiles your existing publishing history so generated drafts stay closer to your vocabulary, cadence, and structure instead of sounding generic."
+        },
+        "workflow": {
+          "question": "Do I need to leave Telegram to use it?",
+          "answer": "No. Telegram is treated as the input layer, which means you can capture ideas from the place you already work and let the dashboard handle organization, scheduling, and analytics."
+        },
+        "billing": {
+          "question": "How does pricing scale?",
+          "answer": "Plans scale with AI usage and operational depth. You can begin on the free plan, confirm the workflow fits, and only upgrade when your publishing cadence needs more throughput."
+        },
+        "team": {
+          "question": "Is this only for solo creators?",
+          "answer": "No. The strongest fit is often creators with a serious schedule, media businesses, or lean teams that want a repeatable operating system instead of a loose tool stack."
+        }
+      }
+    },
+    "finalCta": {
+      "label": "Ready to run the workflow",
+      "title": "Give your Telegram channel a real operating system.",
+      "subtitle": "Bring intake, drafting, scheduling, and analytics into one workspace so ideas stop leaking between tools.",
+      "primary": "Create your workspace",
+      "secondary": "Review pricing",
+      "points": {
+        "capture": {
+          "title": "Telegram-native intake",
+          "text": "Send ideas to the bot and keep moving."
+        },
+        "schedule": {
+          "title": "Queue that stays alive",
+          "text": "Recurring slots help publishing stay on rhythm."
+        },
+        "measure": {
+          "title": "Analytics near the work",
+          "text": "Use performance signals to shape the next batch."
         }
       }
     },
     "footer": {
       "logo": "Teleflow",
-      "tagline": "The publishing engine built for Telegram creators.",
-      "platform": {
-        "heading": "Platform",
-        "routingEngine": "AI Generation",
-        "aiFormatting": "Adaptation",
-        "analytics": "Analytics",
-        "integrations": "Scheduling"
+      "tagline": "Telegram-first capture, drafting, scheduling, and analytics in one workspace.",
+      "links": {
+        "product": "Product",
+        "workflow": "Workflow",
+        "pricing": "Pricing"
       },
-      "company": {
-        "heading": "Company",
-        "about": "About Us",
-        "careers": "Careers",
-        "changelog": "Changelog",
-        "contact": "Contact"
+      "pillars": {
+        "capture": {
+          "label": "Capture",
+          "text": "Use Telegram as the front door for ideas, voice notes, and source material."
+        },
+        "adapt": {
+          "label": "Adapt",
+          "text": "Generate and repurpose content without flattening the creator's voice."
+        },
+        "measure": {
+          "label": "Measure",
+          "text": "Track what works and keep the feedback loop close to publishing."
+        }
       },
-      "legal": {
-        "heading": "Legal",
-        "privacy": "Privacy Policy",
-        "terms": "Terms of Service"
-      },
-      "copyright": "© 2026 Teleflow. All rights reserved.",
-      "status": "Systems operational"
+      "login": "Log in",
+      "getStarted": "Start for free",
+      "copyright": "© 2026 Teleflow. All rights reserved."
     }
   }
 }

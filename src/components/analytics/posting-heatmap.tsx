@@ -2,12 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { HeatmapCell } from "@/server/actions/analytics";
 
@@ -52,23 +47,17 @@ export function PostingHeatmap({ data }: PostingHeatmapProps) {
   }
 
   return (
-    <Card data-testid="posting-heatmap">
+    <Card data-testid="posting-heatmap" className="border-border/70 bg-card/95 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">
-          {t("bestPostingTimes")}
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">{t("heatmapSubtitle")}</p>
+        <CardTitle className="text-base font-semibold">{t("bestPostingTimes")}</CardTitle>
+        <p className="text-muted-foreground text-xs">{t("heatmapSubtitle")}</p>
       </CardHeader>
       <CardContent>
         {isEmpty ? (
           <div className="flex h-[200px] items-center justify-center text-center">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                {t("noDataYet")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("noDataDescription")}
-              </p>
+              <p className="text-muted-foreground text-sm font-medium">{t("noDataYet")}</p>
+              <p className="text-muted-foreground text-xs">{t("noDataDescription")}</p>
             </div>
           </div>
         ) : (
@@ -82,7 +71,7 @@ export function PostingHeatmap({ data }: PostingHeatmapProps) {
                     {HOUR_MARKERS.map((h) => (
                       <span
                         key={h}
-                        className="absolute text-[10px] text-muted-foreground"
+                        className="text-muted-foreground absolute text-[10px]"
                         style={{ left: `${(h / 24) * 100}%` }}
                       >
                         {formatHour(h)}
@@ -94,7 +83,7 @@ export function PostingHeatmap({ data }: PostingHeatmapProps) {
                 <div className="mt-3 space-y-1">
                   {DAY_LABELS.map((day, dayIdx) => (
                     <div key={day} className="flex items-center gap-1">
-                      <span className="w-9 shrink-0 text-right text-[10px] text-muted-foreground">
+                      <span className="text-muted-foreground w-9 shrink-0 text-right text-[10px]">
                         {day}
                       </span>
                       <div className="flex flex-1 gap-px">
@@ -114,9 +103,7 @@ export function PostingHeatmap({ data }: PostingHeatmapProps) {
                                 <p className="font-medium">
                                   {day} {formatHour(hour)}
                                 </p>
-                                <p>
-                                  {t("engagementCount", { count: value })}
-                                </p>
+                                <p>{t("engagementCount", { count: value })}</p>
                               </TooltipContent>
                             </Tooltip>
                           );
@@ -127,9 +114,7 @@ export function PostingHeatmap({ data }: PostingHeatmapProps) {
                 </div>
                 {/* Legend */}
                 <div className="mt-3 flex items-center justify-end gap-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    {t("legendLow")}
-                  </span>
+                  <span className="text-muted-foreground text-[10px]">{t("legendLow")}</span>
                   {[0, 0.2, 0.4, 0.6, 0.8, 1].map((ratio) => (
                     <div
                       key={ratio}
@@ -149,9 +134,7 @@ export function PostingHeatmap({ data }: PostingHeatmapProps) {
                       )}
                     />
                   ))}
-                  <span className="text-[10px] text-muted-foreground">
-                    {t("legendHigh")}
-                  </span>
+                  <span className="text-muted-foreground text-[10px]">{t("legendHigh")}</span>
                 </div>
               </div>
             </div>

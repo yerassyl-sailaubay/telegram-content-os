@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { Geist, Geist_Mono, Playfair_Display, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Rubik, Manrope } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -20,12 +20,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin", "cyrillic"],
 });
 
-const playfairDisplay = Playfair_Display({
+const rubikDisplay = Rubik({
   variable: "--font-display",
   subsets: ["latin", "cyrillic"],
 });
 
-const inter = Inter({
+const manrope = Manrope({
   variable: "--font-sans-landing",
   subsets: ["latin", "cyrillic"],
 });
@@ -58,7 +58,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale} dir="ltr" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${inter.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${rubikDisplay.variable} ${manrope.variable} antialiased`}
       >
         <NextIntlClientProvider>
           <ThemeProvider

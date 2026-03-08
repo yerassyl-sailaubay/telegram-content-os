@@ -4,11 +4,13 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 import {
   BarChart3,
+  Clock3,
   MousePointerClick,
   TrendingUp,
   Layers,
   RefreshCw,
   AlertCircle,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,15 +37,10 @@ type AnalyticsDashboardProps = {
   initialError?: string;
 };
 
-export function AnalyticsDashboard({
-  initialData,
-  initialError,
-}: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({ initialData, initialError }: AnalyticsDashboardProps) {
   const t = useTranslations("analytics");
 
-  const [data, setData] = React.useState<AnalyticsDashboardData | null>(
-    initialData,
-  );
+  const [data, setData] = React.useState<AnalyticsDashboardData | null>(initialData);
   const [error, setError] = React.useState<string | null>(initialError ?? null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [dateRange, setDateRange] = React.useState<DateRange>("30d");
@@ -55,10 +52,7 @@ export function AnalyticsDashboard({
     setIsLoading(true);
     setError(null);
     try {
-      const result = await getAnalyticsDashboard(
-        range,
-        channel === "all" ? undefined : channel,
-      );
+      const result = await getAnalyticsDashboard(range, channel === "all" ? undefined : channel);
       if (result.success) {
         setData(result.data);
       } else {
@@ -82,9 +76,9 @@ export function AnalyticsDashboard({
   if (error && !data) {
     return (
       <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-        <AlertCircle className="mb-3 h-8 w-8 text-muted-foreground" />
+        <AlertCircle className="text-muted-foreground mb-3 h-8 w-8" />
         <p className="text-sm font-medium">{t("errorTitle")}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{error}</p>
+        <p className="text-muted-foreground mt-1 text-xs">{error}</p>
         <Button
           size="sm"
           variant="outline"
@@ -99,11 +93,84 @@ export function AnalyticsDashboard({
   }
 
   const overview = data?.overview;
+  const activeChannel = channels.find((channel) => channel.id === channelId);
+  const topPlatform = data?.platformComparison.reduce((best, current) =>
+    current.totalEngagement > best.totalEngagement ? current : best,
+  );
+  const topPost = data?.recentPosts.reduce((best, current) =>
+    current.totalEngagement > best.totalEngagement ? current : best,
+  );
 
   return (
     <div className="space-y-6">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
+              <Layers className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
+                {t("insightChannelLabel")}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {channelId === "all"
+                  ? t("insightAllChannelsValue")
+                  : (activeChannel?.title ?? t("allChannels"))}
+              </p>
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-4 text-sm leading-6">{t("insightChannelNote")}</p>
+        </div>
+
+        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
+              <Zap className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
+                {t("insightPlatformLabel")}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {topPlatform
+                  ? topPlatform.platform === "linkedin"
+                    ? "LinkedIn"
+                    : topPlatform.platform === "twitter"
+                      ? "Twitter / X"
+                      : topPlatform.platform
+                  : t("insightEmpty")}
+              </p>
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-4 text-sm leading-6">
+            {topPlatform
+              ? t("insightPlatformNote", { count: topPlatform.totalEngagement.toLocaleString() })
+              : t("insightPlatformFallback")}
+          </p>
+        </div>
+
+        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
+              <Clock3 className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
+                {t("insightTopPostLabel")}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {topPost ? topPost.totalEngagement.toLocaleString() : t("insightEmpty")}
+              </p>
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-4 text-sm leading-6">
+            {topPost ? t("insightTopPostNote") : t("insightTopPostFallback")}
+          </p>
+        </div>
+      </div>
+
+      <div className="border-border/70 bg-card/95 flex flex-wrap items-center justify-between gap-3 rounded-3xl border px-4 py-3 shadow-sm">
         <div className="flex flex-wrap gap-2">
           {channels.length > 0 && (
             <Select value={channelId} onValueChange={handleChannelChange}>
@@ -121,39 +188,46 @@ export function AnalyticsDashboard({
             </Select>
           )}
         </div>
-        {isLoading && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-            {t("loading")}
-          </div>
-        )}
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          <span className="border-border/70 bg-muted/50 rounded-full border px-3 py-1.5">
+            {t(`range_${dateRange}`)}
+          </span>
+          {isLoading && (
+            <span className="flex items-center gap-2">
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+              {t("loading")}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Overview Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricsCard
           title={t("totalCrossPosts")}
           value={(overview?.totalCrossPosts ?? 0).toLocaleString()}
           icon={<Layers className="h-5 w-5" />}
+          description={t("overviewCrossPostsDescription")}
         />
         <MetricsCard
           title={t("totalEngagement")}
           value={(overview?.totalEngagement ?? 0).toLocaleString()}
           icon={<MousePointerClick className="h-5 w-5" />}
+          description={t("overviewEngagementDescription")}
         />
         <MetricsCard
           title={t("avgEngagementRate")}
           value={`${overview?.avgEngagementRate ?? 0}%`}
           icon={<TrendingUp className="h-5 w-5" />}
+          description={t("overviewRateDescription")}
         />
         <MetricsCard
           title={t("activePlatforms")}
           value={(overview?.activePlatforms ?? 0).toLocaleString()}
           icon={<BarChart3 className="h-5 w-5" />}
+          description={t("overviewPlatformsDescription")}
         />
       </div>
 
-      {/* Charts Row */}
       <div className="grid gap-4 lg:grid-cols-2">
         <EngagementChart
           data={data?.engagementOverTime ?? []}
@@ -163,10 +237,8 @@ export function AnalyticsDashboard({
         <PlatformComparison data={data?.platformComparison ?? []} />
       </div>
 
-      {/* Heatmap */}
       <PostingHeatmap data={data?.heatmap ?? []} />
 
-      {/* Posts Table */}
       <PostsTable data={data?.recentPosts ?? []} />
     </div>
   );

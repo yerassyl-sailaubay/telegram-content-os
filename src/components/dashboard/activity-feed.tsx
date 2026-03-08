@@ -49,12 +49,12 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
 
   if (events.length === 0) {
     return (
-      <Card data-testid="activity-feed">
-        <CardHeader>
+      <Card data-testid="activity-feed" className="border-border/70 bg-card/95 shadow-sm">
+        <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold">{t("activityFeedTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+          <div className="flex flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed py-10 text-center">
             <Wand2 className="text-muted-foreground/40 h-8 w-8" />
             <p className="text-muted-foreground text-sm font-medium">{t("activityEmpty")}</p>
             <p className="text-muted-foreground text-xs">{t("activityEmptyDescription")}</p>
@@ -71,15 +71,17 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
   }
 
   return (
-    <Card data-testid="activity-feed">
-      <CardHeader>
+    <Card data-testid="activity-feed" className="border-border/70 bg-card/95 shadow-sm">
+      <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold">{t("activityFeedTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <ul className="divide-y">
           {events.map((event) => (
-            <li key={event.id} className="flex items-start gap-3 px-6 py-3">
-              <div className="mt-0.5 flex-shrink-0">{getEventIcon(event.type)}</div>
+            <li key={event.id} className="flex items-start gap-4 px-6 py-4">
+              <div className="bg-muted/35 mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border">
+                {getEventIcon(event.type)}
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">

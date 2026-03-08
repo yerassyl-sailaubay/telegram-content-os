@@ -12,7 +12,6 @@ import {
 } from "recharts";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import type { GrowthDataPoint, GrowthTrend } from "@/lib/analytics/telegram-enhanced";
 
 type GrowthChartProps = {
@@ -41,7 +40,7 @@ function TrendBadge({ trend, rate }: { trend: GrowthTrend; rate: number }) {
     return (
       <div className="flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-600 dark:text-red-400">
         <TrendingDown className="h-3 w-3" />
-        {t("growthRate", { rate: Math.abs(rate) })}
+        {t("growthRateNegative", { rate: Math.abs(rate) })}
       </div>
     );
   }
@@ -64,7 +63,7 @@ export function GrowthChart({ dataPoints, rate, trend }: GrowthChartProps) {
   }));
 
   return (
-    <Card data-testid="growth-chart">
+    <Card data-testid="growth-chart" className="border-border/70 bg-card/95 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-semibold">{t("subscriberGrowth")}</CardTitle>
         {!isEmpty && <TrendBadge trend={trend} rate={rate} />}
@@ -86,9 +85,9 @@ export function GrowthChart({ dataPoints, rate, trend }: GrowthChartProps) {
               <Tooltip
                 contentStyle={{
                   borderRadius: "8px",
-                  border: "1px solid hsl(var(--border))",
-                  background: "hsl(var(--popover))",
-                  color: "hsl(var(--popover-foreground))",
+                  border: "1px solid var(--border)",
+                  background: "var(--popover)",
+                  color: "var(--popover-foreground)",
                   fontSize: "12px",
                 }}
               />

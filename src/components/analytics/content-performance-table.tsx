@@ -90,7 +90,7 @@ export function ContentPerformanceTable({ posts }: ContentPerformanceTableProps)
   ];
 
   return (
-    <Card data-testid="content-performance-table">
+    <Card data-testid="content-performance-table" className="border-border/70 bg-card/95 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">{t("contentPerformance")}</CardTitle>
       </CardHeader>

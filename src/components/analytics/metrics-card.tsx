@@ -10,6 +10,7 @@ type MetricsCardProps = {
   icon: React.ReactNode;
   trend?: number; // positive = up, negative = down, undefined = no comparison
   trendLabel?: string;
+  description?: string;
   className?: string;
 };
 
@@ -19,6 +20,7 @@ export function MetricsCard({
   icon,
   trend,
   trendLabel,
+  description,
   className,
 }: MetricsCardProps) {
   const hasTrend = trend !== undefined;
@@ -28,18 +30,27 @@ export function MetricsCard({
 
   return (
     <Card
-      className={cn("relative !gap-0 overflow-hidden !py-0", className)}
+      className={cn(
+        "border-border/70 bg-card/95 relative !gap-0 overflow-hidden !py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg",
+        className,
+      )}
       data-testid="metrics-card"
     >
-      <CardContent className="p-3">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+      <div className="via-primary/60 absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent" />
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase">
               {title}
             </p>
-            <p className="text-2xl font-bold tracking-tight">{value}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
+            {description ? (
+              <p className="text-muted-foreground mt-3 max-w-[22rem] text-sm leading-6">
+                {description}
+              </p>
+            ) : null}
             {hasTrend && (
-              <div className="flex items-center gap-1 text-xs">
+              <div className="mt-4 flex items-center gap-1 text-xs">
                 {isUp && <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
                 {isDown && <TrendingDown className="h-3.5 w-3.5 text-rose-500" />}
                 {isFlat && <Minus className="text-muted-foreground h-3.5 w-3.5" />}
@@ -58,7 +69,7 @@ export function MetricsCard({
               </div>
             )}
           </div>
-          <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
+          <div className="from-primary/16 text-primary via-primary/10 to-primary/5 border-primary/10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-br">
             {icon}
           </div>
         </div>

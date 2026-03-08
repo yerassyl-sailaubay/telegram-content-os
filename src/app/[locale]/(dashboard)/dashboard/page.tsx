@@ -1,27 +1,44 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { getDashboardHomeData } from "@/server/actions/dashboard";
 import { getDraftsAndIdeas, getContentByStatus } from "@/server/actions/content";
-import { WelcomeSection } from "@/components/dashboard/welcome-section";
 import { QuickStatsSection } from "@/components/dashboard/quick-stats";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { UpcomingPosts } from "@/components/dashboard/upcoming-posts";
 import { QuickCapture } from "@/components/content/quick-capture";
+import { QuickActions } from "@/components/dashboard/quick-actions";
 import { MetricsCard } from "@/components/analytics/metrics-card";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Lightbulb,
-  FileText,
-  CheckCircle2,
-  Sparkles,
   AlertTriangle,
   CalendarDays,
+  FileText,
+  Lightbulb,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+function formatDashboardDate(locale: string) {
+  return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date());
+}
+
+function HeroStat({ label, value, note }: { label: string; value: string; note: string }) {
+  return (
+    <div className="rounded-3xl border border-white/12 bg-white/[0.06] p-4">
+      <p className="text-xs font-semibold tracking-[0.16em] text-white/55 uppercase">{label}</p>
+      <p className="mt-3 text-2xl font-semibold tracking-tight text-white">{value}</p>
+      <p className="mt-2 text-sm text-white/70">{note}</p>
+    </div>
+  );
+}
 
 export default async function DashboardPage() {
+  const locale = await getLocale();
   const [t, dashboardResult, draftsIdeasResult, publishedResult] = await Promise.all([
     getTranslations("dashboard"),
     getDashboardHomeData(),
@@ -55,94 +72,150 @@ export default async function DashboardPage() {
   const aiUsed = data?.quickStats.crossPostsUsed ?? 0;
   const aiLimit = data?.quickStats.crossPostsLimit ?? 0;
   const aiLimitDisplay = aiLimit === -1 ? "∞" : String(aiLimit);
+  const displayName = data?.userName ?? data?.userEmail ?? t("welcomeFallbackName");
+  const today = formatDashboardDate(locale);
 
   return (
     <>
-      <PageHeader title={t("title")} />
-      <div className="space-y-6 pb-8">
-        <WelcomeSection userName={data?.userName ?? null} userEmail={data?.userEmail ?? null} />
+      <PageHeader title={t("title")} description={t("pageDescription")} />
 
-        <Card>
-          <CardContent className="py-4">
-            <QuickCapture />
-          </CardContent>
-        </Card>
+      <div className="space-y-8 pb-10">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+          <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.22),transparent_32%),linear-gradient(135deg,#0f172a,#10243a_48%,#0f172a)] text-white shadow-[0_28px_80px_rgba(15,23,42,0.45)]">
+            <CardContent className="p-6 sm:p-8">
+              <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="max-w-2xl">
+                    <p className="text-xs font-semibold tracking-[0.18em] text-cyan-100/72 uppercase">
+                      {t("heroEyebrow")}
+                    </p>
+                    <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                      {t("welcomeBack", { name: displayName })}
+                    </h2>
+                    <p className="mt-2 text-sm text-cyan-50/72">{today}</p>
+                    <p className="mt-5 max-w-xl text-base leading-7 text-cyan-50/76">
+                      {t("heroSummary")}
+                    </p>
+                  </div>
+
+                  <div className="hidden min-w-[220px] rounded-[1.75rem] border border-white/12 bg-white/[0.05] p-5 lg:block">
+                    <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/62 uppercase">
+                      {t("heroCalloutLabel")}
+                    </p>
+                    <p className="mt-3 text-4xl font-semibold text-white">{calendarGaps}</p>
+                    <p className="mt-2 text-sm leading-6 text-cyan-50/72">
+                      {t("heroCalloutDescription")}
+                    </p>
+                  </div>
+                </div>
+
+                <QuickActions />
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <HeroStat
+                    label={t("statAiGenerations")}
+                    value={`${aiUsed} / ${aiLimitDisplay}`}
+                    note={t("heroStatAi")}
+                  />
+                  <HeroStat
+                    label={t("upcomingPostsTitle")}
+                    value={upcomingPosts.length.toString()}
+                    note={t("heroStatUpcoming")}
+                  />
+                  <HeroStat
+                    label={t("statPublishedThisWeek")}
+                    value={publishedThisWeek.toString()}
+                    note={t("heroStatPublished")}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/95 overflow-hidden shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle>{t("captureCardTitle")}</CardTitle>
+              <CardDescription>{t("captureCardDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <QuickCapture />
+            </CardContent>
+          </Card>
+        </div>
+
+        {data && <QuickStatsSection data={data.quickStats} />}
 
         <div>
-          <h2 className="text-foreground mb-3 text-sm font-semibold tracking-wide uppercase opacity-60">
-            {t("contentStatsTitle")}
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-foreground text-sm font-semibold tracking-[0.18em] uppercase">
+                {t("contentStatsTitle")}
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-2xl text-sm">
+                {t("contentStatsDescription")}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricsCard
               title={t("statIdeas")}
               value={ideasCount}
               icon={<Lightbulb className="h-5 w-5" />}
+              description={t("statIdeasDescription")}
             />
             <MetricsCard
               title={t("statDrafts")}
               value={draftsCount}
               icon={<FileText className="h-5 w-5" />}
+              description={t("statDraftsDescription")}
             />
             <MetricsCard
               title={t("statPublishedThisWeek")}
               value={publishedThisWeek}
-              icon={<CheckCircle2 className="h-5 w-5" />}
+              icon={<TrendingUp className="h-5 w-5" />}
+              description={t("statPublishedDescription")}
             />
             <MetricsCard
               title={t("statAiGenerations")}
               value={`${aiUsed} / ${aiLimitDisplay}`}
               icon={<Sparkles className="h-5 w-5" />}
+              description={t("statAiDescription")}
             />
           </div>
         </div>
 
         {calendarGaps > 0 && (
-          <div
-            className={cn(
-              "flex items-center justify-between gap-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3",
-              "dark:border-amber-800/50 dark:bg-amber-950/30",
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                {t("calendarGapsAlert", { count: calendarGaps })}
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              asChild
-              className="shrink-0 border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900/40"
-            >
-              <Link href="/dashboard/schedule">
-                <CalendarDays className="mr-1.5 h-3.5 w-3.5" />
+          <Card className="border-amber-200/70 bg-[linear-gradient(135deg,rgba(251,191,36,0.14),rgba(255,255,255,0.85))] shadow-sm dark:border-amber-800/50 dark:bg-[linear-gradient(135deg,rgba(245,158,11,0.18),rgba(12,10,9,0.92))]">
+            <CardContent className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-full bg-amber-500/15 p-2 text-amber-600 dark:text-amber-300">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                    {t("calendarGapsAlert", { count: calendarGaps })}
+                  </p>
+                  <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-300/78">
+                    {t("calendarGapsDetail")}
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard/schedule"
+                className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-white/70 px-4 py-2 text-sm font-medium text-amber-800 transition-colors hover:bg-white dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60"
+              >
+                <CalendarDays className="h-4 w-4" />
                 {t("calendarGapsCta")}
               </Link>
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         )}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1">
-            <UpcomingPosts posts={upcomingPosts.slice(0, 3)} />
-          </div>
-
-          <div className="lg:col-span-2">
-            <ActivityFeed events={(data?.recentActivity ?? []).slice(0, 5)} />
-          </div>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)]">
+          <UpcomingPosts posts={upcomingPosts.slice(0, 4)} />
+          <ActivityFeed events={(data?.recentActivity ?? []).slice(0, 6)} />
         </div>
-
-        {data && (
-          <details className="group">
-            <summary className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex cursor-pointer items-center rounded-md p-2 pr-4 text-xs font-medium transition-colors select-none">
-              {t("crossPostStatsToggle")}
-            </summary>
-            <div className="mt-3">
-              <QuickStatsSection data={data.quickStats} />
-            </div>
-          </details>
-        )}
       </div>
     </>
   );
