@@ -1,100 +1,166 @@
 # Telegram Content OS — Product Features
 
-Telegram Content OS is an AI-powered content operating system for Telegram creators. It handles your entire content workflow: ingesting posts from Telegram, generating and adapting content with AI, scheduling, cross-posting to other platforms, and measuring results — all from one place.
+Telegram Content OS is a Telegram-first content workflow product. It helps creators connect Telegram channels, collect and organize content, generate or adapt drafts with AI, schedule publication, publish to Telegram, and review Telegram performance from one place.
+
+Where a capability is still partial, limited, or mainly backend-facing, that is called out directly.
 
 ---
 
-## Telegram Channel Integration
+## Implemented Now
 
-Connect any Telegram channel in minutes using the built-in bot setup. Once connected, every new post is automatically imported into your content library the moment it's published. Text, images, videos, and documents are all captured and ready to work with.
+### Telegram Channel Connection
 
-For channels that want to engage new subscribers from the start, welcome message templates let you greet new members automatically with personalized messages that include their name, the channel name, or any custom text you choose.
+Connect Telegram channels through the built-in bot setup flow. Once connected, new posts can be ingested into the app automatically. Imported content includes text and common Telegram media types, including media groups.
 
----
-
-## Content Library & Archive
-
-Every imported Telegram post lives in a searchable archive. Filter by date, content type, channel, or publication status to find what you need quickly. Status labels (draft, adapted, published) make it easy to see where each piece of content stands in your workflow.
-
-Media files (images, videos, documents) are stored with thumbnail previews so you can browse your library visually, not just by filename. Your entire content history is organized and accessible.
+Each channel also has its own settings area, including welcome-message configuration for greeting new subscribers with template variables such as the subscriber name or channel name.
 
 ---
 
-## AI-Powered Content Generation
+### Content Library
 
-Generate fresh content ideas and expand on existing posts using AI. The platform provides multiple generation modes:
+All imported and generated content is stored in a searchable library. You can filter by channel and content status, review drafts, and manage categories and tags.
 
-- **Develop Ideas** — Turn a rough concept or headline into a full post
-- **Repurpose Content** — Transform existing posts into new formats
-- **Generate from Sources** — Create posts based on YouTube videos or articles
-
-The AI builds a tone profile of your channel by analyzing your post history, so generated content sounds like you, not generic AI output.
+The library is designed for working with Telegram-originated content over time, not just one-off AI generation.
 
 ---
 
-## AI Content Adaptation
+### AI Drafting and Repurposing
 
-Adapt your Telegram posts for other platforms using a two-step AI pipeline. First, a clean translation if needed. Second, cultural and platform adaptation: the AI rewrites content to match professional LinkedIn style or punchy Twitter tone.
+The product currently supports several AI-assisted creation workflows:
 
-Each platform gets content that feels native to it. Long posts are automatically split into Twitter threads with smart sentence-boundary detection.
+- **Develop Ideas** — turn a rough idea into a draft
+- **Repurpose Content** — reshape an existing post into a different version, including shorter, thread, or poll-oriented variants
+- **Generate from Sources** — create drafts from supported source URLs
 
----
+Supported source ingestion today is focused on **YouTube videos** and **web articles**.
 
-## Visual Scheduling
-
-Plan your content calendar without juggling spreadsheets or third-party tools. The calendar view shows all scheduled posts, and rescheduling is as simple as moving a post to a new date.
-
-All scheduling is timezone-aware, so posts go out at the right local time for your audience. Set up recurring schedules (daily, weekly, or monthly) for content that follows a pattern.
+The app also builds a channel profile and stores user preferences so prompts can be guided by channel context and tone preferences. This should be understood as AI assistance informed by your channel, not model fine-tuning.
 
 ---
 
-## Cross-Platform Publishing (Mini-Feature)
+### AI Adaptation for Other Platforms
 
-Connect LinkedIn and Twitter/X accounts to extend your reach beyond Telegram. Review platform-specific adaptations side-by-side before publishing.
+Telegram content can be adapted for **LinkedIn** and **X / Twitter** with platform-specific prompt flows and previews.
 
-Cross-posting is available as a convenience feature for creators who want multi-platform presence. Publishing to Telegram remains the primary workflow.
-
----
-
-## Analytics Dashboard
-
-Track how your content performs across platforms from a single dashboard. Metrics include views, likes, shares, comments, and engagement rate, all pulled automatically.
-
-An engagement heatmap highlights which days and times generate the most interaction. Platform comparison charts show performance trends over time.
+This is best described as optional expansion from a Telegram-first workflow. The strongest and most complete product experience is still Telegram itself.
 
 ---
 
-## Billing and Plans
+### Scheduling and Calendar
 
-**Free** — 50 AI generations per month. No credit card required to start.
+The app includes a visual calendar with **month, week, and day views**. You can create schedules from calendar slots, cancel scheduled posts, and use a limited reschedule flow.
 
-**Plus ($19/month)** — 500 AI generations per month, priority processing.
+Scheduling is timezone-aware and also supports recurring schedules.
 
-**Pro ($49/month)** — Unlimited AI generations, access to all features.
-
-Payments processed securely through Stripe. Upgrading takes effect immediately. A live usage counter shows exactly how many generations you've used.
+Important limitation: the current experience is **not drag-and-drop scheduling**.
 
 ---
 
-## Multi-Language Interface
+### Telegram Publishing
 
-The platform is available in Russian and English. Switching languages updates the entire interface, including date and time formats that match the selected locale. Default is Russian.
+Drafts can be published to Telegram immediately or scheduled for later. The publishing flow supports typical Telegram post shapes, including text posts, single-image posts, media groups, and poll-like content handling.
 
----
-
-## Settings and Account Management
-
-Manage your profile, timezone, and language preference from a single settings page. A connected accounts panel shows the live status of every linked platform (Telegram, LinkedIn, Twitter) and lets you disconnect any of them with one click.
-
-AI preferences are configurable per account: choose your preferred model and set the default generation tone that best fits your brand voice.
+Telegram publishing is the core distribution workflow in the product today.
 
 ---
 
-## Coming in V2
+### Telegram Analytics
 
-- **AI image generation** — create visuals to accompany your posts
-- **Competitor channel tracking** — monitor other Telegram channels and benchmark performance
-- **Comment analysis** — surface audience sentiment and frequently asked questions
-- **Viral prediction** — AI scoring to flag posts with highest engagement potential
-- **Team collaboration** — multi-user workspaces with role-based permissions
-- **Mobile app** — native iOS and Android apps for content management on the go
+Analytics currently centers on Telegram channels. The shipped experience focuses on:
+
+- channel growth
+- best posting times
+- top-performing content
+
+This is a real user-facing analytics surface and should be described as Telegram analytics first.
+
+---
+
+### Billing and Limits
+
+Billing uses Stripe and includes live plan enforcement inside the app.
+
+Current plans:
+
+- **Free** — `$0`, `10` AI calls/month, `5` cross-posts/month, `1` Telegram channel
+- **Plus** — `$19/month`, `100` AI calls/month, `50` cross-posts/month, `5` Telegram channels
+- **Pro** — `$49/month`, unlimited AI calls, unlimited cross-posts, unlimited channels
+
+Usage is tracked in-product, and paid plans use Stripe checkout and customer portal flows.
+
+---
+
+### Settings and Localization
+
+The settings area covers profile information, timezone, language, AI preferences, billing snapshot, and connected-platform status.
+
+The interface is localized in **Russian** and **English**, with **Russian as the default locale**.
+
+---
+
+## Implemented with Limited or Partial Surface
+
+### LinkedIn and X Integrations
+
+The codebase includes LinkedIn and X connection flows, adaptation logic, publishing/background orchestration, and some analytics plumbing. That said, the product should not yet be described as a fully mature multi-platform publishing suite.
+
+Use careful wording such as:
+
+- optional LinkedIn and X support
+- platform-specific workflows where available
+- features subject to platform API limitations
+
+---
+
+### Broader Analytics Plumbing
+
+There is backend work for LinkedIn and X analytics collection, but the main dashboard experience is still Telegram-focused.
+
+Do not describe the current product as having a complete unified analytics dashboard across all connected platforms.
+
+---
+
+### Media Management
+
+The backend includes media upload, storage, deletion, and signed URL support. The dedicated media page is still thin, so this is better described as an available backend capability rather than a polished media library experience.
+
+---
+
+### Rescheduling UX
+
+Rescheduling exists, but it is not yet a full drag-and-drop calendar workflow.
+
+---
+
+## Not Shipped as User-Facing Features
+
+These should not be presented as current product capabilities:
+
+- AI image generation
+- podcast ingestion
+- comment analysis
+- viral prediction
+- team collaboration workspaces
+- native mobile apps
+- non-Stripe payment methods
+- a fully unified cross-platform analytics experience
+
+---
+
+## Roadmap Direction
+
+Near-term improvements that fit the current codebase direction:
+
+- stronger LinkedIn and X publishing UX
+- broader analytics UI on top of existing collectors
+- better rescheduling interactions
+- fuller media library UI
+
+Longer-term ideas:
+
+- competitor tracking
+- comment and sentiment workflows
+- prediction/scoring features
+- collaboration features
+- additional publishing platforms
+- mobile apps

@@ -1,268 +1,336 @@
 # Product Requirements Document
 
 **Product:** Telegram Content OS  
-**Version:** V1.0  
-**Date:** March 6, 2026  
-**Status:** Ready for Launch
+**Version:** V1 documentation refresh  
+**Date:** March 9, 2026  
+**Status:** Functional V1 with some partial and in-progress workflows
 
 ---
 
 ## 1. Executive Summary
 
-Telegram Content OS is an AI-powered content operating system for Telegram creators. It handles the complete content workflow: ingestion, AI generation and adaptation, scheduling, publishing, and analytics.
+Telegram Content OS is a Telegram-first content operating system for creators who publish regularly and want one place to capture ideas, ingest Telegram posts, generate or adapt content with AI, schedule publication, publish to Telegram, and review core channel performance.
 
-Telegram creators produce high-quality content daily but lack tools designed specifically for their workflow. Existing solutions treat Telegram as an afterthought or focus entirely on other platforms. Telegram Content OS is built from the ground up for Telegram-first creators who want to streamline their content operations and optionally extend to other platforms.
+The product already covers the main Telegram workflow end to end: authentication, channel connection, post ingestion, content library, AI-assisted drafting, calendar scheduling, Telegram publishing, welcome templates, billing, localization, and a Telegram analytics surface. It also contains groundwork for LinkedIn and Twitter/X connections, cross-platform adaptation, cross-posting, and background analytics collection, but those areas should be described carefully because the user-facing product remains Telegram-first today.
 
-V1 is feature-complete and ready for launch with a working billing system, AI generation and adaptation pipelines, scheduling, analytics, and a native Russian-language interface.
+This document reflects the current codebase, not the aspirational marketing version. Where a workflow is partial, backend-only, or still being surfaced in the UI, it is called out explicitly.
 
 ---
 
 ## 2. Problem Statement
 
-Telegram has become a primary platform for expert creators in tech, business, finance, and media. These creators publish valuable insights daily to audiences of thousands. Yet the tools available to them are inadequate:
+Telegram creators often operate with a fragmented stack:
 
-**Generic social media tools don't fit.** Buffer, Hootsuite, and similar tools are designed for Instagram, Twitter, and Facebook. They have limited Telegram integration, no AI generation capabilities, and workflows that assume you're posting visuals, not long-form text.
+- Telegram itself for publishing
+- notes or docs for idea capture
+- spreadsheets or calendars for planning
+- generic AI tools for drafting and rewriting
+- separate dashboards or manual checks for performance
 
-**AI writing tools are disconnected.** ChatGPT, Claude, and similar tools can generate content but require constant context-switching. They don't integrate with your content library, don't learn your tone from past posts, and don't handle scheduling or publishing.
+That fragmentation creates three practical problems:
 
-**Manual workflows are inefficient.** Without specialized tools, creators resort to spreadsheets for content calendars, manual copy-paste for publishing, and guesswork for analytics. This overhead distracts from creating.
+1. **Telegram is underserved by creator software.** Most scheduling and content tools are built around Instagram, LinkedIn, or X and treat Telegram as a secondary destination.
+2. **AI tools are disconnected from publishing workflows.** Creators can draft in ChatGPT or Gemini, but still need to manually move content into their scheduling, publishing, and archive systems.
+3. **Expansion to other platforms increases operational load.** Reformatting Telegram-native writing for LinkedIn or X is possible, but repetitive and easy to delay.
 
-**Platform expansion is hard.** Creators who want to reach audiences on LinkedIn or Twitter face the additional burden of adapting content for different platforms and managing multiple posting workflows.
-
-The result: creators spend too much time on operational tasks and not enough time creating. Growth opportunities are missed because the overhead of expansion is too high.
+The result is operational overhead: more copy-paste, more context switching, weaker reuse of existing content, and less visibility into what is working on Telegram.
 
 ---
 
 ## 3. Target User
 
-**Primary segment:** Solo Telegram channel creators with 1,000 to 100,000 subscribers.
+**Primary user:** Solo or small-team Telegram creators publishing expert or commentary-driven content.
 
-These creators share a consistent profile:
+Typical characteristics:
 
-- They publish regularly, often daily or several times per week
-- Their content is substantive: analysis, opinion, industry commentary, practical advice
-- They value efficiency and are willing to pay for tools that save them time
-- They care about their voice and want content that sounds authentically like them
-- They may want to expand to other platforms but find the current workflow too burdensome
+- publish several times per week or daily
+- work in text-heavy formats rather than image-first formats
+- want to reuse and adapt existing content instead of starting from scratch every time
+- care about tone consistency and editorial control
+- may want optional distribution to LinkedIn or X without making that the center of the workflow
 
-**Geographic focus:** Initially Russian-speaking creators, with English-language creators as a secondary market.
+**Initial market orientation:** Russian-speaking creators first, with English-language support available in product.
 
-**Secondary users:** Small content teams and agencies managing multiple Telegram channels on behalf of clients.
-
----
-
-## 4. Value Proposition
-
-**A content operating system, not just a tool.** Telegram Content OS handles the complete content lifecycle: ingestion, generation, adaptation, scheduling, publishing, and analytics. Everything works together in one integrated platform.
-
-**AI that learns your voice.** The platform profiles each creator's Telegram channel, analyzing writing patterns and tone. That profile informs every generation and adaptation. The output sounds like you, not generic AI.
-
-**Telegram-first design.** Unlike tools that treat Telegram as an add-on, every feature is designed for Telegram's unique characteristics: long-form text, channel-based publishing, bot integration, and native analytics.
-
-**Optional cross-platform expansion.** Connect LinkedIn and Twitter when you want to expand. The AI adapts your Telegram content for each platform's style and constraints. Cross-posting is a convenience feature, not the core workflow.
-
-**Built for creators.** The interface is available in Russian by default. Onboarding, labels, billing, and all user-facing text are localized. The workflow respects that creators want control over their content — AI assists, but creators review and approve everything.
+**Secondary user:** Small operators managing multiple Telegram channels for a founder, brand, or client set.
 
 ---
 
-## 5. Core Features
+## 4. Product Positioning
 
-### Content Ingestion
+Telegram Content OS should be positioned as:
 
-- Connect Telegram channels via bot integration
-- Automatic import of new posts as they're published
-- Full content capture: text, images, videos, documents
-- Welcome message templates for new subscribers
+- a **Telegram-native creator workflow tool**
+- with **AI-assisted drafting and adaptation**
+- plus **calendar scheduling, Telegram publishing, and Telegram analytics**
+- and **optional LinkedIn / X extensions where supported**
+
+It should not be positioned as a fully mature multi-platform social suite. The product has cross-platform plumbing and some user-facing setup for LinkedIn and X, but the most complete and clearly shipped experience is still Telegram.
+
+---
+
+## 5. Value Proposition
+
+### Telegram-first workflow
+
+The product is built around Telegram channel operations rather than retrofitting Telegram into a generic scheduler.
+
+### One system for creation and operations
+
+Creators can move from imported posts or rough ideas to drafts, schedules, and published Telegram content without leaving the app.
+
+### AI guided by channel context
+
+The app profiles channel content and stores user preferences so AI generation and adaptation can be guided by channel context, tone, and style preferences. This is prompt-guided personalization, not model fine-tuning.
+
+### Optional expansion paths
+
+LinkedIn and X support exists as optional integrations and adaptation targets for creators who want to reuse Telegram ideas elsewhere.
+
+### Localized for the initial audience
+
+The app ships with Russian and English localization and defaults to Russian.
+
+---
+
+## 6. Current Product Scope
+
+### Shipped user-facing workflows
+
+- email/password auth and Google/GitHub OAuth
+- Telegram channel connection and webhook-based post ingestion
+- content library with search, filters, and status management
+- AI workflows for:
+  - developing ideas into drafts
+  - repurposing existing content
+  - generating drafts from YouTube links and article URLs
+  - adapting content for other platforms
+- calendar scheduling with month/week/day views
+- Telegram publishing for immediate and scheduled posts
+- Telegram analytics surface
+- welcome message template management per channel
+- billing, plan limits, and usage visibility
+- profile, timezone, language, and AI preference settings
+
+### Partial or limited workflows
+
+- rescheduling exists, but the current UX is limited and not drag-and-drop
+- media management backend exists, but the standalone media surface is thin
+- analytics UI is primarily Telegram-focused even though broader analytics plumbing exists
+- LinkedIn and X integrations exist in settings and backend flows, but the product should not yet be described as a fully polished multi-platform publishing suite
+
+### Internal or background-only capability
+
+- admin console for environment checks, billing overrides, failure visibility, and sync status
+- background analytics collection for LinkedIn and X
+- background broadcast / cross-post orchestration that is ahead of the public-facing product narrative
+
+---
+
+## 7. Core Features
+
+### Telegram Channel Connection and Ingestion
+
+- connect Telegram channels through the app's bot flow
+- automatically import newly received Telegram content
+- capture text, images, videos, documents, and media groups
+- maintain channel-level settings and detail views
+- configure welcome templates for new subscribers
 
 ### Content Library
 
-- Searchable archive of all imported posts
-- Filter by date, content type, channel, publication status
-- Status labels: draft, adapted, published
-- Media thumbnails for visual browsing
+- searchable content archive
+- filters by channel and status
+- support for drafts, scheduled content, published content, archived content, and idea-originated items
+- category and tag management
+- parent/child relationships for derived content
 
-### AI Content Generation
+### AI-Assisted Content Creation
 
-- **Develop Ideas:** Turn concepts into full posts
-- **Repurpose Content:** Transform posts into new formats
-- **Generate from Sources:** Create posts from YouTube videos or articles
-- Tone profiling based on channel history
+- **Develop Ideas:** turn a concept into a draft
+- **Repurpose Content:** create shorter versions, thread-style variants, or poll-oriented variants
+- **Generate from Sources:** generate from YouTube videos and article URLs
+- **Channel Profiling:** build a channel profile used to guide prompts and output style
 
-### AI Content Adaptation
+### AI Adaptation
 
-- Two-step pipeline: translation + platform adaptation
-- Platform-specific outputs: LinkedIn professional style, Twitter brevity
-- Automatic thread splitting for Twitter
-- Side-by-side preview and editing
+- adapt Telegram-originated content for LinkedIn and X
+- use a two-step pattern of translation/context normalization and then platform adaptation
+- support platform-specific previews
+- keep the creator in review/edit mode before publication
 
-### Scheduling
+### Scheduling and Publishing
 
-- Visual calendar view of all scheduled posts
-- Drag-and-drop rescheduling
-- Timezone-aware publishing
-- Recurring schedules (daily, weekly, monthly)
-
-### Cross-Platform Publishing (Mini-Feature)
-
-- OAuth connection to LinkedIn and Twitter
-- Platform-specific previews before publishing
-- Single-action broadcast to multiple platforms
-- Publishing is secondary to Telegram workflow
+- month, week, and day calendar views
+- click-to-create scheduling from calendar slots
+- cancel scheduled posts
+- limited reschedule flow
+- recurring schedules
+- timezone-aware publishing
+- Telegram publish flows for text, single-photo, media-group, and poll-like content patterns
 
 ### Analytics
 
-- Unified dashboard for all platforms
-- Metrics: views, likes, shares, comments, engagement rate
-- Engagement heatmap for optimal posting times
-- Platform comparison and trend analysis
+- Telegram analytics is the main shipped analytics experience
+- current emphasis is channel growth, best posting times, and top-performing content
+- cross-platform analytics plumbing exists but should not be described as a unified shipped analytics dashboard yet
 
-### Billing
+### Billing and Limits
 
-- Three tiers: Free, Plus ($19/month), Pro ($49/month)
-- Quota based on AI generations, not cross-posts
-- Clear usage tracking in dashboard
-- Stripe payment processing
+- Stripe checkout and customer portal
+- usage tracking for AI operations and cross-posting
+- plan-based limits for AI calls, channel count, and cross-post volume
 
 ### Localization
 
-- Full Russian and English interface
-- Locale-aware date/time formatting
-- Russian default, English available
+- Russian and English UI
+- Russian default locale
+- locale-aware navigation and formatting
 
 ---
 
-## 6. Pricing Strategy
+## 8. Pricing Strategy
 
-Pricing is structured to match AI usage at each level.
+Pricing is currently enforced by plan definitions in the app.
 
-| Plan | Price     | Monthly quota      | Target user             |
-| ---- | --------- | ------------------ | ----------------------- |
-| Free | $0        | 50 AI generations  | Onboarding, acquisition |
-| Plus | $19/month | 500 AI generations | Active solo creators    |
-| Pro  | $49/month | Unlimited          | Power users, agencies   |
+| Plan | Price     | AI calls / month | Cross-posts / month | Telegram channels |
+| ---- | --------- | ---------------- | ------------------- | ----------------- |
+| Free | $0        | 10               | 5                   | 1                 |
+| Plus | $19/month | 100              | 50                  | 5                 |
+| Pro  | $49/month | Unlimited        | Unlimited           | Unlimited         |
 
-**Free tier rationale.** No credit card required. Fifty generations lets creators fully explore the platform and generate substantial content before any payment commitment.
+Notes:
 
-**Plus tier rationale.** Five hundred generations covers creators who publish regularly and use AI for both generation and adaptation. At $19, it's priced competitively with other creator tools.
-
-**Pro tier rationale.** Unlimited generations for high-volume creators and agencies. At $49, it's significantly cheaper than hiring freelance writers or using multiple disconnected tools.
-
-**Unit economics.** Each AI generation costs approximately $0.01-$0.03 in compute. Platform infrastructure runs $20-$40 per month at MVP scale. Estimated gross margin is 85-90% at scale.
+- Free is the default tier and does not require Stripe checkout.
+- Plus and Pro are paid Stripe plans.
+- plan descriptions in public docs must match these enforced limits exactly.
 
 ---
 
-## 7. Competitive Landscape
+## 9. Current User Journey
 
-**Direct competitors:** None. No existing tool combines Telegram-first design with integrated AI generation, adaptation, scheduling, and analytics.
+1. **Sign up or log in** with email/password or OAuth.
+2. **Connect a Telegram channel** through the bot-driven flow.
+3. **Import and review content** inside the content library.
+4. **Create new material** from an idea, a previous post, or a supported source URL.
+5. **Edit the draft** before publishing.
+6. **Publish to Telegram now** or **schedule it** on the calendar.
+7. **Review Telegram analytics** to understand growth, timing, and top-performing posts.
+8. **Upgrade plans** if AI or cross-post limits are reached.
 
-**Adjacent competitors:**
-
-**Buffer, Hootsuite, Later** — Multi-platform scheduling tools. They lack Telegram integration, AI generation capabilities, and are designed for visual-first platforms (Instagram, Facebook).
-
-**ChatGPT, Claude, Jasper** — AI writing tools. They don't integrate with content libraries, don't learn from your past posts, and require constant context-switching between tools.
-
-**Telegram-specific tools** — Various bots and utilities for Telegram. None offer the comprehensive content operating system approach with AI generation and cross-platform capabilities.
-
-**Manual workflows** — Spreadsheets, notes apps, calendar tools. These require significant manual effort and don't scale.
-
-**Our defensible position:** The only platform built specifically for Telegram creators with integrated AI generation, adaptation, scheduling, and analytics. The tone profiling and two-step adaptation pipeline are purpose-built for this workflow.
+Optional: connect LinkedIn or X in settings and use adaptation workflows where needed.
 
 ---
 
-## 8. Success Metrics
+## 10. Launch Readiness
 
-**Acquisition**
+### Ready enough to present as available
 
-- 100 registered users within the first month
+- core Telegram workflow
+- billing and quota enforcement
+- localized interface
+- AI-assisted drafting, repurposing, and source-based generation
 
-**Activation**
+### Needs careful wording
 
-- 40% of signups connect a Telegram channel
-- 30% of signups generate or adapt at least one piece of content
+- cross-platform publishing: supported in parts, but not the most mature product surface
+- analytics: Telegram-facing today, not a truly unified cross-network dashboard
+- scheduling: functional and useful, but not drag-and-drop calendar management
+- AI voice claims: guided by channel profile and user preferences, not continuously self-improving model training
 
-**Conversion**
+Recommended public positioning:
 
-- 10% of free users upgrade to paid within 30 days
-
-**Retention**
-
-- 70% of paid users still active in month two
-
-**Revenue**
-
-- $2,000 MRR within 3 months of launch
-
-**Satisfaction**
-
-- NPS of 40 or higher from paid users
+> Telegram Content OS is a Telegram-first content workflow product with shipped AI drafting, scheduling, publishing, and Telegram analytics, plus early LinkedIn and X extension paths.
 
 ---
 
-## 9. User Journey
+## 11. Success Metrics
 
-1. **Sign up** — Creator visits the product, signs up with email. Interface defaults to Russian.
+Suggested product metrics remain reasonable, but should be interpreted against the actual current scope.
 
-2. **Connect Telegram** — Adds the platform's bot to their Telegram channel. Posts start importing automatically.
+### Acquisition
 
-3. **Explore content library** — Imported posts appear in the library. Creator can see their full recent history.
+- registered users
+- Telegram channel connections per new cohort
 
-4. **Generate or adapt content** — Creator selects a post to adapt, or uses AI to generate new content from an idea or external source.
+### Activation
 
-5. **Review and edit** — AI output appears for review. Creator can edit, regenerate, or proceed.
+- first imported channel
+- first AI-generated or AI-repurposed draft
+- first scheduled or published Telegram post
 
-6. **Schedule or publish** — Creator publishes immediately to Telegram, schedules for later, or optionally cross-posts to LinkedIn/Twitter.
+### Retention
 
-7. **Track performance** — Analytics dashboard shows engagement metrics. Creator sees what's working without leaving the platform.
+- weekly active channels
+- weekly publishing activity per creator
+- repeat AI usage per paid account
 
-8. **Upgrade when ready** — Clear prompts when approaching generation limits. Single-click upgrade with Stripe.
+### Monetization
 
----
+- free-to-paid conversion
+- paid retention by tier
+- average monthly AI usage by tier
 
-## 10. V2 Roadmap
+### Product quality
 
-**AI image generation** — Generate platform-appropriate visuals to accompany posts.
-
-**Competitor channel tracking** — Monitor competitor Telegram channels and benchmark engagement.
-
-**Comment analysis and sentiment tracking** — Surface themes and sentiment from reader responses.
-
-**Viral prediction scoring** — Score posts by predicted engagement potential before publishing.
-
-**Team and collaboration features** — Multi-user accounts for agencies managing multiple channels.
-
-**Mobile app** — Native iOS and Android apps for reviewing and approving content on the go.
-
-**Additional platforms** — Instagram, Facebook, and Medium as publishing destinations.
-
-**Custom AI fine-tuning** — Allow Pro users to fine-tune models on their own content.
-
-**Russian payment methods** — YooMoney and QIWI support for creators without Stripe access.
+- publish success rate
+- background job failure rate
+- analytics sync freshness for Telegram channels
 
 ---
 
-## 11. Risks and Mitigations
+## 12. Roadmap Priorities
 
-**Telegram platform risk** — Telegram could change its Bot API. Mitigation: Uses only official Bot API, avoids unofficial methods, monitors changelog.
+### Near-term follow-ups
 
-**AI quality variance** — Models can produce inconsistent output. Mitigation: Two-step pipeline, channel tone profiling, user review before publishing.
+- stronger cross-posting UX for LinkedIn and X
+- broader analytics UI for non-Telegram platforms where data is available
+- improved rescheduling UX
+- fuller media library surface on top of the existing backend
 
-**LinkedIn and Twitter API changes** — Both platforms change API access and pricing. Mitigation: Clean architecture separates platform integrations for easy updates.
+### Longer-horizon V2 items
 
-**Low initial demand** — Target segment is real but needs validation. Mitigation: Free tier reduces friction. Direct targeting of Telegram creator communities.
-
-**OAuth token expiry** — LinkedIn and Twitter tokens expire. Mitigation: Token health monitoring, user warnings, guided reauthorization.
+- competitor channel tracking
+- comment analysis and sentiment workflows
+- viral prediction or scoring
+- team workspaces and permissions
+- native mobile apps
+- additional publishing platforms
+- custom model tuning or richer creator-specific learning loops
+- alternative payment rails beyond Stripe
 
 ---
 
-## 12. Non-Goals for V1
+## 13. Risks and Constraints
 
-The following are explicitly out of scope for V1:
+### Platform dependence
 
-- **No team or multi-user accounts** — V1 is single-user only
-- **No native mobile app** — Web interface is responsive; native app is V2
-- **No comment or engagement management** — Publishing and tracking only
-- **No original content generation from scratch** — Platform adapts and extends existing content
-- **No payment methods beyond Stripe** — YooMoney and QIWI are V2
-- **No competitor tracking** — V2 feature once core workflow is validated
+Telegram, LinkedIn, and X API changes can affect publishing, ingestion, and analytics behavior.
 
-These boundaries keep V1 focused and shippable. Each item is a real future opportunity, not a permanent no.
+### Analytics limitations
+
+Different platforms expose different metrics and refresh windows. Public docs should acknowledge that analytics availability depends on platform APIs.
+
+### AI quality variance
+
+AI output still needs editorial review. Prompt-guided personalization improves relevance, but does not guarantee creator-perfect output.
+
+### Product messaging risk
+
+The biggest current risk is overclaiming multi-platform maturity when the strongest product story is Telegram-first execution.
+
+---
+
+## 14. Non-Goals for the Current V1 Narrative
+
+The current product narrative should avoid claiming:
+
+- a fully unified multi-platform analytics dashboard
+- drag-and-drop calendar management
+- podcast ingestion
+- AI image generation
+- team collaboration
+- comment analysis or viral prediction
+- advanced AI fine-tuning
+- non-Stripe payment methods
+
+These may become valid roadmap items later, but they should not appear as shipped capability today.
