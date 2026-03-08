@@ -77,6 +77,7 @@ interface TelegramComposerMetadata {
 interface TelegramPostComposerProps {
   initialChannels: Channel[];
   initialDraft?: TelegramDraftItem | null;
+  initialSchedule?: { scheduledAt: string; timezone: string } | null;
 }
 
 function readTelegramComposerMetadata(sourceMetadata: unknown): TelegramComposerMetadata {
@@ -107,12 +108,27 @@ function readTelegramComposerMetadata(sourceMetadata: unknown): TelegramComposer
 export function TelegramPostComposer({
   initialChannels,
   initialDraft = null,
+  initialSchedule = null,
 }: TelegramPostComposerProps) {
   const t = useTranslations("telegramPost");
   const tAi = useTranslations("aiWriter");
   const tCommon = useTranslations("common");
 
   const initialMetadata = readTelegramComposerMetadata(initialDraft?.sourceMetadata);
+
+  const prefillSchedule = initialSchedule?.scheduledAt
+    ? (() => {
+        try {
+          const date = new Date(initialSchedule.scheduledAt);
+          return {
+            date: date.toISOString().split("T")[0],
+            time: date.toTimeString().slice(0, 5),
+          };
+        } catch {
+          return null;
+        }
+      })()
+    : null;
 
   const [channels] = useState<Channel[]>(initialChannels);
   const [draftId, setDraftId] = useState<string | null>(initialDraft?.id ?? null);
@@ -129,9 +145,11 @@ export function TelegramPostComposer({
     message: string;
   } | null>(null);
 
-  const [composeMode, setComposeMode] = useState<"post" | "schedule">("post");
-  const [scheduleDate, setScheduleDate] = useState("");
-  const [scheduleTime, setScheduleTime] = useState("");
+  const [composeMode, setComposeMode] = useState<"post" | "schedule">(
+    prefillSchedule ? "schedule" : "post",
+  );
+  const [scheduleDate, setScheduleDate] = useState(prefillSchedule?.date ?? "");
+  const [scheduleTime, setScheduleTime] = useState(prefillSchedule?.time ?? "");
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
 

@@ -5,7 +5,7 @@ import { getConnectedChannels } from "@/server/actions/telegram-post";
 import { getContent } from "@/server/actions/content";
 
 type TelegramPostPageProps = {
-  searchParams: Promise<{ contentId?: string }>;
+  searchParams: Promise<{ contentId?: string; scheduledAt?: string; timezone?: string }>;
 };
 
 export default async function TelegramPostPage({ searchParams }: TelegramPostPageProps) {
@@ -27,10 +27,21 @@ export default async function TelegramPostPage({ searchParams }: TelegramPostPag
         }
       : null;
 
+  const initialSchedule = params.scheduledAt
+    ? {
+        scheduledAt: params.scheduledAt,
+        timezone: params.timezone || "UTC",
+      }
+    : null;
+
   return (
     <>
       <PageHeader title={t("pageTitle")} description={t("pageDescription")} />
-      <TelegramPostComposer initialChannels={channels} initialDraft={initialDraft} />
+      <TelegramPostComposer
+        initialChannels={channels}
+        initialDraft={initialDraft}
+        initialSchedule={initialSchedule}
+      />
     </>
   );
 }

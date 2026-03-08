@@ -90,9 +90,8 @@ export function SchedulePageClient() {
     scheduledAt: Date;
     timezone: string;
   }) {
-    // Redirect to crosspost workflow where proper content selection and scheduling happens
     router.push(
-      `/dashboard/crosspost?scheduledAt=${data.scheduledAt.toISOString()}&timezone=${data.timezone}&platform=${data.platform}`,
+      `/dashboard/telegram-post?scheduledAt=${data.scheduledAt.toISOString()}&timezone=${data.timezone}`,
     );
     setDialogOpen(false);
   }
