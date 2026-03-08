@@ -1,12 +1,12 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-05
-**Commit:** 0356cf7
+**Generated:** 2026-03-09
+**Commit:** 47dc025
 **Branch:** work/telegram-content-os
 
 ## OVERVIEW
 
-AI-powered content operating system for Telegram creators. The app ingests Telegram and external sources (YouTube/articles), generates/adapts content with Google Gemini, and handles scheduling, cross-posting, analytics, and billing.
+AI-powered content operating system for Telegram creators. The app ingests Telegram and external sources, generates/adapts content with Gemini, and handles scheduling, cross-posting, analytics, and billing.
 
 Core stack: Next.js 16 App Router + TypeScript strict + Supabase + Drizzle ORM + Inngest + Stripe.
 
@@ -14,45 +14,51 @@ Core stack: Next.js 16 App Router + TypeScript strict + Supabase + Drizzle ORM +
 
 ```
 src/
-├── app/                        # App Router pages + API routes
-│   ├── [locale]/               # Locale wrapper (en, ru; default: ru)
-│   │   ├── (auth)/             # Login/signup/callback
-│   │   └── (dashboard)/        # Auth-protected UI
-│   │       └── dashboard/      # Main product surfaces (admin, analytics, billing, channels, create, crosspost, media, posts, publish, schedule, settings, telegram-post)
-│   └── api/                    # health, inngest, telegram webhook, billing webhooks, social auth
-├── components/                 # UI + feature components (see src/components/AGENTS.md)
-├── lib/                        # Business/domain logic (see src/lib/AGENTS.md)
-├── server/                     # Server actions + DB layer (see src/server/AGENTS.md)
-├── hooks/                      # Shared hooks
-├── i18n/                       # next-intl routing/navigation
-├── messages/                   # en.json / ru.json
+├── app/                        # App Router pages, layouts, route handlers; see src/app/AGENTS.md
+│   ├── [locale]/               # Locale shell (en, ru; default: ru)
+│   └── api/                    # OAuth, billing, health, Inngest, Telegram; see src/app/api/AGENTS.md
+├── components/                 # UI + feature components; see src/components/AGENTS.md
+├── lib/                        # Business/domain logic + Inngest functions; see src/lib/AGENTS.md
+├── server/                     # Server actions + DB access; see src/server/AGENTS.md
+│   └── db/schema/              # Table, enum, relation inventory; see src/server/db/schema/AGENTS.md
+├── hooks/                      # Small shared hooks
+├── i18n/                       # next-intl routing/navigation wrappers
+├── messages/                   # en.json / ru.json message catalogs
 ├── test/                       # Shared test setup/factories/mocks
 └── middleware.ts               # i18n + Supabase auth request pipeline
 ```
 
 ## WHERE TO LOOK
 
-| Task                    | Location                                                     | Notes                                 |
-| ----------------------- | ------------------------------------------------------------ | ------------------------------------- |
-| Add locale page         | `src/app/[locale]/.../page.tsx`                              | Keep locale-aware navigation/messages |
-| Add dashboard page      | `src/app/[locale]/(dashboard)/dashboard/{feature}/page.tsx`  | Most product pages live here          |
-| Add API route           | `src/app/api/{domain}/route.ts`                              | Export named HTTP methods             |
-| Add server action       | `src/server/actions/{domain}.ts`                             | Return `ActionResult<T>` union        |
-| Add DB table/schema     | `src/server/db/schema/{table}.ts` + `schema/index.ts`        | Keep barrel exports in sync           |
-| Add background function | `src/lib/inngest/functions/{domain}/` + `functions/index.ts` | Must register in index                |
-| Add component           | `src/components/{feature}/{name}.tsx`                        | Co-locate tests in `__tests__/`       |
-| Add UI primitive        | `src/components/ui/`                                         | Use shadcn CLI                        |
+| Task                                 | Location                                   | Notes                                                   |
+| ------------------------------------ | ------------------------------------------ | ------------------------------------------------------- |
+| Add or move page/layout routes       | `src/app/AGENTS.md`                        | Route groups, locale rules, loading/error placement     |
+| Add API route or webhook             | `src/app/api/AGENTS.md`                    | Named HTTP methods, OAuth/webhook constraints           |
+| Add feature component                | `src/components/AGENTS.md`                 | Feature folders, large component hotspots, shadcn rules |
+| Add business logic or background job | `src/lib/AGENTS.md`                        | Module map, Inngest registry, quota rules               |
+| Add server action                    | `src/server/AGENTS.md`                     | `ActionResult<T>`, auth-first patterns, DB access       |
+| Add DB table/schema                  | `src/server/db/schema/AGENTS.md`           | Barrel exports, enums, relations, schema tests          |
+| Adjust locale config/navigation      | `src/i18n/{routing,request,navigation}.ts` | Default locale is `ru`                                  |
+| Update shared test utilities         | `src/test/`                                | Helpers only; feature tests stay colocated              |
+
+## CODE MAP
+
+| Symbol         | Type         | Location                             | Refs | Role                                              |
+| -------------- | ------------ | ------------------------------------ | ---- | ------------------------------------------------- |
+| `middleware`   | function     | `src/middleware.ts`                  | 1    | Request gate for i18n + auth redirects            |
+| `db`           | proxy export | `src/server/db/index.ts`             | 244  | Canonical DB access surface across app/lib/server |
+| `functions`    | constant     | `src/lib/inngest/functions/index.ts` | 3    | Canonical Inngest registration array              |
+| `LocaleLayout` | async layout | `src/app/[locale]/layout.tsx`        | n/a  | Owns `<html>`, fonts, providers, analytics        |
 
 ## CONVENTIONS
 
-- **Package manager**: Bun (`bun install`, `bun run ...`, `bunx ...`).
-- **Imports**: `@/` alias for `src/`.
-- **Formatting**: Prettier (double quotes, semicolons, trailing commas, 100 width).
-- **Styling**: Tailwind CSS 4 + `cn()` helper from `@/lib/utils`.
-- **Actions**: `ActionResult<T>` pattern (`{ success: true, data } | { success: false, error }`).
-- **DB access**: Use `db` from `@/server/db` (lazy singleton proxy), never direct `postgres` imports.
-- **i18n**: Default locale is `ru`; user-facing strings belong in `src/messages/{locale}.json`.
-- **Tests**: Vitest + Testing Library; keep tests close to features when possible.
+- **Package manager**: Bun in the main app; use `bun install`, `bun run ...`, `bunx ...`.
+- **Imports**: `@/` aliases `src/`.
+- **Formatting**: Prettier with double quotes, semicolons, trailing commas, 100-column width, Tailwind plugin ordering.
+- **TypeScript**: strict mode is on; the main `tsconfig.json` excludes `telegram-content-os-landing/`.
+- **DB access**: import `db` from `@/server/db`; do not open direct `postgres` clients in app code.
+- **i18n**: default locale is `ru`; user-facing strings live in `src/messages/{locale}.json`.
+- **Tests**: Vitest + Testing Library for unit tests, Playwright for e2e, colocated `__tests__/` when practical.
 
 ## ANTI-PATTERNS
 
@@ -87,27 +93,10 @@ Billing webhook
   -> subscription + usage updates
 ```
 
-## BACKGROUND JOBS (Inngest)
+## BACKGROUND JOBS
 
-Registered in `src/lib/inngest/functions/index.ts`:
-
-- `telegramPostReceived`
-- `publishToTelegram`
-- `adaptContent`
-- `developIdea`
-- `repurposeContent`
-- `generateFromSource`
-- `profileChannel`
-- `suggestCalendarFill`
-- `executeScheduledPost`
-- `processRecurringSchedules`
-- `executeBroadcast`
-- `processExternalSource`
-- `collectLinkedInAnalytics`
-- `collectTwitterAnalytics`
-- `collectTelegramAnalytics`
-- `helloWorld` (example)
-- `scheduledExample` (example)
+- Canonical function inventory lives in `src/lib/AGENTS.md`.
+- Register every new function in `src/lib/inngest/functions/index.ts`.
 
 ## COMMANDS
 
@@ -123,11 +112,12 @@ bun test:coverage    # Vitest coverage
 bun test:e2e         # Playwright
 bun inngest-dev      # Inngest local dev
 bun test:smoke       # Smoke test script
+bunx tsc --noEmit    # CI typecheck command
 ```
 
 ## NOTES
 
 - Current database migrations include `drizzle/0000` through `drizzle/0005`.
-- DB schema currently has **19 tables** (`external-sources` is included).
+- DB schema currently has **19 tables**; full inventory lives in `src/server/db/schema/AGENTS.md`.
 - Middleware file naming is still `middleware.ts`; Next.js 16 warns that `proxy` is the newer convention.
-- There is an untracked standalone subproject folder `telegram-content-os-landing/`; it is separate from `src/app/[locale]/page.tsx` landing.
+- `telegram-content-os-landing/` is a separate Vite app excluded from the main `tsconfig.json`; it is not the production landing route.
