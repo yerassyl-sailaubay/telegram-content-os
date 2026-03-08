@@ -37,44 +37,27 @@ server/
 
 ## WHERE TO LOOK
 
-| Task                    | Location                                                         |
-| ----------------------- | ---------------------------------------------------------------- |
-| Add/update action       | `src/server/actions/{domain}.ts`                                 |
-| Add DB table            | `src/server/db/schema/{table}.ts` + export via `schema/index.ts` |
-| Adjust DB bootstrapping | `src/server/db/index.ts`                                         |
-| Seed data updates       | `src/server/db/seed.ts`                                          |
+| Task                    | Location                                         |
+| ----------------------- | ------------------------------------------------ |
+| Add/update action       | `src/server/actions/{domain}.ts`                 |
+| Add DB table            | `src/server/db/schema/AGENTS.md`                 |
+| Adjust DB bootstrapping | `src/server/db/index.ts`                         |
+| Seed data updates       | `src/server/db/seed.ts`                          |
+| Test action behavior    | `src/server/actions/__tests__/{domain}.test.ts`  |
+| Test schema shape       | `src/server/db/schema/__tests__/{table}.test.ts` |
 
 ## CONVENTIONS
 
 - **ActionResult contract**: return `{ success: true, data }` or `{ success: false, error }`.
 - **Auth-first pattern**: verify current user before user-scoped DB reads/writes.
 - **DB import**: always `import { db } from "@/server/db"`.
-- **Schema hygiene**: one table per schema file; keep `schema/index.ts` in sync.
+- **Schema hygiene**: one table per schema file; keep `schema/index.ts` in sync; full schema rules live in `src/server/db/schema/AGENTS.md`.
 - **Revalidation**: use `revalidatePath` after state-changing actions where UI cache depends on it.
 
-## DB TABLES (CURRENT)
+## DB SCHEMA
 
-19 schema files currently define:
-
-- `analytics-sync-log`
-- `channel-metrics`
-- `channel-profiles`
-- `content-library`
-- `cross-posts`
-- `external-sources`
-- `media-files`
-- `platform-connections`
-- `post-analytics`
-- `recurring-schedules`
-- `schedules`
-- `subscriptions`
-- `telegram-channels`
-- `telegram-posts`
-- `usage-tracking`
-- `user-preferences`
-- `users`
-- `welcome-messages`
-- `welcome-templates`
+- Full table, relation, and enum inventory lives in `src/server/db/schema/AGENTS.md`.
+- New schema work requires a file in `src/server/db/schema/`, a matching export in `src/server/db/schema/index.ts`, and migration/test updates.
 
 ## ANTI-PATTERNS
 
