@@ -3,7 +3,6 @@ import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { getDashboardHomeData } from "@/server/actions/dashboard";
 import { getDraftsAndIdeas, getContentByStatus } from "@/server/actions/content";
-import { QuickStatsSection } from "@/components/dashboard/quick-stats";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { UpcomingPosts } from "@/components/dashboard/upcoming-posts";
 import { QuickCapture } from "@/components/content/quick-capture";
@@ -27,12 +26,11 @@ function formatDashboardDate(locale: string) {
   }).format(new Date());
 }
 
-function HeroStat({ label, value, note }: { label: string; value: string; note: string }) {
+function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-3xl border border-white/12 bg-white/[0.06] p-4">
+    <div className="rounded-3xl border border-white/12 bg-white/[0.06] px-4 py-3">
       <p className="text-xs font-semibold tracking-[0.16em] text-white/55 uppercase">{label}</p>
-      <p className="mt-3 text-2xl font-semibold tracking-tight text-white">{value}</p>
-      <p className="mt-2 text-sm text-white/70">{note}</p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</p>
     </div>
   );
 }
@@ -83,49 +81,42 @@ export default async function DashboardPage() {
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
           <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.22),transparent_32%),linear-gradient(135deg,#0f172a,#10243a_48%,#0f172a)] text-white shadow-[0_28px_80px_rgba(15,23,42,0.45)]">
             <CardContent className="p-6 sm:p-8">
-              <div className="flex flex-col gap-8">
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl">
                     <p className="text-xs font-semibold tracking-[0.18em] text-cyan-100/72 uppercase">
-                      {t("heroEyebrow")}
+                      {today}
                     </p>
-                    <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                       {t("welcomeBack", { name: displayName })}
                     </h2>
-                    <p className="mt-2 text-sm text-cyan-50/72">{today}</p>
-                    <p className="mt-5 max-w-xl text-base leading-7 text-cyan-50/76">
-                      {t("heroSummary")}
-                    </p>
                   </div>
 
-                  <div className="hidden min-w-[220px] rounded-[1.75rem] border border-white/12 bg-white/[0.05] p-5 lg:block">
-                    <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/62 uppercase">
-                      {t("heroCalloutLabel")}
-                    </p>
-                    <p className="mt-3 text-4xl font-semibold text-white">{calendarGaps}</p>
-                    <p className="mt-2 text-sm leading-6 text-cyan-50/72">
-                      {t("heroCalloutDescription")}
-                    </p>
-                  </div>
+                  {calendarGaps > 0 && (
+                    <div className="hidden min-w-[220px] rounded-[1.75rem] border border-white/12 bg-white/[0.05] p-5 lg:block">
+                      <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/62 uppercase">
+                        {t("heroCalloutLabel")}
+                      </p>
+                      <p className="mt-3 text-4xl font-semibold text-white">{calendarGaps}</p>
+                      <p className="mt-2 text-sm leading-6 text-cyan-50/72">
+                        {t("heroCalloutDescription")}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <QuickActions />
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <HeroStat
-                    label={t("statAiGenerations")}
-                    value={`${aiUsed} / ${aiLimitDisplay}`}
-                    note={t("heroStatAi")}
-                  />
+                <div className="grid gap-3 sm:grid-cols-4">
+                  <HeroStat label={t("statIdeas")} value={ideasCount.toString()} />
+                  <HeroStat label={t("statDrafts")} value={draftsCount.toString()} />
                   <HeroStat
                     label={t("upcomingPostsTitle")}
                     value={upcomingPosts.length.toString()}
-                    note={t("heroStatUpcoming")}
                   />
                   <HeroStat
                     label={t("statPublishedThisWeek")}
                     value={publishedThisWeek.toString()}
-                    note={t("heroStatPublished")}
                   />
                 </div>
               </div>
@@ -141,48 +132,6 @@ export default async function DashboardPage() {
               <QuickCapture />
             </CardContent>
           </Card>
-        </div>
-
-        {data && <QuickStatsSection data={data.quickStats} />}
-
-        <div>
-          <div className="mb-4 flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-foreground text-sm font-semibold tracking-[0.18em] uppercase">
-                {t("contentStatsTitle")}
-              </h2>
-              <p className="text-muted-foreground mt-2 max-w-2xl text-sm">
-                {t("contentStatsDescription")}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricsCard
-              title={t("statIdeas")}
-              value={ideasCount}
-              icon={<Lightbulb className="h-5 w-5" />}
-              description={t("statIdeasDescription")}
-            />
-            <MetricsCard
-              title={t("statDrafts")}
-              value={draftsCount}
-              icon={<FileText className="h-5 w-5" />}
-              description={t("statDraftsDescription")}
-            />
-            <MetricsCard
-              title={t("statPublishedThisWeek")}
-              value={publishedThisWeek}
-              icon={<TrendingUp className="h-5 w-5" />}
-              description={t("statPublishedDescription")}
-            />
-            <MetricsCard
-              title={t("statAiGenerations")}
-              value={`${aiUsed} / ${aiLimitDisplay}`}
-              icon={<Sparkles className="h-5 w-5" />}
-              description={t("statAiDescription")}
-            />
-          </div>
         </div>
 
         {calendarGaps > 0 && (
@@ -211,6 +160,33 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         )}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricsCard
+            title={t("statIdeas")}
+            value={ideasCount}
+            icon={<Lightbulb className="h-5 w-5" />}
+            description={t("statIdeasDescription")}
+          />
+          <MetricsCard
+            title={t("statDrafts")}
+            value={draftsCount}
+            icon={<FileText className="h-5 w-5" />}
+            description={t("statDraftsDescription")}
+          />
+          <MetricsCard
+            title={t("statPublishedThisWeek")}
+            value={publishedThisWeek}
+            icon={<TrendingUp className="h-5 w-5" />}
+            description={t("statPublishedDescription")}
+          />
+          <MetricsCard
+            title={t("statAiGenerations")}
+            value={`${aiUsed} / ${aiLimitDisplay}`}
+            icon={<Sparkles className="h-5 w-5" />}
+            description={t("statAiDescription")}
+          />
+        </div>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)]">
           <UpcomingPosts posts={upcomingPosts.slice(0, 4)} />

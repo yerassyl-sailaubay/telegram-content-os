@@ -13,9 +13,7 @@ type ActivityFeedProps = {
 };
 
 function getPlatformLabel(platform: string): string {
-  if (platform === "linkedin") return "LinkedIn";
-  if (platform === "twitter") return "Twitter / X";
-  return platform;
+  return platform === "telegram" ? "Telegram" : platform;
 }
 
 function getEventIcon(type: ActivityEvent["type"]) {
@@ -59,9 +57,9 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
             <p className="text-muted-foreground text-sm font-medium">{t("activityEmpty")}</p>
             <p className="text-muted-foreground text-xs">{t("activityEmptyDescription")}</p>
             <Button size="sm" asChild>
-              <Link href="/dashboard/crosspost">
+              <Link href="/dashboard/telegram-post">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                {t("actionNewCrossPost")}
+                {t("actionNewPost")}
               </Link>
             </Button>
           </div>

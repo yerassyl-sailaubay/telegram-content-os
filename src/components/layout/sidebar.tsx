@@ -50,7 +50,6 @@ type NavItemKey =
   | "schedule"
   | "analytics"
   | "media"
-  | "crosspost"
   | "billing"
   | "settings"
   | "admin";
