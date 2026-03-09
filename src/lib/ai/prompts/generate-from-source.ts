@@ -3,13 +3,17 @@ import type { SourceType } from "@/lib/sources/types";
 
 const MAX_SOURCE_LENGTH = 15_000;
 
-/** Number of post ideas to generate from a single source by default. */
 export const POSTS_PER_SOURCE = 3;
 
 interface GenerateFromSourceInput {
   sourceContent: string;
   sourceType: SourceType;
   channelProfile: ChannelProfile;
+  sourceMetadata?: {
+    title?: string;
+    author?: string;
+    duration?: number;
+  };
   options?: {
     maxLength?: number;
     numPosts?: number;
@@ -17,7 +21,7 @@ interface GenerateFromSourceInput {
 }
 
 export function buildGenerateFromSourcePrompt(input: GenerateFromSourceInput): OpenRouterMessage[] {
-  const { channelProfile, sourceType, options } = input;
+  const { channelProfile, sourceType, sourceMetadata, options } = input;
   const { niche, tone, topTopics, language } = channelProfile;
   const numPosts = options?.numPosts ?? POSTS_PER_SOURCE;
 
@@ -38,6 +42,16 @@ Write in the channel's voice and style, matching the tone described above.
 
   const maxLengthInstruction = options?.maxLength
     ? `\nKeep each post under ${options.maxLength} characters.`
+    : "";
+
+  const metadataContext = sourceMetadata
+    ? `
+Source Information:
+- Title: ${sourceMetadata.title ?? "Unknown"}
+- Author: ${sourceMetadata.author ?? "Unknown"}${sourceMetadata.duration ? `\n- Duration: ${Math.round(sourceMetadata.duration / 60)} minutes` : ""}
+
+This is a ${sourceType} source. ${sourceType === "youtube" ? "The content is a cleaned transcript from a video. Focus on the key insights and main points discussed." : ""}
+`
     : "";
 
   return [
@@ -64,12 +78,13 @@ Requirements for VARIETY:
 - Do NOT repeat the same points across posts
 
 ${channelContext}
+${metadataContext}
 Output EXACTLY ${numPosts} posts separated by the delimiter "---POST_SEPARATOR---" on its own line.
 Do NOT include any numbering, labels, or explanations — ONLY the post content separated by the delimiter.`,
     },
     {
       role: "user",
-      content: `Source (${sourceType}):
+      content: `Source Content:
 
 ${sourceContent}${maxLengthInstruction}`,
     },

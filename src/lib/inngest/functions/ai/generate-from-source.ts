@@ -36,12 +36,20 @@ export const generateFromSource = inngest.createFunction(
         }
 
         const row = rows[0]!;
+        const metadata = row.sourceMetadata as Record<string, unknown> | null;
         return {
           id: row.id,
           content: row.content,
           title: row.title,
           channelId: row.channelId,
           sourceUrl: row.sourceUrl,
+          sourceMetadata: metadata
+            ? {
+                title: metadata.title as string | undefined,
+                author: metadata.author as string | undefined,
+                duration: metadata.duration as number | undefined,
+              }
+            : undefined,
         };
       });
 
@@ -91,7 +99,11 @@ export const generateFromSource = inngest.createFunction(
           type: "source_to_telegram",
           sourceContent: contentItem.content ?? "",
           channelProfile: channelProfile ?? undefined,
-          options: { sourceType, numVariations: POSTS_PER_SOURCE },
+          options: {
+            sourceType,
+            numVariations: POSTS_PER_SOURCE,
+            sourceMetadata: contentItem.sourceMetadata,
+          },
         });
       });
 

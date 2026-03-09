@@ -325,7 +325,7 @@ describe("GenerationEngine", () => {
   });
 
   describe("generate — request passing", () => {
-    it("calls completeWithFallback with temperature 0.7", async () => {
+    it("calls completeWithFallback with type-appropriate temperature", async () => {
       const engine = new GenerationEngine(createMockClient());
       await engine.generate({
         type: "source_to_telegram",
@@ -335,7 +335,8 @@ describe("GenerationEngine", () => {
 
       expect(mockCompleteWithFallback).toHaveBeenCalledWith(
         expect.objectContaining({
-          temperature: 0.7,
+          temperature: 0.5,
+          max_tokens: 4000,
           messages: defaultMessages,
         }),
         undefined,
