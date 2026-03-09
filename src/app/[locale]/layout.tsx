@@ -6,6 +6,8 @@ import { Geist, Geist_Mono, Rubik, Manrope } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { homeSeoCopy } from "@/lib/seo/content";
+import { createPublicMetadata, getMetadataBase, SITE_NAME, type AppLocale } from "@/lib/seo/site";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
@@ -30,11 +32,6 @@ const manrope = Manrope({
   subsets: ["latin", "cyrillic"],
 });
 
-export const metadata: Metadata = {
-  title: "Telegram Content OS",
-  description: "Manage your Telegram content with ease",
-};
-
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -43,6 +40,54 @@ type Props = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const resolvedLocale = (
+    hasLocale(routing.locales, locale) ? locale : routing.defaultLocale
+  ) as AppLocale;
+  const seo = homeSeoCopy[resolvedLocale];
+  const publicMetadata = createPublicMetadata({
+    locale: resolvedLocale,
+    title: seo.title,
+    description: seo.description,
+    keywords: seo.keywords,
+  });
+
+  return {
+    metadataBase: getMetadataBase(),
+    applicationName: SITE_NAME,
+    ...publicMetadata,
+    title: {
+      default: seo.title,
+      template: `%s | ${SITE_NAME}`,
+    },
+    category: "technology",
+    authors: [{ name: SITE_NAME }],
+    creator: SITE_NAME,
+    publisher: SITE_NAME,
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION,
+      yandex: process.env.YANDEX_VERIFICATION,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
+  };
+}
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;

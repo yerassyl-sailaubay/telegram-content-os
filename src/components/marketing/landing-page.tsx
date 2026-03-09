@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   ArrowRight,
+  AudioWaveform,
   BarChart3,
   Bot,
   BrainCircuit,
@@ -10,16 +10,30 @@ import {
   ChevronDown,
   Check,
   CheckCircle2,
+  Clock3,
   FileText,
+  Gauge,
   Layers3,
+  MessageSquareQuote,
+  Mic,
   MoveRight,
   Send,
+  ShieldCheck,
   Sparkles,
+  Workflow,
 } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import {
+  getFooterSolutionLinks,
+  getFooterTrustLinks,
+  getSolutionPreviewCards,
+  marketingChromeCopy,
+} from "@/lib/seo/content";
+import type { AppLocale } from "@/lib/seo/site";
+import { Link } from "@/i18n/navigation";
 
 type LandingPageProps = {
-  locale: string;
+  locale: AppLocale;
 };
 
 const sectionShell = "mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-10";
@@ -38,7 +52,7 @@ export function LandingPage({ locale }: LandingPageProps) {
           className={`mx-auto flex max-w-[1240px] items-center justify-between rounded-full border border-white/10 bg-[#071118]/82 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:px-5`}
         >
           <Link
-            href={`/${locale}`}
+            href="/"
             className="flex items-center gap-2 font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-white sm:text-xl"
           >
             <span className="flex size-9 items-center justify-center rounded-full border border-[#41ffd8]/25 bg-[#41ffd8]/10 text-[#41ffd8]">
@@ -67,13 +81,13 @@ export function LandingPage({ locale }: LandingPageProps) {
               <LanguageSwitcher />
             </div>
             <Link
-              href={`/${locale}/login`}
+              href="/login"
               className="hidden text-sm font-medium text-white/68 transition-colors hover:text-white sm:block"
             >
               {t("nav.login")}
             </Link>
             <Link
-              href={`/${locale}/signup`}
+              href="/signup"
               className="inline-flex items-center justify-center rounded-full bg-[#41ffd8] px-4 py-2.5 text-sm font-semibold text-[#03262a] transition-all hover:-translate-y-0.5 hover:bg-[#6affdf] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#41ffd8]"
             >
               {t("nav.getStarted")}
@@ -83,12 +97,15 @@ export function LandingPage({ locale }: LandingPageProps) {
       </header>
 
       <main className="relative z-10 pt-28 pb-20 sm:pt-32">
-        <HeroSection locale={locale} />
+        <HeroSection />
+        <PipelineDiagramSection />
         <ProofSection />
-        <ComparisonSection locale={locale} />
-        <PricingSection locale={locale} />
+        <ComparisonSection />
+        <UseCasesSection locale={locale} />
+        <CombinedWorkflowSystemSection />
+        <PricingSection />
         <FaqSection />
-        <FinalCtaSection locale={locale} />
+        <FinalCtaSection />
       </main>
 
       <LandingFooter locale={locale} />
@@ -110,87 +127,139 @@ function LandingBackdrop() {
   );
 }
 
-function HeroSection({ locale }: { locale: string }) {
+function HeroSection() {
   const t = useTranslations("landing.hero");
 
-  const steps = [
-    { key: "capture", icon: <Bot className="size-5" /> },
-    { key: "library", icon: <Layers3 className="size-5" /> },
-    { key: "draft", icon: <Sparkles className="size-5" /> },
-    { key: "edit", icon: <FileText className="size-5" /> },
-    { key: "schedule", icon: <CalendarRange className="size-5" /> },
-    { key: "analytics", icon: <BarChart3 className="size-5" /> },
-  ] as const;
+  const promiseBullets = ["capture", "adapt", "measure"] as const;
 
   return (
-    <section id="product" className={`${sectionShell} pt-8 sm:pt-14`}>
+    <section className={`${sectionShell} pt-8 sm:pt-14`}>
       <div className="max-w-5xl md:mx-auto md:text-center">
-        <h1 className="font-[family-name:var(--font-display)] text-[2.6rem] leading-[0.96] tracking-[-0.05em] text-white sm:text-[3.8rem] lg:text-[4.6rem]">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-xs font-semibold tracking-[0.18em] text-white/68 uppercase backdrop-blur">
+          <span className="size-2 rounded-full bg-[#41ffd8]" />
+          {t("badge")}
+        </div>
+
+        <h1 className="mt-7 max-w-5xl font-[family-name:var(--font-display)] text-[2.95rem] leading-[0.94] tracking-[-0.05em] text-white sm:text-[4.4rem] md:mx-auto lg:text-[5.2rem]">
           {t("title")}
+          <span className="mt-3 block text-white/55">{t("titleAccent")}</span>
         </h1>
 
-        <p className="mt-5 max-w-2xl text-lg leading-8 text-white/68 sm:text-[1.15rem] md:mx-auto">
+        <p className="mt-6 max-w-3xl text-lg leading-8 text-white/70 sm:text-[1.15rem] md:mx-auto">
           {t("subtitle")}
         </p>
 
-        <div className="mt-10 md:mx-auto">
-          <div className="hidden items-start justify-center gap-0 sm:flex">
-            {steps.map((step, i) => (
-              <div key={step.key} className="flex items-start">
-                <div className="flex w-20 flex-col items-center gap-3">
-                  <div className="flex size-14 items-center justify-center rounded-2xl border border-[#41ffd8]/25 bg-[#41ffd8]/10 text-[#41ffd8] shadow-[0_0_24px_rgba(65,255,216,0.12)] transition-all hover:border-[#41ffd8]/50 hover:bg-[#41ffd8]/18 hover:shadow-[0_0_36px_rgba(65,255,216,0.22)]">
-                    {step.icon}
-                  </div>
-                  <span className="h-8 text-center text-[11px] leading-4 font-semibold tracking-[0.06em] text-white/64">
-                    {t(`steps.${step.key}`)}
-                  </span>
-                </div>
-                {i < steps.length - 1 && (
-                  <div className="mt-5 flex items-center px-1.5">
-                    <div className="h-px w-6 bg-gradient-to-r from-[#41ffd8]/40 to-[#41ffd8]/15" />
-                    <MoveRight className="size-3.5 text-[#41ffd8]/35" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="sm:hidden">
-            <div className="grid grid-cols-3 gap-4">
-              {steps.map((step, i) => (
-                <div key={step.key} className="flex flex-col items-center gap-2.5">
-                  <div className="relative flex size-13 items-center justify-center rounded-2xl border border-[#41ffd8]/25 bg-[#41ffd8]/10 text-[#41ffd8]">
-                    {step.icon}
-                    {i < steps.length - 1 && i % 3 !== 2 && (
-                      <span className="absolute top-1/2 -right-3 -translate-y-1/2 text-xs text-[#41ffd8]/30">
-                        →
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-center text-[10px] leading-4 font-semibold tracking-[0.04em] text-white/60">
-                    {t(`steps.${step.key}`)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <div className="mt-8 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center md:justify-center">
           <Link
-            href={`/${locale}/signup`}
+            href="/signup"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-[#41ffd8] px-6 py-3.5 text-base font-semibold text-[#03262a] transition-all hover:-translate-y-0.5 hover:bg-[#6affdf] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#41ffd8]"
           >
             {t("ctaPrimary")}
             <ArrowRight className="size-4" />
           </Link>
           <a
-            href="#pricing"
+            href="#workflow"
             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/[0.08]"
           >
             {t("ctaSecondary")}
             <MoveRight className="size-4" />
           </a>
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-3 md:justify-center">
+          {promiseBullets.map((key) => (
+            <div
+              key={key}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm text-white/74"
+            >
+              <CheckCircle2 className="size-4 text-[#41ffd8]" />
+              {t(`promise.${key}`)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PipelineDiagramSection() {
+  const t = useTranslations("landing.hero");
+
+  const sources = ["voice", "messages", "docs", "links"] as const;
+  const destinations = ["library", "queue", "analytics"] as const;
+
+  return (
+    <section id="product" className={`${sectionShell} mt-10 sm:mt-14`}>
+      <div className={`${glassCard} p-5 sm:p-6 lg:p-7`}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(65,255,216,0.18),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(45,197,255,0.14),transparent_32%)]" />
+        <div className="relative z-10">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div>
+              <p className="text-xs font-semibold tracking-[0.18em] text-white/52 uppercase">
+                {t("visual.eyebrow")}
+              </p>
+              <p className="mt-1 text-lg font-semibold text-white">{t("visual.title")}</p>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#41ffd8]/30 bg-[#41ffd8]/12 px-3 py-1.5 text-xs font-semibold text-[#72ffe3]">
+              <span className="size-2 rounded-full bg-[#41ffd8]" />
+              {t("visual.live")}
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-white/46 uppercase">
+              {t("visual.inputLabel")}
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {sources.map((key) => (
+                <PipelineNode
+                  key={key}
+                  icon={getSourceIcon(key)}
+                  title={t(`visual.sources.${key}.title`)}
+                  subtitle={t(`visual.sources.${key}.subtitle`)}
+                />
+              ))}
+            </div>
+
+            <HeroCore
+              label={t("visual.router.label")}
+              title={t("visual.router.title")}
+              description={t("visual.router.description")}
+              chips={[
+                t("visual.router.chips.voice"),
+                t("visual.router.chips.draft"),
+                t("visual.router.chips.schedule"),
+              ]}
+            />
+
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-white/46 uppercase">
+              {t("visual.outputLabel")}
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {destinations.map((key) => (
+                <PipelineNode
+                  key={key}
+                  icon={getDestinationIcon(key)}
+                  title={t(`visual.destinations.${key}.title`)}
+                  subtitle={t(`visual.destinations.${key}.subtitle`)}
+                  tone="accent"
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            {(["quota", "queue", "loop"] as const).map((key) => (
+              <MiniInsightCard
+                key={key}
+                title={t(`visual.insights.${key}.title`)}
+                value={t(`visual.insights.${key}.value`)}
+                note={t(`visual.insights.${key}.note`)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -228,7 +297,7 @@ function ProofSection() {
   );
 }
 
-function ComparisonSection({ locale }: { locale: string }) {
+function ComparisonSection() {
   const t = useTranslations("landing.comparison");
 
   return (
@@ -242,7 +311,7 @@ function ComparisonSection({ locale }: { locale: string }) {
             align="left"
           />
           <Link
-            href={`/${locale}/signup`}
+            href="/signup"
             className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#41ffd8]/25 bg-[#41ffd8]/10 px-4 py-2 text-sm font-semibold text-[#72ffe3] transition-colors hover:bg-[#41ffd8]/15"
           >
             {t("cta")}
@@ -250,7 +319,6 @@ function ComparisonSection({ locale }: { locale: string }) {
           </Link>
         </div>
 
-        {/* Desktop table */}
         <div className="mt-8 hidden overflow-hidden rounded-[1.5rem] border border-white/10 sm:block">
           <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)_minmax(0,0.9fr)] bg-white/[0.04] text-sm font-semibold text-white/68">
             <div className="px-5 py-4">{t("headers.category")}</div>
@@ -273,7 +341,6 @@ function ComparisonSection({ locale }: { locale: string }) {
           </div>
         </div>
 
-        {/* Mobile stacked cards */}
         <div className="mt-8 space-y-4 sm:hidden">
           {(["capture", "repurpose", "planning", "analytics"] as const).map((key) => (
             <div
@@ -308,7 +375,211 @@ function ComparisonSection({ locale }: { locale: string }) {
   );
 }
 
-function PricingSection({ locale }: { locale: string }) {
+function UseCasesSection({ locale }: { locale: AppLocale }) {
+  const copy = marketingChromeCopy[locale];
+  const cards = getSolutionPreviewCards(locale);
+
+  return (
+    <section className={`${sectionShell} mt-24 sm:mt-28`}>
+      <SectionHeading
+        label={copy.exploreLabel}
+        title={copy.useCasesTitle}
+        description={copy.useCasesDescription}
+      />
+
+      <div className="mt-10 grid gap-5 lg:grid-cols-3">
+        {cards.map((card) => (
+          <article key={card.href} className={`${glassCard} p-6 sm:p-7`}>
+            <p className="text-xs font-semibold tracking-[0.16em] text-[#8dffe9] uppercase">
+              {card.label}
+            </p>
+            <h3 className="mt-4 font-[family-name:var(--font-display)] text-3xl tracking-[-0.04em] text-white">
+              {card.title}
+            </h3>
+            <p className="mt-4 text-base leading-8 text-white/68">{card.description}</p>
+            <Link
+              href={card.href}
+              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[#72ffe3] transition-colors hover:text-white"
+            >
+              {card.cta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CombinedWorkflowSystemSection() {
+  const tw = useTranslations("landing.workflow");
+  const ts = useTranslations("landing.system");
+
+  return (
+    <section id="workflow" className={`${sectionShell} mt-24 sm:mt-28`}>
+      <div className={`${glassCard} p-6 sm:p-8 lg:p-10`}>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)] lg:items-end">
+          <div className="max-w-3xl">
+            <SectionHeading
+              label={tw("label")}
+              title={tw("title")}
+              description={tw("subtitle")}
+              align="left"
+            />
+          </div>
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 text-sm leading-7 text-white/66">
+            {tw("note")}
+          </div>
+        </div>
+
+        <div className="mt-10 space-y-6">
+          <CombinedStepCard
+            step="01"
+            icon={getWorkflowIcon("capture")}
+            title={tw("steps.capture.title")}
+            description={tw("steps.capture.description")}
+            detail={tw("steps.capture.detail")}
+            systemCards={[
+              {
+                icon: <MessageSquareQuote className="size-5" />,
+                title: ts("cards.capture.title"),
+                description: ts("cards.capture.description"),
+                footer: ts("cards.capture.footer"),
+                visual: <CaptureVisual />,
+              },
+            ]}
+          />
+
+          <CombinedStepCard
+            step="02"
+            icon={getWorkflowIcon("shape")}
+            title={tw("steps.shape.title")}
+            description={tw("steps.shape.description")}
+            detail={tw("steps.shape.detail")}
+            systemCards={[
+              {
+                icon: <AudioWaveform className="size-5" />,
+                title: ts("cards.voice.title"),
+                description: ts("cards.voice.description"),
+                footer: ts("cards.voice.footer"),
+                visual: <VoiceVisual />,
+              },
+              {
+                icon: <Layers3 className="size-5" />,
+                title: ts("cards.adapt.title"),
+                description: ts("cards.adapt.description"),
+                footer: ts("cards.adapt.footer"),
+                visual: <AdaptationVisual />,
+              },
+            ]}
+          />
+
+          <CombinedStepCard
+            step="03"
+            icon={getWorkflowIcon("distribute")}
+            title={tw("steps.distribute.title")}
+            description={tw("steps.distribute.description")}
+            detail={tw("steps.distribute.detail")}
+            systemCards={[
+              {
+                icon: <CalendarRange className="size-5" />,
+                title: ts("cards.schedule.title"),
+                description: ts("cards.schedule.description"),
+                footer: ts("cards.schedule.footer"),
+                visual: <ScheduleVisual />,
+              },
+            ]}
+          />
+
+          <CombinedStepCard
+            step="04"
+            icon={getWorkflowIcon("learn")}
+            title={tw("steps.learn.title")}
+            description={tw("steps.learn.description")}
+            detail={tw("steps.learn.detail")}
+            systemCards={[
+              {
+                icon: <Gauge className="size-5" />,
+                title: ts("cards.analytics.title"),
+                description: ts("cards.analytics.description"),
+                footer: ts("cards.analytics.footer"),
+                visual: <AnalyticsVisual />,
+              },
+            ]}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type SystemCardEntry = {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  footer: string;
+  visual: ReactNode;
+};
+
+function CombinedStepCard({
+  step,
+  icon,
+  title,
+  description,
+  detail,
+  systemCards,
+}: {
+  step: string;
+  icon: ReactNode;
+  title: string;
+  description: string;
+  detail: string;
+  systemCards: SystemCardEntry[];
+}) {
+  return (
+    <article className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6 lg:p-8">
+      <div className="flex items-start gap-4">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full border border-[#41ffd8]/25 bg-[#41ffd8]/10 text-sm font-semibold text-[#72ffe3]">
+          {step}
+        </div>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-[#72ffe3]">
+              {icon}
+            </span>
+            <h3 className="text-xl font-semibold tracking-tight text-white">{title}</h3>
+          </div>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-white/66">{description}</p>
+        </div>
+      </div>
+
+      <div className={`mt-6 ${systemCards.length > 1 ? "space-y-5" : ""}`}>
+        {systemCards.map((card, i) => (
+          <div
+            key={i}
+            className="rounded-[1.35rem] border border-white/10 bg-[#07131a]/70 p-5 sm:p-6"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-[#72ffe3]">
+                {card.icon}
+              </span>
+              <h4 className="text-base font-semibold text-white">{card.title}</h4>
+            </div>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/62">{card.description}</p>
+            <div className="mt-5">{card.visual}</div>
+            <p className="mt-5 border-t border-white/10 pt-4 text-sm font-medium text-white/78">
+              {card.footer}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-5 text-sm font-medium text-white/84">{detail}</p>
+    </article>
+  );
+}
+
+function PricingSection() {
   const t = useTranslations("landing.pricing");
 
   return (
@@ -328,7 +599,7 @@ function PricingSection({ locale }: { locale: string }) {
             t("plans.free.features.capture"),
           ]}
           cta={t("plans.free.cta")}
-          href={`/${locale}/signup`}
+          href="/signup"
         />
         <PlanCard
           featured
@@ -345,7 +616,7 @@ function PricingSection({ locale }: { locale: string }) {
             t("plans.plus.features.analytics"),
           ]}
           cta={t("plans.plus.cta")}
-          href={`/${locale}/signup`}
+          href="/signup"
         />
         <PlanCard
           name={t("plans.pro.name")}
@@ -360,7 +631,7 @@ function PricingSection({ locale }: { locale: string }) {
             t("plans.pro.features.priority"),
           ]}
           cta={t("plans.pro.cta")}
-          href={`/${locale}/signup`}
+          href="/signup"
         />
       </div>
 
@@ -396,7 +667,7 @@ function FaqSection() {
   );
 }
 
-function FinalCtaSection({ locale }: { locale: string }) {
+function FinalCtaSection() {
   const t = useTranslations("landing.finalCta");
 
   return (
@@ -414,7 +685,7 @@ function FinalCtaSection({ locale }: { locale: string }) {
             <p className="mt-5 max-w-2xl text-lg leading-8 text-white/72">{t("subtitle")}</p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Link
-                href={`/${locale}/signup`}
+                href="/signup"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#41ffd8] px-6 py-3.5 text-base font-semibold text-[#03262a] transition-all hover:-translate-y-0.5 hover:bg-[#6affdf]"
               >
                 {t("primary")}
@@ -444,13 +715,16 @@ function FinalCtaSection({ locale }: { locale: string }) {
   );
 }
 
-function LandingFooter({ locale }: { locale: string }) {
+function LandingFooter({ locale }: { locale: AppLocale }) {
   const t = useTranslations("landing.footer");
+  const chrome = marketingChromeCopy[locale];
+  const solutionLinks = getFooterSolutionLinks(locale);
+  const trustLinks = getFooterTrustLinks(locale);
 
   return (
     <footer className="relative z-10 mt-20 border-t border-white/10 bg-[#041018]/90">
       <div className={`${sectionShell} py-8 sm:py-10`}>
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] lg:items-start">
           <div className="max-w-lg">
             <div className="flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-white">
               <span className="flex size-10 items-center justify-center rounded-full border border-[#41ffd8]/25 bg-[#41ffd8]/10 text-[#41ffd8]">
@@ -470,10 +744,7 @@ function LandingFooter({ locale }: { locale: string }) {
                 {t("links.pricing")}
               </a>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-4 lg:items-end">
-            <div className="flex flex-wrap gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               {(["capture", "adapt", "measure"] as const).map((key) => (
                 <span
                   key={key}
@@ -483,16 +754,49 @@ function LandingFooter({ locale }: { locale: string }) {
                 </span>
               ))}
             </div>
+          </div>
 
+          <div>
+            <p className="text-xs font-semibold tracking-[0.16em] text-white/44 uppercase">
+              {chrome.solutionsLabel}
+            </p>
+            <div className="mt-4 flex flex-col gap-3 text-sm text-white/70">
+              {solutionLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="transition-colors hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 lg:items-end">
+            <p className="text-xs font-semibold tracking-[0.16em] text-white/44 uppercase">
+              {chrome.legalLabel}
+            </p>
+            <div className="flex flex-col gap-3 text-sm text-white/70 lg:items-end">
+              {trustLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="transition-colors hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href={`/${locale}/login`}
+                href="/login"
                 className="text-sm font-medium text-white/64 transition-colors hover:text-white"
               >
                 {t("login")}
               </Link>
               <Link
-                href={`/${locale}/signup`}
+                href="/signup"
                 className="inline-flex items-center gap-2 rounded-full border border-[#41ffd8]/25 bg-[#41ffd8]/10 px-5 py-2.5 text-sm font-semibold text-[#72ffe3] transition-colors hover:bg-[#41ffd8]/15"
               >
                 {t("getStarted")}
@@ -529,6 +833,91 @@ function SectionHeading({
   );
 }
 
+function PipelineNode({
+  icon,
+  title,
+  subtitle,
+  tone = "default",
+}: {
+  icon: ReactNode;
+  title: string;
+  subtitle: string;
+  tone?: "default" | "accent";
+}) {
+  return (
+    <div
+      className={`rounded-[1.35rem] border p-4 text-left ${tone === "accent" ? "border-[#41ffd8]/16 bg-[#0b1a22]/92" : "border-white/10 bg-[#07131a]/88"}`}
+    >
+      <div className="flex items-center gap-3">
+        <span className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-[#72ffe3]">
+          {icon}
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-white">{title}</p>
+          <p className="mt-1 text-xs text-white/54">{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroCore({
+  label,
+  title,
+  description,
+  chips,
+}: {
+  label: string;
+  title: string;
+  description: string;
+  chips: string[];
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-[1.5rem] border border-[#41ffd8]/20 bg-[linear-gradient(135deg,rgba(65,255,216,0.12),rgba(7,19,26,0.96)_35%,rgba(7,19,26,0.92))] p-5 sm:p-6">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(45,197,255,0.12),transparent_30%)]" />
+      <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold tracking-[0.16em] text-[#9ffff0] uppercase">
+            {label}
+          </p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-white">{title}</p>
+          <p className="mt-3 max-w-xl text-sm leading-7 text-white/64">{description}</p>
+        </div>
+
+        <div className="relative flex size-24 shrink-0 items-center justify-center rounded-full border border-[#41ffd8]/30 bg-[#0b1a22] shadow-[0_0_48px_rgba(65,255,216,0.18)]">
+          <div
+            className="absolute inset-[12px] rounded-full border border-white/10 motion-safe:animate-spin"
+            style={{ animationDuration: "18s" }}
+          />
+          <div className="absolute inset-[5px] rounded-full border border-[#2dc5ff]/20" />
+          <BrainCircuit className="size-9 text-[#72ffe3]" />
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-5 grid gap-3 sm:grid-cols-3">
+        {chips.map((chip) => (
+          <div
+            key={chip}
+            className="rounded-full border border-white/10 bg-[#07131a]/78 px-4 py-2.5 text-sm text-white/74"
+          >
+            {chip}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MiniInsightCard({ title, value, note }: { title: string; value: string; note: string }) {
+  return (
+    <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.03] p-4">
+      <p className="text-xs font-semibold tracking-[0.16em] text-white/48 uppercase">{title}</p>
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+      <p className="mt-2 text-xs leading-5 text-white/54">{note}</p>
+    </div>
+  );
+}
+
 function FeatureStoryCard({
   icon,
   title,
@@ -561,6 +950,192 @@ function FinalCtaStat({ title, text }: { title: string; text: string }) {
     <div className="rounded-[1.35rem] border border-white/10 bg-[#07131a]/78 p-4 sm:p-5">
       <p className="text-xs font-semibold tracking-[0.16em] text-[#9ffff0] uppercase">{title}</p>
       <p className="mt-3 text-sm leading-7 text-white/72">{text}</p>
+    </div>
+  );
+}
+
+function CaptureVisual() {
+  const t = useTranslations("landing.system.visuals.capture");
+
+  return (
+    <div className="grid gap-3 md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <div className="space-y-3 rounded-[1.35rem] border border-white/10 bg-[#07131a]/90 p-4">
+        {[
+          { icon: <Mic className="size-4" />, label: t("items.voice") },
+          { icon: <MessageSquareQuote className="size-4" />, label: t("items.messages") },
+          { icon: <FileText className="size-4" />, label: t("items.links") },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-3 text-sm text-white/72"
+          >
+            <span className="flex items-center gap-2">
+              <span className="text-[#72ffe3]">{item.icon}</span>
+              {item.label}
+            </span>
+            <CheckCircle2 className="size-4 text-[#41ffd8]" />
+          </div>
+        ))}
+      </div>
+      <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex items-center justify-between text-xs font-semibold tracking-[0.16em] text-white/48 uppercase">
+          <span>{t("router.title")}</span>
+          <span className="text-[#72ffe3]">{t("router.status")}</span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-white/8 bg-[#0b1a22] p-4">
+            <p className="text-xs text-white/48">{t("router.languageLabel")}</p>
+            <p className="mt-2 text-lg font-semibold text-white">{t("router.languageValue")}</p>
+          </div>
+          <div className="rounded-2xl border border-white/8 bg-[#0b1a22] p-4">
+            <p className="text-xs text-white/48">{t("router.intentLabel")}</p>
+            <p className="mt-2 text-lg font-semibold text-white">{t("router.intentValue")}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VoiceVisual() {
+  const t = useTranslations("landing.system.visuals.voice");
+
+  return (
+    <div className="rounded-[1.35rem] border border-white/10 bg-[#07131a]/90 p-4">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold tracking-[0.16em] text-white/48 uppercase">
+          {t("title")}
+        </span>
+        <span className="rounded-full border border-[#41ffd8]/20 bg-[#41ffd8]/10 px-2 py-1 text-[10px] font-semibold text-[#72ffe3]">
+          {t("status")}
+        </span>
+      </div>
+      <div className="mt-5 space-y-3">
+        {[
+          { label: t("bars.cadence"), width: "w-[82%]" },
+          { label: t("bars.vocabulary"), width: "w-[74%]" },
+          { label: t("bars.hook"), width: "w-[68%]" },
+        ].map((bar) => (
+          <div key={bar.label}>
+            <div className="flex items-center justify-between text-xs text-white/58">
+              <span>{bar.label}</span>
+              <span>{t("matched")}</span>
+            </div>
+            <div className="mt-2 h-2 rounded-full bg-white/6">
+              <div
+                className={`h-full rounded-full bg-gradient-to-r from-[#41ffd8] to-[#2dc5ff] ${bar.width}`}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdaptationVisual() {
+  const t = useTranslations("landing.system.visuals.adapt");
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="rounded-[1.25rem] border border-white/10 bg-[#07131a]/90 p-4">
+        <p className="text-xs font-semibold tracking-[0.16em] text-white/48 uppercase">
+          {t("sourceTitle")}
+        </p>
+        <p className="mt-4 text-sm leading-7 text-white/70">{t("sourceBody")}</p>
+      </div>
+      <div className="rounded-[1.25rem] border border-[#41ffd8]/20 bg-[#41ffd8]/10 p-4">
+        <p className="text-xs font-semibold tracking-[0.16em] text-[#9ffff0] uppercase">
+          {t("outputTitle")}
+        </p>
+        <div className="mt-4 space-y-2 text-sm text-white/84">
+          <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#07131a]/75 px-3 py-2">
+            <span>{t("outputs.telegram")}</span>
+            <Send className="size-4 text-[#72ffe3]" />
+          </div>
+          <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#07131a]/75 px-3 py-2">
+            <span>{t("outputs.crosspost")}</span>
+            <Layers3 className="size-4 text-[#72ffe3]" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScheduleVisual() {
+  const t = useTranslations("landing.system.visuals.schedule");
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      {[
+        { day: t("days.mon"), state: t("states.queue") },
+        { day: t("days.wed"), state: t("states.repurpose") },
+        { day: t("days.fri"), state: t("states.publish") },
+      ].map((slot) => (
+        <div
+          key={slot.day}
+          className="rounded-[1.25rem] border border-white/10 bg-[#07131a]/90 p-4"
+        >
+          <p className="text-xs font-semibold tracking-[0.16em] text-white/48 uppercase">
+            {slot.day}
+          </p>
+          <p className="mt-4 text-lg font-semibold text-white">{slot.state}</p>
+          <div className="mt-3 flex items-center gap-2 text-sm text-white/58">
+            <Clock3 className="size-4 text-[#72ffe3]" />
+            09:30
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AnalyticsVisual() {
+  const t = useTranslations("landing.system.visuals.analytics");
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="rounded-[1.35rem] border border-white/10 bg-[#07131a]/90 p-4">
+        <div className="flex items-center justify-between text-xs font-semibold tracking-[0.16em] text-white/48 uppercase">
+          <span>{t("title")}</span>
+          <span className="text-[#72ffe3]">{t("status")}</span>
+        </div>
+        <svg viewBox="0 0 360 140" className="mt-4 h-36 w-full" fill="none" aria-hidden="true">
+          <path
+            d="M8 112C40 96 70 58 102 58C134 58 154 110 194 110C234 110 250 34 290 34C314 34 334 52 352 62"
+            stroke="url(#analytics-line)"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <circle cx="102" cy="58" r="6" fill="#41ffd8" />
+          <circle cx="194" cy="110" r="6" fill="#41ffd8" />
+          <circle cx="290" cy="34" r="6" fill="#2dc5ff" />
+          <defs>
+            <linearGradient id="analytics-line" x1="8" y1="34" x2="352" y2="112">
+              <stop stopColor="#41ffd8" />
+              <stop offset="1" stopColor="#2dc5ff" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div className="grid gap-3">
+        {[
+          { label: t("stats.windowLabel"), value: t("stats.windowValue") },
+          { label: t("stats.channelLabel"), value: t("stats.channelValue") },
+          { label: t("stats.formatLabel"), value: t("stats.formatValue") },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="rounded-[1.25rem] border border-white/10 bg-[#07131a]/90 p-4"
+          >
+            <p className="text-xs font-semibold tracking-[0.16em] text-white/48 uppercase">
+              {item.label}
+            </p>
+            <p className="mt-3 text-lg font-semibold text-white">{item.value}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -656,4 +1231,41 @@ function PlanCard({
       </Link>
     </article>
   );
+}
+
+function getSourceIcon(key: "voice" | "messages" | "docs" | "links") {
+  switch (key) {
+    case "voice":
+      return <Mic className="size-4" />;
+    case "messages":
+      return <MessageSquareQuote className="size-4" />;
+    case "docs":
+      return <FileText className="size-4" />;
+    case "links":
+      return <Workflow className="size-4" />;
+  }
+}
+
+function getDestinationIcon(key: "library" | "queue" | "analytics") {
+  switch (key) {
+    case "library":
+      return <Bot className="size-4" />;
+    case "queue":
+      return <CalendarRange className="size-4" />;
+    case "analytics":
+      return <BarChart3 className="size-4" />;
+  }
+}
+
+function getWorkflowIcon(key: "capture" | "shape" | "distribute" | "learn") {
+  switch (key) {
+    case "capture":
+      return <Bot className="size-5" />;
+    case "shape":
+      return <Sparkles className="size-5" />;
+    case "distribute":
+      return <Send className="size-5" />;
+    case "learn":
+      return <ShieldCheck className="size-5" />;
+  }
 }

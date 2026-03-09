@@ -515,7 +515,18 @@
       "disconnected": "Disconnected",
       "expiringSoon": "Expiring Soon",
       "disconnect": "Disconnect",
-      "tokenExpiresAt": "Token expires on {date}"
+      "tokenExpiresAt": "Token expires on {date}",
+      "connectNote": "LinkedIn and Twitter are managed here. Telegram bot capture opens a deep link so you can link the bot from Telegram.",
+      "telegramBot": {
+        "title": "Telegram Idea Bot",
+        "description": "Generate a secure deep link, open the bot, and send ideas from Telegram into your drafts.",
+        "linkedDescription": "Linked to Telegram user {telegramUserId}. Generate a fresh link if you want to reconnect.",
+        "connect": "Connect Bot",
+        "reconnect": "Reconnect Bot",
+        "linkReady": "Telegram bot link is ready.",
+        "linkCopied": "Telegram bot link copied.",
+        "linkCopyFailed": "Could not copy the Telegram bot link."
+      }
     },
     "billing": {
       "title": "Billing",
@@ -1023,7 +1034,8 @@
           "sourceBody": "A long-form Telegram idea with context, examples, and the creator's real voice captured in one place.",
           "outputTitle": "Ready-to-use versions",
           "outputs": {
-            "telegram": "Telegram-ready edit"
+            "telegram": "Telegram-ready edit",
+            "crosspost": "Cross-channel adaptation"
           }
         },
         "schedule": {
@@ -1114,6 +1126,7 @@
           "features": {
             "quota": "500 AI generations per month",
             "adaptation": "AI generation and adaptation",
+            "crosspost": "Cross-channel adaptation workflows",
             "analytics": "Channel analytics"
           }
         },

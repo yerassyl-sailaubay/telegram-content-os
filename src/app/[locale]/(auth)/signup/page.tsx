@@ -1,16 +1,9 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { signup, signInWithOAuth } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 
 export default async function SignupPage(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;
@@ -18,7 +11,7 @@ export default async function SignupPage(props: { searchParams: Promise<{ error?
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Create an account</CardTitle>
+        <h1 className="text-2xl font-semibold">Create an account</h1>
         <CardDescription>Enter your details below to create your account</CardDescription>
       </CardHeader>
 

@@ -1,0 +1,30 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#031018" />
+  <circle cx="176" cy="112" r="180" fill="#41FFD8" fill-opacity="0.16" />
+  <circle cx="1048" cy="128" r="164" fill="#2DC5FF" fill-opacity="0.14" />
+  <circle cx="582" cy="512" r="240" fill="#0C3340" fill-opacity="0.56" />
+  <rect x="64" y="64" width="1072" height="502" rx="40" fill="url(#panel)" stroke="#FFFFFF" stroke-opacity="0.08" />
+  <rect x="100" y="100" width="84" height="84" rx="42" fill="#41FFD8" fill-opacity="0.14" stroke="#41FFD8" stroke-opacity="0.3" />
+  <path d="M127 143.5L155 126L151 155L179 138" stroke="#72FFE3" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="220" y="154" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">Teleflow</text>
+  <text x="100" y="258" fill="#8DFFE9" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="5">TELEGRAM CONTENT OPERATIONS</text>
+  <text x="100" y="336" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700">Telegram Post Scheduler</text>
+  <text x="100" y="408" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700">&amp; Content OS</text>
+  <text x="100" y="482" fill="#CFE8E6" font-family="Arial, Helvetica, sans-serif" font-size="28">
+    Capture, draft, schedule, and analyze Telegram content in one workflow.
+  </text>
+  <g opacity="0.95">
+    <rect x="820" y="260" width="236" height="64" rx="24" fill="#07131A" stroke="#FFFFFF" stroke-opacity="0.08" />
+    <text x="852" y="302" fill="#72FFE3" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Queue stays alive</text>
+    <rect x="772" y="346" width="284" height="64" rx="24" fill="#07131A" stroke="#FFFFFF" stroke-opacity="0.08" />
+    <text x="804" y="388" fill="#72FFE3" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Analytics near the work</text>
+    <rect x="844" y="432" width="212" height="64" rx="24" fill="#07131A" stroke="#FFFFFF" stroke-opacity="0.08" />
+    <text x="876" y="474" fill="#72FFE3" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Telegram-first</text>
+  </g>
+  <defs>
+    <linearGradient id="panel" x1="600" y1="64" x2="600" y2="566" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A1A22" />
+      <stop offset="1" stop-color="#071118" />
+    </linearGradient>
+  </defs>
+</svg>

@@ -515,7 +515,18 @@
       "disconnected": "Отключён",
       "expiringSoon": "Скоро истекает",
       "disconnect": "Отключить",
-      "tokenExpiresAt": "Токен истекает {date}"
+      "tokenExpiresAt": "Токен истекает {date}",
+      "connectNote": "Здесь управляются LinkedIn и Twitter. Для Telegram-бота приложение открывает deep link, чтобы вы связали бота прямо из Telegram.",
+      "telegramBot": {
+        "title": "Telegram-бот для идей",
+        "description": "Сгенерируйте безопасную ссылку, откройте бота и отправляйте идеи из Telegram прямо в черновики.",
+        "linkedDescription": "Связано с Telegram-пользователем {telegramUserId}. Если нужно переподключить бота, сгенерируйте новую ссылку.",
+        "connect": "Подключить бота",
+        "reconnect": "Переподключить бота",
+        "linkReady": "Ссылка для Telegram-бота готова.",
+        "linkCopied": "Ссылка для Telegram-бота скопирована.",
+        "linkCopyFailed": "Не удалось скопировать ссылку для Telegram-бота."
+      }
     },
     "billing": {
       "title": "Подписка",
@@ -1027,7 +1038,8 @@
           "sourceBody": "Развёрнутая идея с контекстом, примерами и живым голосом автора.",
           "outputTitle": "Готовые версии",
           "outputs": {
-            "telegram": "Версия для Telegram"
+            "telegram": "Версия для Telegram",
+            "crosspost": "Адаптация для других каналов"
           }
         },
         "schedule": {
@@ -1118,6 +1130,7 @@
           "features": {
             "quota": "500 ИИ-генераций в месяц",
             "adaptation": "Генерация и адаптация контента",
+            "crosspost": "Адаптация контента для других каналов",
             "analytics": "Аналитика по каналам"
           }
         },

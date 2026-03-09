@@ -1,16 +1,9 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { login, signInWithOAuth } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
 
 export default async function LoginPage(props: {
   searchParams: Promise<{ error?: string; message?: string }>;
@@ -20,7 +13,7 @@ export default async function LoginPage(props: {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Log in</CardTitle>
+        <h1 className="text-2xl font-semibold">Log in</h1>
         <CardDescription>Enter your email and password to access your account</CardDescription>
       </CardHeader>
 
