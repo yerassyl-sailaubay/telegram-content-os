@@ -200,7 +200,7 @@ describe("getSettings", () => {
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
       },
-    } as ReturnType<typeof createClient> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof createClient> extends Promise<infer T> ? T : never);
 
     const result = await getSettings();
     expect(result.success).toBe(false);
