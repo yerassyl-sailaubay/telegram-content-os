@@ -41,6 +41,11 @@ async function getEq() {
   return eq;
 }
 
+async function getDrizzleOps() {
+  const { eq, and, gt, isNull } = await import("drizzle-orm");
+  return { eq, and, gt, isNull };
+}
+
 // ---------------------------------------------------------------------------
 // Media-group batching
 // ---------------------------------------------------------------------------
@@ -139,6 +144,245 @@ function buildContentParsed(message: TelegramMessage): Record<string, unknown> {
     has_animation: Boolean(message.animation),
     forward_date: message.forward_date ?? null,
   };
+}
+
+function extractStartToken(text?: string): string | null {
+  if (!text) {
+    return null;
+  }
+
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("/start")) {
+    return null;
+  }
+
+  const [, token] = trimmed.split(/\s+/, 2);
+  return token?.trim() || null;
+}
+
+function extractInboxText(message: TelegramMessage): string {
+  return (message.text ?? message.caption ?? "").trim();
+}
+
+function buildIdeaTitle(text: string): string {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length <= 80) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 77).trimEnd()}...`;
+}
+
+function getTelegramUserId(message: TelegramMessage): string | null {
+  return message.from ? String(message.from.id) : null;
+}
+
+function getLinkPromptText(): string {
+  return "Link your account from the dashboard first, then send me ideas here.";
+}
+
+function getLinkSuccessText(): string {
+  return "Telegram connected. Send me text ideas anytime and I will save them as drafts.";
+}
+
+function getExpiredLinkText(): string {
+  return "This link is invalid or expired. Generate a fresh Telegram bot link in the dashboard.";
+}
+
+function getUnsupportedInboxText(): string {
+  return "Text ideas are supported first. Send a text message and I will save it as a draft.";
+}
+
+function getSavedIdeaText(): string {
+  return "Saved as an idea draft.";
+}
+
+async function sendBotReply(chatId: string | number, text: string): Promise<void> {
+  const { getTelegramClient } = await import("@/lib/telegram/client");
+  const client = getTelegramClient();
+  await client.sendMessage(chatId, text);
+}
+
+async function claimTelegramLinkToken(token: string): Promise<{ userId: string } | undefined> {
+  const db = await getDb();
+  const { telegramLinkTokens } = await getSchema();
+  const { eq, and, gt, isNull } = await getDrizzleOps();
+
+  const rows = await db
+    .update(telegramLinkTokens)
+    .set({ usedAt: new Date() })
+    .where(
+      and(
+        eq(telegramLinkTokens.token, token),
+        isNull(telegramLinkTokens.usedAt),
+        gt(telegramLinkTokens.expiresAt, new Date()),
+      ),
+    )
+    .returning({ userId: telegramLinkTokens.userId });
+
+  return rows[0];
+}
+
+async function findUserByTelegramUserId(
+  telegramUserId: string,
+): Promise<{ id: string } | undefined> {
+  const db = await getDb();
+  const { users } = await getSchema();
+  const eq = await getEq();
+
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.telegramUserId, telegramUserId))
+    .limit(1);
+
+  return rows[0];
+}
+
+async function linkTelegramUser(userId: string, telegramUserId: string): Promise<void> {
+  const db = await getDb();
+  const { users } = await getSchema();
+  const eq = await getEq();
+
+  await db
+    .update(users)
+    .set({
+      telegramUserId,
+      telegramLinkedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning({ id: users.id });
+}
+
+async function findExistingInboxIdea(
+  userId: string,
+  telegramUserId: string,
+  messageId: number,
+): Promise<{ id: string } | undefined> {
+  const db = await getDb();
+  const { contentLibrary } = await getSchema();
+  const { eq, and } = await getDrizzleOps();
+
+  const rows = await db
+    .select({ id: contentLibrary.id, sourceMetadata: contentLibrary.sourceMetadata })
+    .from(contentLibrary)
+    .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.sourceType, "idea")))
+    .limit(50);
+
+  return rows.find((row) => {
+    const meta = row.sourceMetadata as Record<string, unknown> | null;
+    return (
+      meta?.telegramCaptureType === "bot_inbox" &&
+      meta?.telegramUserId === telegramUserId &&
+      meta?.telegramMessageId === messageId
+    );
+  });
+}
+
+async function createInboxIdea(
+  update: TelegramUpdate,
+  message: TelegramMessage,
+  userId: string,
+): Promise<string | undefined> {
+  const telegramUserId = getTelegramUserId(message);
+  const text = extractInboxText(message);
+
+  if (!telegramUserId || !text) {
+    return undefined;
+  }
+
+  const existing = await findExistingInboxIdea(userId, telegramUserId, message.message_id);
+  if (existing) {
+    return existing.id;
+  }
+
+  const db = await getDb();
+  const { contentLibrary } = await getSchema();
+
+  const rows = await db
+    .insert(contentLibrary)
+    .values({
+      userId,
+      title: buildIdeaTitle(text),
+      content: text,
+      sourceType: "idea",
+      status: "draft",
+      sourceMetadata: {
+        telegramCaptureType: "bot_inbox",
+        telegramUpdateId: update.update_id,
+        telegramMessageId: message.message_id,
+        telegramUserId,
+        telegramChatId: String(message.chat.id),
+        telegramUsername: message.from?.username ?? null,
+        telegramFirstName: message.from?.first_name ?? null,
+        capturedAt: new Date(message.date * 1000).toISOString(),
+      },
+    })
+    .returning({ id: contentLibrary.id });
+
+  return rows[0]?.id;
+}
+
+async function handlePrivateMessage(
+  update: TelegramUpdate,
+  message: TelegramMessage,
+): Promise<void> {
+  const telegramUserId = getTelegramUserId(message);
+  if (!telegramUserId) {
+    return;
+  }
+
+  const startToken = extractStartToken(message.text);
+  if (startToken) {
+    const claimed = await claimTelegramLinkToken(startToken);
+    if (!claimed) {
+      await sendBotReply(message.chat.id, getExpiredLinkText());
+      return;
+    }
+
+    const existingOwner = await findUserByTelegramUserId(telegramUserId);
+    if (existingOwner && existingOwner.id !== claimed.userId) {
+      await sendBotReply(message.chat.id, getExpiredLinkText());
+      return;
+    }
+
+    await linkTelegramUser(claimed.userId, telegramUserId);
+    await sendBotReply(message.chat.id, getLinkSuccessText());
+    return;
+  }
+
+  const linkedUser = await findUserByTelegramUserId(telegramUserId);
+  if (!linkedUser) {
+    await sendBotReply(message.chat.id, getLinkPromptText());
+    return;
+  }
+
+  const text = extractInboxText(message);
+  if (!text) {
+    await sendBotReply(message.chat.id, getUnsupportedInboxText());
+    return;
+  }
+
+  const contentId = await createInboxIdea(update, message, linkedUser.id);
+  if (!contentId) {
+    await sendBotReply(message.chat.id, getUnsupportedInboxText());
+    return;
+  }
+
+  const inngest = await getInngest();
+  await inngest.send({
+    name: "telegram/inbox.received",
+    data: {
+      contentId,
+      userId: linkedUser.id,
+      telegramUserId,
+      telegramChatId: String(message.chat.id),
+      messageId: message.message_id,
+    },
+  });
+
+  await sendBotReply(message.chat.id, getSavedIdeaText());
 }
 
 /**
@@ -378,6 +622,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     } catch (error) {
       console.error("Error handling new chat members:", error);
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (message?.chat.type === "private") {
+    try {
+      await handlePrivateMessage(update, message);
+    } catch (error) {
+      console.error("Error handling private Telegram message:", error);
     }
     return NextResponse.json({ ok: true });
   }
