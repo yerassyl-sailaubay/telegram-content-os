@@ -70,9 +70,7 @@ export async function listChannels(): Promise<ActionResult<ChannelWithPostCount[
       .where(inArray(telegramPosts.channelId, channelIds))
       .groupBy(telegramPosts.channelId);
 
-    const postStatsByChannelId = new Map(
-      postStatsRows.map((row) => [row.channelId, row] as const),
-    );
+    const postStatsByChannelId = new Map(postStatsRows.map((row) => [row.channelId, row] as const));
 
     const channelsWithCounts = channels.map((channel) => {
       const postStats = postStatsByChannelId.get(channel.id);
@@ -205,7 +203,7 @@ export async function connectChannel(input: ConnectChannelInput): Promise<Action
       if (webhookBaseUrl) {
         try {
           await tgClient.setWebhook(`${webhookBaseUrl}/api/telegram/webhook`, {
-            allowed_updates: ["channel_post", "edited_channel_post"],
+            allowed_updates: ["message", "channel_post", "edited_channel_post"],
             secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
           });
         } catch {
@@ -246,7 +244,7 @@ export async function connectChannel(input: ConnectChannelInput): Promise<Action
     if (webhookBaseUrl) {
       try {
         await tgClient.setWebhook(`${webhookBaseUrl}/api/telegram/webhook`, {
-          allowed_updates: ["channel_post", "edited_channel_post"],
+          allowed_updates: ["message", "channel_post", "edited_channel_post"],
           secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
         });
       } catch {
