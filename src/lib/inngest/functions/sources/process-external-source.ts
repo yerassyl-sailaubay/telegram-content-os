@@ -60,23 +60,30 @@ export const processExternalSource = inngest.createFunction(
       });
 
       const contentItemId = await step.run("store-content", async () => {
-        const { createContentItem } = await import("@/server/actions/content");
+        const { db } = await import("@/server/db");
+        const { contentLibrary } = await import("@/server/db/schema");
 
-        const result = await createContentItem({
-          title: (extraction.metadata.title as string) ?? "Untitled",
-          content: extraction.content,
-          sourceType: "external_source",
-          status: "draft",
-          channelId,
-          sourceUrl: parsed.url,
-          sourceMetadata: extraction.metadata as Record<string, unknown>,
-        });
+        const [item] = await db
+          .insert(contentLibrary)
+          .values({
+            userId,
+            title: (extraction.metadata.title as string) ?? "Untitled",
+            content: extraction.content,
+            sourceType: "external_source",
+            status: "draft",
+            channelId: channelId || null,
+            sourceUrl: parsed.url,
+            sourceMetadata: extraction.metadata as Record<string, unknown>,
+            isTemplate: false,
+            tags: [],
+          })
+          .returning({ id: contentLibrary.id });
 
-        if (!result.success) {
-          throw new Error(`Failed to store content: ${result.error}`);
+        if (!item) {
+          throw new Error("Failed to store content: Database insert returned no item");
         }
 
-        return result.data.id;
+        return item.id;
       });
 
       await step.run("mark-extracted", async () => {

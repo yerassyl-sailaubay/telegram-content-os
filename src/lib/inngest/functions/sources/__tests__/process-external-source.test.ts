@@ -1,12 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockParseUrl, mockExtractYouTubeTranscript, mockExtractArticle, mockCreateContentItem } =
-  vi.hoisted(() => ({
-    mockParseUrl: vi.fn(),
-    mockExtractYouTubeTranscript: vi.fn(),
-    mockExtractArticle: vi.fn(),
-    mockCreateContentItem: vi.fn(),
-  }));
+const {
+  mockParseUrl,
+  mockExtractYouTubeTranscript,
+  mockExtractArticle,
+  mockDbInsert,
+  mockDbUpdate,
+} = vi.hoisted(() => ({
+  mockParseUrl: vi.fn(),
+  mockExtractYouTubeTranscript: vi.fn(),
+  mockExtractArticle: vi.fn(),
+  mockDbInsert: vi.fn(),
+  mockDbUpdate: vi.fn(),
+}));
 
 vi.mock("@/lib/sources/url-parser", () => ({
   parseUrl: mockParseUrl,
@@ -20,8 +26,46 @@ vi.mock("@/lib/sources/article", () => ({
   extractArticle: mockExtractArticle,
 }));
 
-vi.mock("@/server/actions/content", () => ({
-  createContentItem: mockCreateContentItem,
+vi.mock("@/server/db", () => ({
+  db: {
+    insert: mockDbInsert.mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockResolvedValue([{ id: "content-item-uuid-1" }]),
+      }),
+    }),
+    update: mockDbUpdate.mockReturnValue({
+      set: vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue(undefined),
+      }),
+    }),
+  },
+}));
+
+vi.mock("@/server/db/schema", () => ({
+  contentLibrary: {
+    id: "id",
+    userId: "userId",
+    title: "title",
+    content: "content",
+    sourceType: "sourceType",
+    status: "status",
+    channelId: "channelId",
+    sourceUrl: "sourceUrl",
+    sourceMetadata: "sourceMetadata",
+    isTemplate: "isTemplate",
+    tags: "tags",
+  },
+  externalSources: {
+    id: "id",
+    userId: "userId",
+    processingStatus: "processingStatus",
+    title: "title",
+    extractedText: "extractedText",
+    extractedMetadata: "extractedMetadata",
+    linkedDraftId: "linkedDraftId",
+    errorMessage: "errorMessage",
+    updatedAt: "updatedAt",
+  },
 }));
 
 import { processExternalSource } from "../process-external-source";
@@ -44,7 +88,7 @@ function createEvent(
       url: overrides.url ?? "https://www.youtube.com/watch?v=abc123",
       userId: overrides.userId ?? "user-uuid-1",
       channelId: overrides.channelId ?? "channel-uuid-1",
-      sourceId: overrides.sourceId,
+      sourceId: overrides.sourceId ?? "source-uuid-1",
     },
   };
 }
@@ -58,6 +102,16 @@ async function runHandler(
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockDbInsert.mockReturnValue({
+    values: vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{ id: "content-item-uuid-1" }]),
+    }),
+  });
+  mockDbUpdate.mockReturnValue({
+    set: vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue(undefined),
+    }),
+  });
 });
 
 describe("processExternalSource", () => {
@@ -66,7 +120,7 @@ describe("processExternalSource", () => {
     expect((processExternalSource as unknown as InngestHandler).fn).toBeTypeOf("function");
   });
 
-  it("YouTube URL → extract transcript → store → emit generate event", async () => {
+  it("YouTube URL → extract transcript → store directly in DB → emit generate event", async () => {
     const event = createEvent({ url: "https://www.youtube.com/watch?v=abc123" });
     const step = createMockStep();
 
@@ -80,31 +134,35 @@ describe("processExternalSource", () => {
       sourceType: "youtube",
       metadata: { title: "Test Video", author: "Test Author", language: "en", wordCount: 7 },
     });
-    mockCreateContentItem.mockResolvedValue({
-      success: true,
-      data: { id: "content-item-uuid-1", title: "Test Video" },
-    });
 
     const result = await runHandler(event, step);
 
     expect(mockParseUrl).toHaveBeenCalledWith("https://www.youtube.com/watch?v=abc123");
     expect(mockExtractYouTubeTranscript).toHaveBeenCalledWith("abc123");
-    expect(mockCreateContentItem).toHaveBeenCalledWith(
+    expect(mockDbInsert).toHaveBeenCalled();
+    const insertCall = mockDbInsert.mock.results[0]?.value;
+    expect(insertCall?.values).toHaveBeenCalledWith(
       expect.objectContaining({
+        userId: "user-uuid-1",
         title: "Test Video",
         content: "Hello world this is a YouTube transcript",
         sourceType: "external_source",
         status: "draft",
         channelId: "channel-uuid-1",
         sourceUrl: "https://www.youtube.com/watch?v=abc123",
+        sourceMetadata: expect.objectContaining({ title: "Test Video" }),
+        isTemplate: false,
+        tags: [],
       }),
     );
+
     expect(step.sendEvent).toHaveBeenCalledWith("emit-generate", {
       name: "ai/content.generate-from-source",
       data: {
         contentItemId: "content-item-uuid-1",
         userId: "user-uuid-1",
         channelId: "channel-uuid-1",
+        sourceId: "source-uuid-1",
       },
     });
     expect(result).toEqual(
@@ -116,7 +174,7 @@ describe("processExternalSource", () => {
     );
   });
 
-  it("Article URL → extract article → store → emit generate event", async () => {
+  it("Article URL → extract article → store directly in DB → emit generate event", async () => {
     const event = createEvent({ url: "https://blog.example.com/great-article" });
     const step = createMockStep();
 
@@ -129,38 +187,40 @@ describe("processExternalSource", () => {
       sourceType: "article",
       metadata: { title: "Great Article", author: "Jane Doe", wordCount: 8 },
     });
-    mockCreateContentItem.mockResolvedValue({
-      success: true,
-      data: { id: "content-item-uuid-2", title: "Great Article" },
-    });
 
     const result = await runHandler(event, step);
 
     expect(mockParseUrl).toHaveBeenCalledWith("https://blog.example.com/great-article");
     expect(mockExtractArticle).toHaveBeenCalledWith("https://blog.example.com/great-article");
     expect(mockExtractYouTubeTranscript).not.toHaveBeenCalled();
-    expect(mockCreateContentItem).toHaveBeenCalledWith(
+    expect(mockDbInsert).toHaveBeenCalled();
+    const insertCall = mockDbInsert.mock.results[0]?.value;
+    expect(insertCall?.values).toHaveBeenCalledWith(
       expect.objectContaining({
+        userId: "user-uuid-1",
         title: "Great Article",
         content: "This is an interesting article about technology.",
         sourceType: "external_source",
         status: "draft",
         channelId: "channel-uuid-1",
         sourceUrl: "https://blog.example.com/great-article",
+        sourceMetadata: expect.objectContaining({ title: "Great Article" }),
       }),
     );
+
     expect(step.sendEvent).toHaveBeenCalledWith("emit-generate", {
       name: "ai/content.generate-from-source",
       data: {
-        contentItemId: "content-item-uuid-2",
+        contentItemId: "content-item-uuid-1",
         userId: "user-uuid-1",
         channelId: "channel-uuid-1",
+        sourceId: "source-uuid-1",
       },
     });
     expect(result).toEqual(
       expect.objectContaining({
         status: "completed",
-        contentItemId: "content-item-uuid-2",
+        contentItemId: "content-item-uuid-1",
         sourceType: "article",
       }),
     );
@@ -173,7 +233,7 @@ describe("processExternalSource", () => {
     mockParseUrl.mockReturnValue({ type: "unknown", url: "https://unknown-site.example/weird" });
 
     await expect(runHandler(event, step)).rejects.toThrow(/unsupported|unknown/i);
-    expect(mockCreateContentItem).not.toHaveBeenCalled();
+    expect(mockDbInsert).not.toHaveBeenCalled();
     expect(step.sendEvent).not.toHaveBeenCalled();
   });
 
@@ -191,11 +251,11 @@ describe("processExternalSource", () => {
     );
 
     await expect(runHandler(event, step)).rejects.toThrow(/transcript/i);
-    expect(mockCreateContentItem).not.toHaveBeenCalled();
+    expect(mockDbInsert).not.toHaveBeenCalled();
     expect(step.sendEvent).not.toHaveBeenCalled();
   });
 
-  it("throws when content storage fails, does not emit event", async () => {
+  it("throws when DB insert fails (no rows returned), does not emit event", async () => {
     const event = createEvent({ url: "https://blog.example.com/article" });
     const step = createMockStep();
 
@@ -205,9 +265,10 @@ describe("processExternalSource", () => {
       sourceType: "article",
       metadata: { title: "Some Article", wordCount: 2 },
     });
-    mockCreateContentItem.mockResolvedValue({
-      success: false,
-      error: "Database connection failed",
+    mockDbInsert.mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockResolvedValue([]),
+      }),
     });
 
     await expect(runHandler(event, step)).rejects.toThrow(/failed.*store|database/i);
@@ -228,7 +289,6 @@ describe("processExternalSource", () => {
       sourceType: "youtube",
       metadata: { title: "Video", wordCount: 2 },
     });
-    mockCreateContentItem.mockResolvedValue({ success: true, data: { id: "content-uuid" } });
 
     await runHandler(event, step);
 
@@ -256,7 +316,31 @@ describe("processExternalSource", () => {
 
     await expect(runHandler(event, step)).rejects.toThrow(/video.*id/i);
     expect(mockExtractYouTubeTranscript).not.toHaveBeenCalled();
-    expect(mockCreateContentItem).not.toHaveBeenCalled();
+    expect(mockDbInsert).not.toHaveBeenCalled();
     expect(step.sendEvent).not.toHaveBeenCalled();
+  });
+
+  it("works without sourceId (backward compatibility)", async () => {
+    const event = createEvent({ sourceId: undefined });
+    const step = createMockStep();
+
+    mockParseUrl.mockReturnValue({
+      type: "youtube",
+      url: "https://www.youtube.com/watch?v=abc123",
+      videoId: "abc123",
+    });
+    mockExtractYouTubeTranscript.mockResolvedValue({
+      content: "Transcript",
+      sourceType: "youtube",
+      metadata: { title: "Video" },
+    });
+
+    const result = await runHandler(event, step);
+    expect(result).toEqual(
+      expect.objectContaining({
+        status: "completed",
+        contentItemId: "content-item-uuid-1",
+      }),
+    );
   });
 });
