@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "f7c7ceb8d99be73eb3e84c6281f1cd56121342f36c94b1d5d2835e4273598ab1"
     },
+    "seo-audit": {
+      "source": "seo-skills/seo-audit-skill",
+      "sourceType": "github",
+      "computedHash": "5a536bf498719e1b8b80bfe43f2dccef4b08e6b81a08b8ae3f69f962b789e468"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",

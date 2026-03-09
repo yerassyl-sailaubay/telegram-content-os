@@ -10,6 +10,124 @@ export interface YouTubeMetadata {
 const OEMBED_URL = "https://www.youtube.com/oembed?url=https://youtube.com/watch?v=";
 const WATCH_URL = "https://www.youtube.com/watch?v=";
 
+// Filler words and speech artifacts to remove
+const FILLER_WORDS = new Set([
+  "um",
+  "uh",
+  "ah",
+  "eh",
+  "hm",
+  "mm",
+  "mhm",
+  "hmm",
+  "like",
+  "you know",
+  "i mean",
+  "basically",
+  "actually",
+  "literally",
+  "honestly",
+  "seriously",
+  "right",
+  "so",
+  "well",
+  "okay",
+  "ok",
+  "yeah",
+  "yep",
+  "yes",
+  "no",
+  "nope",
+  "nah",
+]);
+
+// Sentence ending punctuation
+const SENTENCE_END = /[.!?]+/;
+
+/**
+ * Clean and format transcript segments into readable paragraphs
+ */
+function formatTranscript(segments: { text: string; offset: number; duration: number }[]): string {
+  const rawText = segments.map((s) => s.text.trim()).join(" ");
+
+  const cleaned = cleanTranscriptText(rawText);
+
+  const paragraphs = splitIntoParagraphs(cleaned);
+
+  return paragraphs.join("\n\n");
+}
+
+/**
+ * Remove filler words and speech artifacts
+ */
+function cleanTranscriptText(text: string): string {
+  let cleaned = text
+    .replace(/\s+/g, " ")
+    .replace(/\[.*?\]/g, "")
+    .replace(/\(.*?\)/g, "")
+    .replace(/\s+([.,!?;:])/g, "$1")
+    .replace(/([.,!?;:])\s*/g, "$1 ")
+    .trim();
+
+  const words = cleaned.split(/\s+/);
+  const filtered = words.filter((word, index, arr) => {
+    const lower = word.toLowerCase().replace(/[^a-z]/g, "");
+
+    if (FILLER_WORDS.has(lower) && lower.length > 0) {
+      const nextWord = arr[index + 1];
+      if (nextWord && /^[.!?]/.test(nextWord)) {
+        return true;
+      }
+      return false;
+    }
+
+    if (index > 0) {
+      const prev = arr[index - 1]?.toLowerCase();
+      if (lower === prev) return false;
+    }
+
+    return true;
+  });
+
+  cleaned = filtered.join(" ");
+
+  cleaned = cleaned
+    .replace(/\s+([.,!?;:])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned;
+}
+
+/**
+ * Split text into paragraphs based on topic shifts and natural breaks
+ */
+function splitIntoParagraphs(text: string): string[] {
+  const sentences = text.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 0);
+
+  const paragraphs: string[] = [];
+  let currentParagraph: string[] = [];
+  let currentLength = 0;
+  const TARGET_PARAGRAPH_LENGTH = 150;
+
+  for (const sentence of sentences) {
+    currentParagraph.push(sentence);
+    currentLength += sentence.length;
+
+    if (currentLength >= TARGET_PARAGRAPH_LENGTH) {
+      paragraphs.push(currentParagraph.join(" "));
+      currentParagraph = [];
+      currentLength = 0;
+    }
+  }
+
+  if (currentParagraph.length > 0) {
+    paragraphs.push(currentParagraph.join(" "));
+  }
+
+  return paragraphs.length > 0 ? paragraphs : [text];
+}
+
 type TranscriptFetchResult = Awaited<ReturnType<typeof fetchTranscript>>;
 type TranscriptOrFallback = TranscriptFetchResult | { content: string };
 
@@ -44,7 +162,7 @@ export async function extractYouTubeTranscript(
 
   if (Array.isArray(transcriptOrFallback)) {
     const segments = transcriptOrFallback;
-    content = segments.map((s) => s.text).join(" ");
+    content = formatTranscript(segments);
     const language = segments[0]?.lang;
     const lastSegment = segments[segments.length - 1];
     const duration = lastSegment ? lastSegment.offset + lastSegment.duration : 0;

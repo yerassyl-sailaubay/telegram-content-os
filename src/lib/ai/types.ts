@@ -223,6 +223,11 @@ export interface GenerationOptions {
   numVariations?: number;
   repurposeMode?: RepurposeMode;
   sourceType?: "youtube" | "article" | "unknown";
+  sourceMetadata?: {
+    title?: string;
+    author?: string;
+    duration?: number;
+  };
 }
 
 export interface GenerationResult {

@@ -39,6 +39,19 @@ export function getModelTierForType(type: GenerationType): ModelTier {
   }
 }
 
+function getTemperatureForType(type: GenerationType): number {
+  switch (type) {
+    case "source_to_telegram":
+      return 0.5;
+    case "idea_to_draft":
+      return 0.7;
+    case "repurpose":
+      return 0.6;
+    case "calendar_fill":
+      return 0.7;
+  }
+}
+
 export class GenerationEngine {
   constructor(private readonly client: GoogleClient) {}
 
@@ -46,12 +59,14 @@ export class GenerationEngine {
     const messages = this.buildPrompt(request);
     const tier = request.options?.modelTier ?? getModelTierForType(request.type);
     const model = AI_MODELS[tier];
+    const temperature = getTemperatureForType(request.type);
 
     const result = await this.client.completeWithFallback(
       {
         model: model.id,
         messages,
-        temperature: 0.7,
+        temperature,
+        max_tokens: 4000,
       },
       undefined,
     );
@@ -75,6 +90,7 @@ export class GenerationEngine {
         return buildGenerateFromSourcePrompt({
           sourceContent: request.sourceContent,
           sourceType: request.options?.sourceType ?? "article",
+          sourceMetadata: request.options?.sourceMetadata,
           channelProfile: request.channelProfile ?? {
             niche: null,
             tone: null,

@@ -27,7 +27,7 @@ describe("buildGenerateFromSourcePrompt", () => {
     expect(messages[1].role).toBe("user");
 
     expect(messages[0].content).toContain("Telegram channel content creator");
-    expect(messages[1].content).toContain("Source (youtube):");
+    expect(messages[1].content).toContain("Source Content:");
     expect(messages[1].content).toContain("This is a YouTube transcript about building AI agents.");
   });
 
@@ -39,7 +39,7 @@ describe("buildGenerateFromSourcePrompt", () => {
     });
 
     expect(messages).toHaveLength(2);
-    expect(messages[1].content).toContain("Source (article):");
+    expect(messages[1].content).toContain("Source Content:");
     expect(messages[1].content).toContain("An in-depth article about React Server Components.");
   });
 
