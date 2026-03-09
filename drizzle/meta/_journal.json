@@ -50,6 +50,13 @@
       "when": 1772819000000,
       "tag": "0006_fix_schedules_cross_post_nullable",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773053384700,
+      "tag": "0007_perpetual_ender_wiggin",
+      "breakpoints": true
     }
   ]
 }
