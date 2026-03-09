@@ -30,10 +30,17 @@ export type ConnectionStatus = {
   isExpiringSoon: boolean;
 };
 
+export type TelegramBotStatus = {
+  linked: boolean;
+  telegramUserId: string | null;
+  linkedAt: string | null;
+};
+
 export type SettingsData = {
   profile: ProfileData;
   preferences: PreferencesData;
   connections: ConnectionStatus[];
+  telegramBot: TelegramBotStatus;
   billing: {
     plan: string;
     status: string;
@@ -123,6 +130,11 @@ export async function getSettings(): Promise<ActionResult<SettingsData>> {
             "professional") as PreferencesData["adaptationTone"],
         },
         connections: connectionStatuses,
+        telegramBot: {
+          linked: Boolean(userRecord?.telegramUserId),
+          telegramUserId: userRecord?.telegramUserId ?? null,
+          linkedAt: userRecord?.telegramLinkedAt?.toISOString() ?? null,
+        },
         billing: {
           plan: sub?.plan ?? "free",
           status: sub?.status ?? "active",
