@@ -525,7 +525,8 @@
         "reconnect": "Reconnect Bot",
         "linkReady": "Telegram bot link is ready.",
         "linkCopied": "Telegram bot link copied.",
-        "linkCopyFailed": "Could not copy the Telegram bot link."
+        "linkCopyFailed": "Could not copy the Telegram bot link.",
+        "refreshStatus": "Refresh bot status"
       }
     },
     "billing": {
