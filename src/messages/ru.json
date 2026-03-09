@@ -525,7 +525,8 @@
         "reconnect": "Переподключить бота",
         "linkReady": "Ссылка для Telegram-бота готова.",
         "linkCopied": "Ссылка для Telegram-бота скопирована.",
-        "linkCopyFailed": "Не удалось скопировать ссылку для Telegram-бота."
+        "linkCopyFailed": "Не удалось скопировать ссылку для Telegram-бота.",
+        "refreshStatus": "Обновить статус бота"
       }
     },
     "billing": {
