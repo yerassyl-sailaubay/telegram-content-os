@@ -7,6 +7,7 @@ export {
   subscriptionStatusEnum,
 } from "./subscriptions";
 export { telegramChannels, telegramChannelsRelations } from "./telegram-channels";
+export { telegramLinkTokens, telegramLinkTokensRelations } from "./telegram-link-tokens";
 export { telegramPosts, telegramPostsRelations } from "./telegram-posts";
 export {
   platformConnections,
