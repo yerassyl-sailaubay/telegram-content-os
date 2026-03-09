@@ -63,6 +63,13 @@ export default async function SettingsPage() {
                 },
               ]
             }
+            initialTelegramBot={
+              settings?.telegramBot ?? {
+                linked: false,
+                telegramUserId: null,
+                linkedAt: null,
+              }
+            }
           />
         </TabsContent>
 
