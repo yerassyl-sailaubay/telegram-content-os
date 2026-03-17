@@ -5,13 +5,17 @@ import React from "react";
 // ─── Mock next-intl ──────────────────────────────────────────────────────────
 
 vi.mock("next-intl", () => ({
-  useTranslations: (_ns: string) => (key: string) => {
-    const messages: Record<string, string> = {
-      title: "Something went wrong",
-      description: "An unexpected error occurred. Please try again.",
-      retry: "Try again",
+  useTranslations: (namespace: string) => {
+    void namespace;
+
+    return (key: string) => {
+      const messages: Record<string, string> = {
+        title: "Something went wrong",
+        description: "An unexpected error occurred. Please try again.",
+        retry: "Try again",
+      };
+      return messages[key] ?? key;
     };
-    return messages[key] ?? key;
   },
 }));
 
@@ -195,7 +199,7 @@ describe("Dashboard Error Boundary (error.tsx)", () => {
   });
 
   it("renders error state with retry functionality", async () => {
-    const { default: DashboardError } = await import("@/app/(dashboard)/dashboard/error");
+    const { default: DashboardError } = await import("@/app/[locale]/(dashboard)/dashboard/error");
     const error = new Error("Test error") as Error & { digest?: string };
     error.digest = "test-digest";
     const resetFn = vi.fn();
@@ -217,7 +221,7 @@ describe("Dashboard Error Boundary (error.tsx)", () => {
   });
 
   it("logs error to console", async () => {
-    const { default: DashboardError } = await import("@/app/(dashboard)/dashboard/error");
+    const { default: DashboardError } = await import("@/app/[locale]/(dashboard)/dashboard/error");
     const error = new Error("Test dashboard error") as Error & {
       digest?: string;
     };

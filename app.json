@@ -1,0 +1,103 @@
+{
+  "name": "telegram-content-os",
+  "description": "AI-powered content OS for Telegram creators",
+  "stack": "heroku-24",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    },
+    "HUSKY": {
+      "value": "0",
+      "required": false
+    },
+    "NEXT_PUBLIC_APP_URL": {
+      "description": "Public app URL (for example: https://your-app.herokuapp.com)"
+    },
+    "NEXT_PUBLIC_SUPABASE_URL": {
+      "description": "Supabase project URL"
+    },
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
+      "description": "Supabase anon key"
+    },
+    "SUPABASE_SERVICE_ROLE_KEY": {
+      "description": "Supabase service role key"
+    },
+    "DATABASE_URL": {
+      "description": "Postgres connection string (Supabase DB URL)"
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini API key"
+    },
+    "TELEGRAM_BOT_TOKEN": {
+      "description": "Telegram bot token"
+    },
+    "TELEGRAM_WEBHOOK_SECRET": {
+      "description": "Secret token used to validate Telegram webhook calls"
+    },
+    "INNGEST_SIGNING_KEY": {
+      "description": "Inngest signing key"
+    },
+    "INNGEST_EVENT_KEY": {
+      "description": "Inngest event key"
+    },
+    "ENCRYPTION_KEY": {
+      "description": "64-char hex key for AES-256-GCM"
+    },
+    "STRIPE_SECRET_KEY": {
+      "description": "Stripe secret key"
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "description": "Stripe webhook signing secret"
+    },
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": {
+      "description": "Stripe publishable key"
+    },
+    "STRIPE_PLUS_PRICE_ID": {
+      "description": "Stripe price ID for Plus plan"
+    },
+    "STRIPE_PRO_PRICE_ID": {
+      "description": "Stripe price ID for Pro plan"
+    },
+    "LINKEDIN_CLIENT_ID": {
+      "description": "LinkedIn OAuth client ID"
+    },
+    "LINKEDIN_CLIENT_SECRET": {
+      "description": "LinkedIn OAuth client secret"
+    },
+    "TWITTER_CLIENT_ID": {
+      "description": "Twitter/X OAuth client ID"
+    },
+    "TWITTER_CLIENT_SECRET": {
+      "description": "Twitter/X OAuth client secret"
+    },
+    "ADMIN_EMAIL": {
+      "description": "Single admin email address",
+      "required": false
+    },
+    "ADMIN_EMAILS": {
+      "description": "Comma-separated admin email addresses",
+      "required": false
+    },
+    "NEXT_PUBLIC_TELEGRAM_BOT_USERNAME": {
+      "description": "Bot username without @",
+      "required": false
+    },
+    "GOOGLE_SITE_VERIFICATION": {
+      "description": "Google Search Console verification token",
+      "required": false
+    },
+    "YANDEX_VERIFICATION": {
+      "description": "Yandex verification token",
+      "required": false
+    },
+    "SUPPORT_EMAIL": {
+      "description": "Public support email",
+      "required": false
+    }
+  }
+}

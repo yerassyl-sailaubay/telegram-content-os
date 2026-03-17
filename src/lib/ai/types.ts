@@ -134,6 +134,8 @@ export interface ChannelProfileRequest {
   posts: string[];
   /** Channel name for context. */
   channelName: string;
+  /** Optional current profile for incremental updates from new posts only. */
+  existingProfile?: ChannelProfile;
 }
 
 /** Result of channel profile analysis. */
@@ -156,6 +158,10 @@ export interface OpenRouterRequest {
   messages: OpenRouterMessage[];
   max_tokens?: number;
   temperature?: number;
+  /** Request structured JSON output from Gemini when needed. */
+  response_mime_type?: "application/json" | "text/plain";
+  /** JSON schema used with response_mime_type="application/json". */
+  response_json_schema?: unknown;
 }
 
 /** OpenRouter message format. */
@@ -222,6 +228,7 @@ export interface GenerationOptions {
   maxLength?: number;
   numVariations?: number;
   repurposeMode?: RepurposeMode;
+  existingDrafts?: string[];
   sourceType?: "youtube" | "article" | "unknown";
   sourceMetadata?: {
     title?: string;

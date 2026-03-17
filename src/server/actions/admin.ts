@@ -8,6 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/server/db";
 import {
   analyticsSyncLog,
+  aiPromptCache,
+  aiUsageEvents,
   crossPosts,
   externalSources,
   schedules,
@@ -28,6 +30,25 @@ export type AdminOverview = {
   failedSchedulesLast24h: number;
   totalCrossPostsThisMonth: number;
   totalAiCallsThisMonth: number;
+};
+
+export type AdminAiFeatureCost = {
+  feature: string;
+  calls: number;
+  totalTokens: number;
+  totalCostUsd: number;
+  avgCostUsd: number;
+};
+
+export type AdminAiInsights = {
+  totalCostUsdThisMonth: number;
+  totalCostUsdLast24h: number;
+  totalTokensThisMonth: number;
+  totalAiEventsThisMonth: number;
+  promptCacheActiveEntries: number;
+  promptCacheTotalHits: number;
+  promptCacheHitRatePercent: number;
+  topCostFeatures: AdminAiFeatureCost[];
 };
 
 export type AdminEnvironmentCheck = {
@@ -103,6 +124,7 @@ export type AdminConsoleData = {
   scheduleFailures: AdminScheduleFailure[];
   sourceFailures: AdminSourceFailure[];
   analyticsSyncEvents: AdminAnalyticsSyncEvent[];
+  aiInsights: AdminAiInsights;
 };
 
 export type AdminBillingUpdateInput = {
@@ -152,6 +174,11 @@ function toIsoString(date: Date | null | undefined): string | null {
 function toNonNegativeInt(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.floor(value));
+}
+
+function toNonNegativeFloat(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, value);
 }
 
 function isMonthKey(value: string): boolean {
@@ -210,6 +237,7 @@ export async function getAdminConsoleData(): Promise<ActionResult<AdminConsoleDa
     const currentUsageMonth = getCurrentMonthKey();
     const now = new Date();
     const since24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
     const [
       totalUsersRows,
@@ -220,6 +248,10 @@ export async function getAdminConsoleData(): Promise<ActionResult<AdminConsoleDa
       pendingSchedulesRows,
       failedSchedulesRows,
       usageTotalsRows,
+      aiTotalsMonthRows,
+      aiTotals24hRows,
+      aiFeatureCostRows,
+      aiPromptCacheRows,
       billingRows,
       crossPostEventRows,
       scheduleFailureRows,
@@ -263,6 +295,39 @@ export async function getAdminConsoleData(): Promise<ActionResult<AdminConsoleDa
         })
         .from(usageTracking)
         .where(eq(usageTracking.month, currentUsageMonth)),
+      db
+        .select({
+          totalCostUsd: sql<number>`coalesce(sum(${aiUsageEvents.totalCostUsd}), 0)::float8`,
+          totalTokens: sql<number>`coalesce(sum(${aiUsageEvents.totalTokens}), 0)::int`,
+          totalEvents: sql<number>`count(*)::int`,
+        })
+        .from(aiUsageEvents)
+        .where(gte(aiUsageEvents.createdAt, monthStart)),
+      db
+        .select({
+          totalCostUsd: sql<number>`coalesce(sum(${aiUsageEvents.totalCostUsd}), 0)::float8`,
+        })
+        .from(aiUsageEvents)
+        .where(gte(aiUsageEvents.createdAt, since24h)),
+      db
+        .select({
+          feature: aiUsageEvents.feature,
+          totalCostUsd: sql<number>`coalesce(sum(${aiUsageEvents.totalCostUsd}), 0)::float8`,
+          totalTokens: sql<number>`coalesce(sum(${aiUsageEvents.totalTokens}), 0)::int`,
+          calls: sql<number>`count(*)::int`,
+        })
+        .from(aiUsageEvents)
+        .where(gte(aiUsageEvents.createdAt, monthStart))
+        .groupBy(aiUsageEvents.feature)
+        .orderBy(desc(sql<number>`coalesce(sum(${aiUsageEvents.totalCostUsd}), 0)::float8`))
+        .limit(6),
+      db
+        .select({
+          activeEntries: sql<number>`count(*)::int`,
+          totalHits: sql<number>`coalesce(sum(${aiPromptCache.hitCount}), 0)::int`,
+        })
+        .from(aiPromptCache)
+        .where(gte(aiPromptCache.expiresAt, now)),
       db
         .select({
           userId: users.id,
@@ -411,6 +476,34 @@ export async function getAdminConsoleData(): Promise<ActionResult<AdminConsoleDa
       syncWindowEnd: row.syncWindowEnd.toISOString(),
     }));
 
+    const totalAiEventsThisMonth = aiTotalsMonthRows[0]?.totalEvents ?? 0;
+    const promptCacheTotalHits = aiPromptCacheRows[0]?.totalHits ?? 0;
+    const promptCacheActiveEntries = aiPromptCacheRows[0]?.activeEntries ?? 0;
+    const promptCacheHitRatePercent =
+      totalAiEventsThisMonth + promptCacheTotalHits > 0
+        ? (promptCacheTotalHits / (totalAiEventsThisMonth + promptCacheTotalHits)) * 100
+        : 0;
+
+    const topCostFeatures: AdminAiFeatureCost[] = aiFeatureCostRows.map((row) => ({
+      feature: row.feature,
+      calls: row.calls ?? 0,
+      totalTokens: row.totalTokens ?? 0,
+      totalCostUsd: toNonNegativeFloat(row.totalCostUsd ?? 0),
+      avgCostUsd:
+        (row.calls ?? 0) > 0 ? toNonNegativeFloat((row.totalCostUsd ?? 0) / (row.calls ?? 1)) : 0,
+    }));
+
+    const aiInsights: AdminAiInsights = {
+      totalCostUsdThisMonth: toNonNegativeFloat(aiTotalsMonthRows[0]?.totalCostUsd ?? 0),
+      totalCostUsdLast24h: toNonNegativeFloat(aiTotals24hRows[0]?.totalCostUsd ?? 0),
+      totalTokensThisMonth: aiTotalsMonthRows[0]?.totalTokens ?? 0,
+      totalAiEventsThisMonth,
+      promptCacheActiveEntries,
+      promptCacheTotalHits,
+      promptCacheHitRatePercent: toNonNegativeFloat(promptCacheHitRatePercent),
+      topCostFeatures,
+    };
+
     return {
       success: true,
       data: {
@@ -428,6 +521,7 @@ export async function getAdminConsoleData(): Promise<ActionResult<AdminConsoleDa
         scheduleFailures,
         sourceFailures,
         analyticsSyncEvents,
+        aiInsights,
       },
     };
   } catch (error) {

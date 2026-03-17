@@ -350,9 +350,14 @@
       "totalUsers": "Всего пользователей",
       "paidUsers": "Платящие пользователи",
       "pastDueUsers": "Просроченные подписки",
+      "crossPosts24h": "Кросс-посты (24ч)",
+      "failedCrossPosts24h": "Сбойные кросс-посты (24ч)",
       "pendingSchedules": "Ожидающие расписания",
       "failedSchedules24h": "Ошибки расписания (24ч)",
-      "aiCallsMonth": "Использование ИИ (месяц)"
+      "aiCallsMonth": "Использование ИИ (месяц)",
+      "aiCostMonth": "Стоимость ИИ (месяц)",
+      "aiCost24h": "Стоимость ИИ (24ч)",
+      "promptCacheHitRate": "Попадания prompt-cache"
     },
     "env": {
       "title": "Проверка окружения",
@@ -407,6 +412,22 @@
       "analyticsSync": {
         "title": "Активность синка аналитики",
         "description": "Последние окна синхронизации аналитики"
+      }
+    },
+    "aiInsights": {
+      "title": "Инсайты по стоимости ИИ и cache",
+      "description": "Затраты токенов по фичам и эффективность prompt-cache.",
+      "totalEvents": "ИИ-события (месяц)",
+      "totalTokens": "Токены (месяц)",
+      "cacheEntries": "Активные cache-записи",
+      "cacheHits": "Попадания cache",
+      "empty": "Телеметрия ИИ пока отсутствует.",
+      "columns": {
+        "feature": "Фича",
+        "calls": "Вызовы",
+        "tokens": "Токены",
+        "totalCost": "Общая стоимость",
+        "avgCost": "Средняя стоимость / вызов"
       }
     }
   },
@@ -828,11 +849,7 @@
         "analytics": "Результаты"
       },
       "badge": "Операционная система для Telegram-авторов",
-      "titleOld": "Ваш Telegram-канал заслуживает",
       "titleAccent": "настоящей редакционной системы.",
-      "subtitleOld": "Teleflow принимает сырые идеи из Telegram, превращает их в тексты под ваш голос и держит весь редакционный цикл в одном месте.",
-      "ctaPrimaryOld": "Попробовать бесплатно",
-      "ctaSecondaryOld": "Посмотреть, как это работает",
       "promise": {
         "capture": "Идеи прямо из Telegram, без потерь",
         "adapt": "Тексты, которые звучат как вы, а не как ChatGPT",

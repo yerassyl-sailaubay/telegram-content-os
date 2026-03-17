@@ -96,10 +96,7 @@ export function isEnglish(text: string): boolean {
     if (code === undefined) continue;
 
     // Basic Latin letters (A-Z, a-z)
-    if (
-      (code >= 0x41 && code <= 0x5a) ||
-      (code >= 0x61 && code <= 0x7a)
-    ) {
+    if ((code >= 0x41 && code <= 0x5a) || (code >= 0x61 && code <= 0x7a)) {
       latinCount++;
     }
     // Cyrillic range (U+0400 – U+04FF)
@@ -157,9 +154,7 @@ export function runQualityChecks(
     lengthCheck = fitsLengthLimit(text, platform);
     if (!lengthCheck) {
       const limit = PLATFORM_LENGTH_LIMITS[platform];
-      warnings.push(
-        `Content exceeds ${platform} limit of ${limit} characters (${text.length})`,
-      );
+      warnings.push(`Content exceeds ${platform} limit of ${limit} characters (${text.length})`);
     }
   }
 
@@ -189,10 +184,7 @@ export function runQualityChecks(
  * - Append " 1/N", " 2/N" etc. to each tweet
  * - Never split mid-word
  */
-export function splitIntoThread(
-  content: string,
-  maxLength = 270,
-): string[] {
+export function splitIntoThread(content: string, maxLength = 270): string[] {
   // If content fits in one tweet without numbering, return as-is
   if (content.length <= 280) {
     return [content];
@@ -297,10 +289,7 @@ export class AdaptationEngine {
    * 4. For Twitter: split into thread if > 280 chars
    * 5. Return result with quality data
    */
-  async adapt(
-    input: AdaptationInput,
-    options?: AdaptationOptions,
-  ): Promise<AdaptationResult> {
+  async adapt(input: AdaptationInput, options?: AdaptationOptions): Promise<AdaptationResult> {
     const { parsedContent, platform, channelProfile } = input;
 
     // Step 1: Extract plain text
@@ -310,11 +299,15 @@ export class AdaptationEngine {
       throw new Error("No text content to adapt — post may be media-only");
     }
 
+    const sourceLanguage = isEnglish(plainText) ? "en" : "ru";
+
     // Step 2: Call AI provider
     const adapted: AdaptedContent = await this.aiProvider.adaptContent(
       {
         content: plainText,
         platform,
+        sourceLanguage,
+        targetLanguage: "en",
         channelProfile,
       },
       options,
@@ -327,11 +320,7 @@ export class AdaptationEngine {
     }
 
     // Step 5: Run quality checks
-    const qualityChecks = runQualityChecks(
-      adapted.content,
-      platform,
-      tweets,
-    );
+    const qualityChecks = runQualityChecks(adapted.content, platform, tweets);
 
     return {
       content: adapted.content,

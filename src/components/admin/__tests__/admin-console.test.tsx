@@ -80,6 +80,24 @@ function makeData(): AdminConsoleData {
     scheduleFailures: [],
     sourceFailures: [],
     analyticsSyncEvents: [],
+    aiInsights: {
+      totalCostUsdThisMonth: 1.25,
+      totalCostUsdLast24h: 0.12,
+      totalTokensThisMonth: 2200,
+      totalAiEventsThisMonth: 14,
+      promptCacheActiveEntries: 5,
+      promptCacheTotalHits: 3,
+      promptCacheHitRatePercent: 17.6,
+      topCostFeatures: [
+        {
+          feature: "calendar_fill",
+          calls: 4,
+          totalTokens: 1000,
+          totalCostUsd: 0.5,
+          avgCostUsd: 0.125,
+        },
+      ],
+    },
   };
 }
 

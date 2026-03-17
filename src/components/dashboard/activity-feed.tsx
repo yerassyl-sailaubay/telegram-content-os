@@ -13,7 +13,10 @@ type ActivityFeedProps = {
 };
 
 function getPlatformLabel(platform: string): string {
-  return platform === "telegram" ? "Telegram" : platform;
+  if (platform === "telegram") return "Telegram";
+  if (platform === "linkedin") return "LinkedIn";
+  if (platform === "twitter") return "Twitter / X";
+  return platform;
 }
 
 function getEventIcon(type: ActivityEvent["type"]) {

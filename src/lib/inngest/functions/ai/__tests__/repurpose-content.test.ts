@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const {
   mockEnforceAiQuota,
   mockIncrementAiUsage,
+  mockRecordAiTelemetry,
   mockGenerateEngine,
   mockDbSelect,
   mockDbInsert,
@@ -11,6 +12,7 @@ const {
 } = vi.hoisted(() => ({
   mockEnforceAiQuota: vi.fn(),
   mockIncrementAiUsage: vi.fn(),
+  mockRecordAiTelemetry: vi.fn(),
   mockGenerateEngine: vi.fn(),
   mockDbSelect: vi.fn(),
   mockDbInsert: vi.fn(),
@@ -31,6 +33,10 @@ vi.mock("@/lib/ai/generation-engine", () => ({
   GenerationEngine: vi.fn().mockImplementation(function () {
     return { generate: mockGenerateEngine };
   }),
+}));
+
+vi.mock("@/lib/ai/telemetry", () => ({
+  recordAiTelemetry: mockRecordAiTelemetry,
 }));
 
 function createSelectChain() {
@@ -124,6 +130,7 @@ async function runHandler(
 beforeEach(() => {
   vi.clearAllMocks();
   selectQueues.length = 0;
+  mockRecordAiTelemetry.mockResolvedValue(undefined);
 });
 
 describe("repurposeContent", () => {
@@ -183,6 +190,7 @@ describe("repurposeContent", () => {
     );
     expect(mockDbInsert).toHaveBeenCalled();
     expect(mockIncrementAiUsage).toHaveBeenCalledWith("user-123");
+    expect(mockRecordAiTelemetry).toHaveBeenCalledTimes(1);
     expect(result).toEqual(
       expect.objectContaining({
         status: "completed",

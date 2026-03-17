@@ -29,6 +29,23 @@ const DEFAULT_TIMEOUT_MS = 60_000;
 
 const FALLBACK_ORDER: ModelTier[] = ["default", "fast"];
 
+const CHANNEL_PROFILE_JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["niche", "tone", "topTopics", "language"],
+  properties: {
+    niche: { type: "string" },
+    tone: { type: "string" },
+    topTopics: {
+      type: "array",
+      items: { type: "string" },
+      minItems: 1,
+      maxItems: 10,
+    },
+    language: { type: "string" },
+  },
+} as const;
+
 // ---------------------------------------------------------------------------
 // Retry helper
 // ---------------------------------------------------------------------------
@@ -152,15 +169,21 @@ export class GoogleClient implements AIProvider {
       try {
         const { systemInstruction, contents } = this.mapMessages(request.messages);
 
+        const config = {
+          systemInstruction,
+          temperature: request.temperature,
+          maxOutputTokens: request.max_tokens,
+          abortSignal: controller.signal,
+          ...(request.response_mime_type ? { responseMimeType: request.response_mime_type } : {}),
+          ...(request.response_json_schema
+            ? { responseJsonSchema: request.response_json_schema }
+            : {}),
+        };
+
         const response = await ai.models.generateContent({
           model: request.model,
           contents,
-          config: {
-            systemInstruction,
-            temperature: request.temperature,
-            maxOutputTokens: request.max_tokens,
-            abortSignal: controller.signal,
-          },
+          config,
         });
 
         const text = response.text ?? "";
@@ -243,31 +266,46 @@ export class GoogleClient implements AIProvider {
       timeoutMs: options.timeoutMs,
     };
 
-    // Step 1: Literal translation
-    const translateMessages = buildTranslatePrompt({
-      content: request.content,
-      sourceLanguage: request.sourceLanguage,
-      targetLanguage: request.targetLanguage,
-    });
+    const sourceLang = (request.sourceLanguage ?? "").toLowerCase().split("-")[0];
+    const targetLang = (request.targetLanguage ?? "en").toLowerCase().split("-")[0];
+    const shouldSkipTranslation = sourceLang.length > 0 && sourceLang === targetLang;
 
-    const translationResult = await this.completeWithFallback(
-      {
-        model: model.id,
-        messages: translateMessages,
-        temperature: 0.3,
-      },
-      completeOptions,
-    );
+    let translatedContent = request.content;
+    let translationUsage: TokenUsage = {
+      promptTokens: 0,
+      completionTokens: 0,
+      totalTokens: 0,
+    };
+
+    if (!shouldSkipTranslation) {
+      const translateMessages = buildTranslatePrompt({
+        content: request.content,
+        sourceLanguage: request.sourceLanguage,
+        targetLanguage: request.targetLanguage,
+      });
+
+      const translationResult = await this.completeWithFallback(
+        {
+          model: model.id,
+          messages: translateMessages,
+          temperature: 0.3,
+        },
+        completeOptions,
+      );
+
+      translatedContent = translationResult.content;
+      translationUsage = translationResult.tokenUsage;
+    }
 
     // Step 2: Platform-specific adaptation
     const adaptMessages =
       request.platform === "linkedin"
         ? buildLinkedInAdaptPrompt({
-            translatedContent: translationResult.content,
+            translatedContent,
             channelProfile: request.channelProfile,
           })
         : buildTwitterAdaptPrompt({
-            translatedContent: translationResult.content,
+            translatedContent,
             channelProfile: request.channelProfile,
           });
 
@@ -282,15 +320,14 @@ export class GoogleClient implements AIProvider {
 
     return {
       content: adaptResult.content,
-      translatedContent: translationResult.content,
+      translatedContent,
       platform: request.platform,
       modelUsed: adaptResult.model,
       tokenUsage: {
-        promptTokens:
-          translationResult.tokenUsage.promptTokens + adaptResult.tokenUsage.promptTokens,
+        promptTokens: translationUsage.promptTokens + adaptResult.tokenUsage.promptTokens,
         completionTokens:
-          translationResult.tokenUsage.completionTokens + adaptResult.tokenUsage.completionTokens,
-        totalTokens: translationResult.tokenUsage.totalTokens + adaptResult.tokenUsage.totalTokens,
+          translationUsage.completionTokens + adaptResult.tokenUsage.completionTokens,
+        totalTokens: translationUsage.totalTokens + adaptResult.tokenUsage.totalTokens,
       },
     };
   }
@@ -313,6 +350,8 @@ export class GoogleClient implements AIProvider {
         model: model.id,
         messages,
         temperature: 0.3,
+        response_mime_type: "application/json",
+        response_json_schema: CHANNEL_PROFILE_JSON_SCHEMA,
       },
       completeOptions,
     );

@@ -196,6 +196,23 @@ export const adaptContent = inngest.createFunction(
         return inserted[0]!.id;
       });
 
+      await step.run("track-telemetry", async () => {
+        const { recordAiTelemetry } = await import("@/lib/ai/telemetry");
+        await recordAiTelemetry({
+          userId,
+          channelId: resolvedChannelId,
+          feature: "cross_platform_adaptation",
+          modelId: result.modelUsed,
+          tokenUsage: result.tokenUsage,
+          metadata: {
+            platform,
+            crossPostId: resolvedCrossPostId,
+            hasTweets: !!result.tweets,
+            tweetCount: result.tweets?.length ?? 0,
+          },
+        });
+      });
+
       return {
         status: "completed",
         crossPostId: resolvedCrossPostId,

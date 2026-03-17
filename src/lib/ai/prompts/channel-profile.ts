@@ -11,12 +11,50 @@ import type { OpenRouterMessage, ChannelProfileRequest } from "../types";
  * Builds the message array for channel profile analysis.
  * Expects JSON output with niche, tone, topTopics, and language fields.
  */
-export function buildChannelProfilePrompt(
-  input: ChannelProfileRequest,
-): OpenRouterMessage[] {
-  const postsText = input.posts
-    .map((post, i) => `--- Post ${i + 1} ---\n${post}`)
-    .join("\n\n");
+export function buildChannelProfilePrompt(input: ChannelProfileRequest): OpenRouterMessage[] {
+  const postsText = input.posts.map((post, i) => `--- Post ${i + 1} ---\n${post}`).join("\n\n");
+
+  if (input.existingProfile) {
+    const existingProfile = JSON.stringify({
+      niche: input.existingProfile.niche ?? "unknown",
+      tone: input.existingProfile.tone ?? "unknown",
+      topTopics: input.existingProfile.topTopics ?? [],
+      language: input.existingProfile.language ?? "ru",
+    });
+
+    return [
+      {
+        role: "system",
+        content: `You are a content analyst specializing in Telegram channel profiling.
+
+Your task is to UPDATE an existing channel profile using only newly written posts.
+
+Rules:
+- Start from the existing profile as baseline
+- Change fields only when the new posts provide clear evidence
+- Keep the same language unless new posts clearly indicate a shift
+- Keep topTopics focused and deduplicated (3-7 topics)
+
+Return a JSON object with these exact fields:
+- "niche": concise channel niche
+- "tone": dominant writing tone/style
+- "topTopics": array of 3-7 concrete recurring topics
+- "language": primary language code (e.g. "ru", "en", "uk")
+
+Output ONLY valid JSON, no markdown, no explanation.`,
+      },
+      {
+        role: "user",
+        content: `Channel: "${input.channelName}"
+
+Existing profile:
+${existingProfile}
+
+New posts to evaluate:
+${postsText}`,
+      },
+    ];
+  }
 
   return [
     {

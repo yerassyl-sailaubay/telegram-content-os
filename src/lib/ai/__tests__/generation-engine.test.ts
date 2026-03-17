@@ -226,7 +226,7 @@ describe("GenerationEngine", () => {
       );
     });
 
-    it("uses 'pro' tier for calendar_fill", async () => {
+    it("uses 'default' tier for calendar_fill", async () => {
       const engine = new GenerationEngine(createMockClient());
       await engine.generate({
         type: "calendar_fill",
@@ -236,7 +236,7 @@ describe("GenerationEngine", () => {
 
       expect(mockCompleteWithFallback).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: AI_MODELS.pro.id,
+          model: AI_MODELS.default.id,
         }),
         undefined,
       );
@@ -358,8 +358,8 @@ describe("getModelTierForType", () => {
     expect(getModelTierForType("idea_to_draft")).toBe("fast");
   });
 
-  it("returns 'pro' for calendar_fill", () => {
-    expect(getModelTierForType("calendar_fill")).toBe("pro");
+  it("returns 'default' for calendar_fill", () => {
+    expect(getModelTierForType("calendar_fill")).toBe("default");
   });
 });
 

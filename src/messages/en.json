@@ -350,9 +350,14 @@
       "totalUsers": "Total users",
       "paidUsers": "Paid users",
       "pastDueUsers": "Past due users",
+      "crossPosts24h": "Cross-posts (24h)",
+      "failedCrossPosts24h": "Failed cross-posts (24h)",
       "pendingSchedules": "Pending schedules",
       "failedSchedules24h": "Failed schedules (24h)",
-      "aiCallsMonth": "AI usage (month)"
+      "aiCallsMonth": "AI usage (month)",
+      "aiCostMonth": "AI cost (month)",
+      "aiCost24h": "AI cost (24h)",
+      "promptCacheHitRate": "Prompt cache hit rate"
     },
     "env": {
       "title": "Environment checks",
@@ -407,6 +412,22 @@
       "analyticsSync": {
         "title": "Analytics sync activity",
         "description": "Most recent analytics synchronization windows"
+      }
+    },
+    "aiInsights": {
+      "title": "AI cost and cache insights",
+      "description": "Token spend by feature and prompt-cache effectiveness.",
+      "totalEvents": "AI events (month)",
+      "totalTokens": "Tokens (month)",
+      "cacheEntries": "Active cache entries",
+      "cacheHits": "Cache hits",
+      "empty": "No AI telemetry yet.",
+      "columns": {
+        "feature": "Feature",
+        "calls": "Calls",
+        "tokens": "Tokens",
+        "totalCost": "Total cost",
+        "avgCost": "Avg cost / call"
       }
     }
   },

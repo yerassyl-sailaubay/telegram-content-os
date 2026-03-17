@@ -76,7 +76,7 @@ export const developIdea = inngest.createFunction(
       };
     });
 
-    const _recentDraftTitles = await step.run("load-recent-drafts", async () => {
+    const recentDraftTitles = await step.run("load-recent-drafts", async () => {
       const resolvedChannelId = channelId ?? content.channelId;
       if (!resolvedChannelId) return [];
 
@@ -107,7 +107,9 @@ export const developIdea = inngest.createFunction(
         type: "idea_to_draft",
         sourceContent: content.content ?? "",
         channelProfile: channelProfile ?? undefined,
-        options: {},
+        options: {
+          existingDrafts: recentDraftTitles,
+        },
       });
     });
 
@@ -133,7 +135,19 @@ export const developIdea = inngest.createFunction(
 
     await step.run("track-usage", async () => {
       const { incrementAiUsage } = await import("@/lib/billing/ai-quota");
+      const { recordAiTelemetry } = await import("@/lib/ai/telemetry");
       await incrementAiUsage(userId);
+      await recordAiTelemetry({
+        userId,
+        channelId: channelId ?? content.channelId,
+        contentId,
+        feature: "idea_to_draft",
+        modelId: generationResult.modelUsed,
+        tokenUsage: generationResult.tokenUsage,
+        metadata: {
+          draftAvoidanceCount: recentDraftTitles.length,
+        },
+      });
     });
 
     return {

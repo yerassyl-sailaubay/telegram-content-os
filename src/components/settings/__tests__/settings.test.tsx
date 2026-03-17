@@ -44,6 +44,7 @@ function createMutationChain() {
   chain.where = vi.fn().mockReturnValue(chain);
   chain.values = vi.fn().mockReturnValue(chain);
   chain.set = vi.fn().mockReturnValue(chain);
+  chain.onConflictDoUpdate = vi.fn().mockReturnValue(chain);
   chain.returning = mockReturning;
   return chain;
 }
@@ -297,7 +298,7 @@ describe("updatePreferences", () => {
       expect(result.data.aiModel).toBe("gemini-pro");
       expect(result.data.adaptationTone).toBe("casual");
     }
-    expect(mockUpdate).toHaveBeenCalled();
+    expect(mockInsert).toHaveBeenCalled();
   });
 
   it("inserts preferences when none exist", async () => {

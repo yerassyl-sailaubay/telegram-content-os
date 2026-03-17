@@ -27,6 +27,7 @@ function createSelectChain() {
   chain.where = vi.fn().mockReturnValue(chain);
   chain.leftJoin = vi.fn().mockReturnValue(chain);
   chain.innerJoin = vi.fn().mockReturnValue(chain);
+  chain.groupBy = vi.fn().mockReturnValue(chain);
   chain.orderBy = vi.fn().mockReturnValue(chain);
   chain.limit = vi.fn().mockReturnValue(chain);
   chain.then = thenFn;
@@ -115,6 +116,13 @@ describe("getAdminConsoleData", () => {
     selectResults.push([{ count: 5 }]); // pending schedules
     selectResults.push([{ count: 1 }]); // failed schedules 24h
     selectResults.push([{ totalCrossPosts: 44, totalAiCalls: 88 }]); // month totals
+    selectResults.push([{ totalCostUsd: 1.2345, totalTokens: 3210, totalEvents: 12 }]); // ai month
+    selectResults.push([{ totalCostUsd: 0.1234 }]); // ai 24h
+    selectResults.push([
+      { feature: "calendar_fill", totalCostUsd: 0.5, totalTokens: 1000, calls: 4 },
+      { feature: "idea_to_draft", totalCostUsd: 0.2, totalTokens: 500, calls: 2 },
+    ]); // top features
+    selectResults.push([{ activeEntries: 9, totalHits: 6 }]); // prompt cache
     selectResults.push([
       {
         userId: "user-1",
@@ -185,6 +193,9 @@ describe("getAdminConsoleData", () => {
       expect(result.data.scheduleFailures[0]?.platform).toBe("linkedin");
       expect(result.data.sourceFailures[0]?.sourceType).toBe("youtube");
       expect(result.data.analyticsSyncEvents[0]?.platform).toBe("linkedin");
+      expect(result.data.aiInsights.totalCostUsdThisMonth).toBe(1.2345);
+      expect(result.data.aiInsights.topCostFeatures[0]?.feature).toBe("calendar_fill");
+      expect(result.data.aiInsights.promptCacheActiveEntries).toBe(9);
       expect(result.data.access.mode).toBe("restricted");
       expect(result.data.access.configuredAdmins).toContain("admin@example.com");
     }

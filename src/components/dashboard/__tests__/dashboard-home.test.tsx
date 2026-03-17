@@ -1,41 +1,48 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 
 // ─── Mock next-intl ──────────────────────────────────────────────────────────
 
 vi.mock("next-intl", () => ({
-  useTranslations: (_ns: string) => (key: string, params?: Record<string, unknown>) => {
-    const messages: Record<string, string> = {
-      // dashboard namespace
-      welcomeBack: "Welcome back, {name}",
-      welcomeFallbackName: "there",
-      statCrossPosts: "Cross-Posts",
-      statScheduled: "Scheduled",
-      statWeeklyEngagement: "Weekly Engagement",
-      statConnectedPlatforms: "Connected Platforms",
-      actionNewCrossPost: "New Cross-Post",
-      actionQuickBroadcast: "Quick Broadcast",
-      actionViewSchedule: "View Schedule",
-      activityFeedTitle: "Recent Activity",
-      activityEmpty: "No activity yet",
-      activityEmptyDescription: "Your cross-post activity will appear here.",
-      activityType_adapted: "adapted",
-      activityType_scheduled: "scheduled",
-      activityType_published: "published",
-      activityType_failed: "failed",
-      upcomingPostsTitle: "Upcoming Posts",
-      upcomingEmpty: "No upcoming posts",
-      upcomingEmptyDescription: "Schedule a post to see it here.",
-      sparklineTitle: "7-Day Engagement",
-      sparklineEmpty: "No engagement data yet",
-      sparklineLabel: "Engagement",
+  useTranslations: (namespace: string) => {
+    void namespace;
+
+    return (key: string, params?: Record<string, unknown>) => {
+      const messages: Record<string, string> = {
+        // dashboard namespace
+        welcomeBack: "Welcome back, {name}",
+        welcomeFallbackName: "there",
+        statScheduled: "Scheduled",
+        statScheduledDescription: "Posts queued for publishing.",
+        statWeeklyEngagement: "Engagement",
+        statWeeklyEngagementDescription: "Reactions, clicks, and shares over 7 days.",
+        statAiGenerations: "AI Generations",
+        statAiDescription: "Used from this month's limit.",
+        actionNewPost: "New Post",
+        actionCreateFromUrl: "Create from URL",
+        actionViewSchedule: "View Schedule",
+        viewCalendar: "View all",
+        activityFeedTitle: "Recent Activity",
+        activityEmpty: "No activity yet",
+        activityEmptyDescription: "Your publishing activity will appear here.",
+        activityType_adapted: "adapted",
+        activityType_scheduled: "scheduled",
+        activityType_published: "published",
+        activityType_failed: "failed",
+        upcomingPostsTitle: "Upcoming Posts",
+        upcomingEmpty: "No upcoming posts",
+        upcomingEmptyDescription: "Schedule a post to see it here.",
+        sparklineTitle: "7-Day Engagement",
+        sparklineEmpty: "No engagement data yet",
+        sparklineLabel: "Engagement",
+      };
+      const base = messages[key] ?? key;
+      if (params) {
+        return base.replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? `{${k}}`));
+      }
+      return base;
     };
-    const base = messages[key] ?? key;
-    if (params) {
-      return base.replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? `{${k}}`));
-    }
-    return base;
   },
 }));
 
@@ -231,9 +238,9 @@ describe("QuickStatsSection", () => {
     expect(screen.getByTestId("quick-stats")).toBeTruthy();
   });
 
-  it("renders 4 metrics cards", () => {
+  it("renders 3 metrics cards", () => {
     render(React.createElement(QuickStatsSection, { data: makeQuickStats() }));
-    expect(screen.getAllByTestId("metrics-card").length).toBe(4);
+    expect(screen.getAllByTestId("metrics-card").length).toBe(3);
   });
 
   it("shows cross-posts usage", () => {
@@ -257,19 +264,11 @@ describe("QuickStatsSection", () => {
     expect(twos.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows connected platforms count", () => {
-    render(React.createElement(QuickStatsSection, { data: makeQuickStats() }));
-    // value of 2 is shown for connected platforms (same as scheduled)
-    const values = screen.getAllByText("2");
-    expect(values.length).toBeGreaterThanOrEqual(1);
-  });
-
   it("renders stat titles", () => {
     render(React.createElement(QuickStatsSection, { data: makeQuickStats() }));
-    expect(screen.getByText("Cross-Posts")).toBeTruthy();
     expect(screen.getByText("Scheduled")).toBeTruthy();
-    expect(screen.getByText("Weekly Engagement")).toBeTruthy();
-    expect(screen.getByText("Connected Platforms")).toBeTruthy();
+    expect(screen.getByText("Engagement")).toBeTruthy();
+    expect(screen.getByText("AI Generations")).toBeTruthy();
   });
 });
 
@@ -281,14 +280,14 @@ describe("QuickActions", () => {
     expect(screen.getByTestId("quick-actions")).toBeTruthy();
   });
 
-  it("renders New Cross-Post button", () => {
+  it("renders New Post button", () => {
     render(React.createElement(QuickActions, {}));
-    expect(screen.getByText("New Cross-Post")).toBeTruthy();
+    expect(screen.getByText("New Post")).toBeTruthy();
   });
 
-  it("renders Quick Broadcast button", () => {
+  it("renders Create from URL button", () => {
     render(React.createElement(QuickActions, {}));
-    expect(screen.getByText("Quick Broadcast")).toBeTruthy();
+    expect(screen.getByText("Create from URL")).toBeTruthy();
   });
 
   it("renders View Schedule button", () => {
@@ -296,20 +295,18 @@ describe("QuickActions", () => {
     expect(screen.getByText("View Schedule")).toBeTruthy();
   });
 
-  it("New Cross-Post links to crosspost page", () => {
+  it("New Post links to telegram-post page", () => {
     render(React.createElement(QuickActions, {}));
     const links = screen.getAllByTestId("nav-link");
-    const crosspostLink = links.find((l) => l.getAttribute("href") === "/dashboard/crosspost");
-    expect(crosspostLink).toBeTruthy();
+    const newPostLink = links.find((l) => l.getAttribute("href") === "/dashboard/telegram-post");
+    expect(newPostLink).toBeTruthy();
   });
 
-  it("Quick Broadcast links to broadcast page", () => {
+  it("Create from URL links to create page", () => {
     render(React.createElement(QuickActions, {}));
     const links = screen.getAllByTestId("nav-link");
-    const broadcastLink = links.find(
-      (l) => l.getAttribute("href") === "/dashboard/crosspost/broadcast",
-    );
-    expect(broadcastLink).toBeTruthy();
+    const createLink = links.find((l) => l.getAttribute("href") === "/dashboard/create");
+    expect(createLink).toBeTruthy();
   });
 
   it("View Schedule links to schedule page", () => {
@@ -356,14 +353,14 @@ describe("ActivityFeed", () => {
   it("shows empty state when no events", () => {
     render(React.createElement(ActivityFeed, { events: [] }));
     expect(screen.getByText("No activity yet")).toBeTruthy();
-    expect(screen.getByText("Your cross-post activity will appear here.")).toBeTruthy();
+    expect(screen.getByText("Your publishing activity will appear here.")).toBeTruthy();
   });
 
   it("shows CTA link in empty state", () => {
     render(React.createElement(ActivityFeed, { events: [] }));
     const links = screen.getAllByTestId("nav-link");
-    const crosspostLink = links.find((l) => l.getAttribute("href") === "/dashboard/crosspost");
-    expect(crosspostLink).toBeTruthy();
+    const createLink = links.find((l) => l.getAttribute("href") === "/dashboard/telegram-post");
+    expect(createLink).toBeTruthy();
   });
 
   it("handles null contentSnippet gracefully", () => {

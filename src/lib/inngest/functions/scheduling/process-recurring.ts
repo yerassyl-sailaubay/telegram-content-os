@@ -126,16 +126,29 @@ export const processRecurringSchedules = inngest.createFunction(
           }
         }
 
-        // Create a schedule entry for each cross_post
+        // Create a schedule entry for each cross_post and capture the created schedule IDs.
+        const scheduleEvents: Array<{ platform: string; scheduleId: string }> = [];
         for (const [platform, crossPostId] of Object.entries(crossPostIds)) {
-          await db.insert(schedules).values({
-            userId: recurring.userId,
-            crossPostId,
-            scheduledAt: occurrenceTime,
-            timezone: recurring.timezone,
-            isRecurring: true,
-            recurrenceRule: recurring.id,
-            status: "pending",
+          const [schedule] = await db
+            .insert(schedules)
+            .values({
+              userId: recurring.userId,
+              crossPostId,
+              scheduledAt: occurrenceTime,
+              timezone: recurring.timezone,
+              isRecurring: true,
+              recurrenceRule: recurring.id,
+              status: "pending",
+            })
+            .returning({ id: schedules.id });
+
+          if (!schedule) {
+            throw new Error(`Failed to create schedule for recurring job ${recurring.id}`);
+          }
+
+          scheduleEvents.push({
+            platform,
+            scheduleId: schedule.id,
           });
         }
 
@@ -158,11 +171,11 @@ export const processRecurringSchedules = inngest.createFunction(
         // Emit execute events for each scheduled post
         const { inngest: inngestClient } = await import("@/lib/inngest/client");
 
-        for (const [platform, crossPostId] of Object.entries(crossPostIds)) {
+        for (const { scheduleId } of scheduleEvents) {
           await inngestClient.send({
             name: "schedule/execute-post",
             data: {
-              scheduleId: crossPostId,
+              scheduleId,
               userId: recurring.userId,
             },
             ts: occurrenceTime.getTime(),
@@ -171,7 +184,7 @@ export const processRecurringSchedules = inngest.createFunction(
 
         return {
           action: "created",
-          platforms: Object.keys(crossPostIds),
+          platforms: scheduleEvents.map((item) => item.platform),
           scheduledAt: occurrenceTime.toISOString(),
         };
       });

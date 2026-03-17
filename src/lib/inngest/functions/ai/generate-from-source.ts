@@ -1,6 +1,9 @@
 import { inngest } from "@/lib/inngest/client";
 import { POSTS_PER_SOURCE } from "@/lib/ai/prompts/generate-from-source";
 
+const LONG_SOURCE_SUMMARIZATION_THRESHOLD = 12_000;
+const SUMMARY_MAX_CHARS = 7_000;
+
 interface GenerateFromSourceEvent {
   data: {
     contentItemId: string;
@@ -43,6 +46,7 @@ export const generateFromSource = inngest.createFunction(
           title: row.title,
           channelId: row.channelId,
           sourceUrl: row.sourceUrl,
+          rawSourceMetadata: metadata ?? {},
           sourceMetadata: metadata
             ? {
                 title: metadata.title as string | undefined,
@@ -88,16 +92,67 @@ export const generateFromSource = inngest.createFunction(
       const result = await step.run("generate", async () => {
         const { GoogleClient } = await import("@/lib/ai/google");
         const { GenerationEngine } = await import("@/lib/ai/generation-engine");
+        const { summarizeSourceForGeneration } = await import("@/lib/ai/source-summarizer");
         const { parseUrl } = await import("@/lib/sources/url-parser");
+        const { db } = await import("@/server/db");
+        const { contentLibrary } = await import("@/server/db/schema");
+        const { eq } = await import("drizzle-orm");
 
         const client = new GoogleClient();
         const engine = new GenerationEngine(client);
 
         const sourceType = contentItem.sourceUrl ? parseUrl(contentItem.sourceUrl).type : "article";
+        let sourceContent = contentItem.content ?? "";
+        let summary: {
+          modelUsed: string;
+          tokenUsage: { promptTokens: number; completionTokens: number; totalTokens: number };
+        } | null = null;
+        let usedSummarization = false;
+        let usedCachedSummary = false;
 
-        return engine.generate({
+        if (sourceContent.length > LONG_SOURCE_SUMMARIZATION_THRESHOLD) {
+          const cachedSummary =
+            typeof contentItem.rawSourceMetadata?.aiSummary === "string"
+              ? (contentItem.rawSourceMetadata.aiSummary as string)
+              : null;
+
+          if (cachedSummary && cachedSummary.trim().length > 0) {
+            sourceContent = cachedSummary;
+            usedCachedSummary = true;
+          } else {
+            const summarized = await summarizeSourceForGeneration(client, {
+              sourceContent,
+              sourceType,
+              sourceMetadata: contentItem.sourceMetadata,
+              language: channelProfile?.language ?? "ru",
+              maxChars: SUMMARY_MAX_CHARS,
+            });
+
+            sourceContent = summarized.summary;
+            summary = {
+              modelUsed: summarized.modelUsed,
+              tokenUsage: summarized.tokenUsage,
+            };
+            usedSummarization = true;
+
+            await db
+              .update(contentLibrary)
+              .set({
+                sourceMetadata: {
+                  ...(contentItem.rawSourceMetadata ?? {}),
+                  aiSummary: summarized.summary,
+                  aiSummaryModel: summarized.modelUsed,
+                  aiSummaryGeneratedAt: new Date().toISOString(),
+                },
+                updatedAt: new Date(),
+              })
+              .where(eq(contentLibrary.id, contentItemId));
+          }
+        }
+
+        const generation = await engine.generate({
           type: "source_to_telegram",
-          sourceContent: contentItem.content ?? "",
+          sourceContent,
           channelProfile: channelProfile ?? undefined,
           options: {
             sourceType,
@@ -105,6 +160,14 @@ export const generateFromSource = inngest.createFunction(
             sourceMetadata: contentItem.sourceMetadata,
           },
         });
+
+        return {
+          generation,
+          sourceType,
+          summary,
+          usedSummarization,
+          usedCachedSummary,
+        };
       });
 
       const childIds = await step.run("store-children", async () => {
@@ -112,7 +175,9 @@ export const generateFromSource = inngest.createFunction(
         const { contentLibrary } = await import("@/server/db/schema");
         const { eq } = await import("drizzle-orm");
 
-        const posts = Array.isArray(result.content) ? result.content : [result.content];
+        const posts = Array.isArray(result.generation.content)
+          ? result.generation.content
+          : [result.generation.content];
 
         const childRows = posts.map((postContent, index) => ({
           userId,
@@ -142,7 +207,36 @@ export const generateFromSource = inngest.createFunction(
 
       await step.run("track-usage", async () => {
         const { incrementAiUsage } = await import("@/lib/billing/ai-quota");
+        const { recordAiTelemetry } = await import("@/lib/ai/telemetry");
+
         await incrementAiUsage(userId);
+        await recordAiTelemetry({
+          userId,
+          channelId,
+          contentId: contentItemId,
+          feature: "source_to_telegram",
+          modelId: result.generation.modelUsed,
+          tokenUsage: result.generation.tokenUsage,
+          metadata: {
+            sourceType: result.sourceType,
+            usedSummarization: result.usedSummarization,
+            usedCachedSummary: result.usedCachedSummary,
+          },
+        });
+
+        if (result.summary) {
+          await recordAiTelemetry({
+            userId,
+            channelId,
+            contentId: contentItemId,
+            feature: "source_summarization",
+            modelId: result.summary.modelUsed,
+            tokenUsage: result.summary.tokenUsage,
+            metadata: {
+              sourceType: result.sourceType,
+            },
+          });
+        }
       });
 
       await step.run("mark-source-completed", async () => {
@@ -166,8 +260,8 @@ export const generateFromSource = inngest.createFunction(
         status: "completed",
         contentItemId,
         childIds,
-        modelUsed: result.modelUsed,
-        tokenUsage: result.tokenUsage,
+        modelUsed: result.generation.modelUsed,
+        tokenUsage: result.generation.tokenUsage,
       };
     } catch (error) {
       await step.run("mark-source-failed", async () => {

@@ -28,8 +28,7 @@ function createMockProvider(
   overrides?: Partial<AdaptedContent>,
 ): AIProvider & { adaptContent: ReturnType<typeof vi.fn> } {
   const defaultResult: AdaptedContent = {
-    content:
-      "This is a great post about technology and innovation. #tech #innovation",
+    content: "This is a great post about technology and innovation. #tech #innovation",
     translatedContent: "This is a literal translation of the original post.",
     platform: "linkedin",
     modelUsed: "openai/gpt-4.1-mini",
@@ -58,10 +57,7 @@ function createMockProvider(
 // Helper: create ParsedContent fixture
 // ---------------------------------------------------------------------------
 
-function createParsedContent(
-  blocks: ContentBlock[],
-  rawText = "Test content",
-): ParsedContent {
+function createParsedContent(blocks: ContentBlock[], rawText = "Test content"): ParsedContent {
   return {
     blocks,
     media: [],
@@ -94,9 +90,7 @@ describe("extractPlainText", () => {
       { type: "text", text: " " },
       { type: "hashtag", text: "#tech" },
     ];
-    expect(extractPlainText(blocks)).toBe(
-      "Check this: https://example.com by @user #tech",
-    );
+    expect(extractPlainText(blocks)).toBe("Check this: https://example.com by @user #tech");
   });
 
   it("ignores media blocks", () => {
@@ -117,9 +111,7 @@ describe("extractPlainText", () => {
       { type: "text", text: "Here's code: " },
       { type: "code_block", text: "console.log('hello')", language: "js" },
     ];
-    expect(extractPlainText(blocks)).toBe(
-      "Here's code: console.log('hello')",
-    );
+    expect(extractPlainText(blocks)).toBe("Here's code: console.log('hello')");
   });
 });
 
@@ -220,10 +212,7 @@ describe("hasHashtags", () => {
 
 describe("runQualityChecks", () => {
   it("returns all passing for good English LinkedIn content", () => {
-    const result = runQualityChecks(
-      "Great article about AI trends! #technology #AI",
-      "linkedin",
-    );
+    const result = runQualityChecks("Great article about AI trends! #technology #AI", "linkedin");
     expect(result.isEnglish).toBe(true);
     expect(result.fitsLengthLimit).toBe(true);
     expect(result.hasHashtags).toBe(true);
@@ -231,22 +220,15 @@ describe("runQualityChecks", () => {
   });
 
   it("warns about non-English content", () => {
-    const result = runQualityChecks(
-      "Привет мир #тест",
-      "linkedin",
-    );
+    const result = runQualityChecks("Привет мир #тест", "linkedin");
     expect(result.isEnglish).toBe(false);
-    expect(result.warnings).toContain(
-      "Content may not be fully translated to English",
-    );
+    expect(result.warnings).toContain("Content may not be fully translated to English");
   });
 
   it("warns about missing hashtags", () => {
     const result = runQualityChecks("No hashtags here", "linkedin");
     expect(result.hasHashtags).toBe(false);
-    expect(result.warnings).toContain(
-      "Content has no hashtags — consider adding relevant ones",
-    );
+    expect(result.warnings).toContain("Content has no hashtags — consider adding relevant ones");
   });
 
   it("warns about exceeding LinkedIn limit", () => {
@@ -297,11 +279,11 @@ describe("splitIntoThread", () => {
     // Create content that requires splitting: multiple sentences > 280 chars total
     const sentence1 = "This is the first sentence about technology and its impact on society. ";
     const sentence2 = "And here is another sentence about innovation in modern businesses. ";
-    const sentence3 = "Finally a third sentence about artificial intelligence and machine learning advances. ";
+    const sentence3 =
+      "Finally a third sentence about artificial intelligence and machine learning advances. ";
     const sentence4 = "Fourth sentence about the future of quantum computing and blockchain. ";
     const sentence5 = "Fifth sentence discussing cloud platforms and infrastructure services. ";
-    const longContent =
-      sentence1 + sentence2 + sentence3 + sentence4 + sentence5;
+    const longContent = sentence1 + sentence2 + sentence3 + sentence4 + sentence5;
 
     expect(longContent.length).toBeGreaterThan(280);
 
@@ -364,10 +346,7 @@ describe("splitIntoThread", () => {
 
   it("handles single very long sentence by word splitting", () => {
     // Create a single sentence without any period/exclamation/question
-    const words = Array.from(
-      { length: 80 },
-      (_, i) => `word${i}`,
-    );
+    const words = Array.from({ length: 80 }, (_, i) => `word${i}`);
     const longSentence = words.join(" ");
     expect(longSentence.length).toBeGreaterThan(280);
 
@@ -430,6 +409,8 @@ describe("AdaptationEngine", () => {
         {
           content: "Привет! Это пост о технологиях.",
           platform: "linkedin",
+          sourceLanguage: "ru",
+          targetLanguage: "en",
           channelProfile: undefined,
         },
         undefined,
@@ -438,9 +419,7 @@ describe("AdaptationEngine", () => {
 
     it("returns adapted content with quality checks", async () => {
       const input: AdaptationInput = {
-        parsedContent: createParsedContent([
-          { type: "text", text: "Test post content" },
-        ]),
+        parsedContent: createParsedContent([{ type: "text", text: "Test post content" }]),
         platform: "linkedin",
       };
 
@@ -449,9 +428,7 @@ describe("AdaptationEngine", () => {
       expect(result.content).toBe(
         "This is a great post about technology and innovation. #tech #innovation",
       );
-      expect(result.translatedContent).toBe(
-        "This is a literal translation of the original post.",
-      );
+      expect(result.translatedContent).toBe("This is a literal translation of the original post.");
       expect(result.platform).toBe("linkedin");
       expect(result.modelUsed).toBe("openai/gpt-4.1-mini");
       expect(result.tokenUsage).toEqual({
@@ -467,9 +444,7 @@ describe("AdaptationEngine", () => {
 
     it("does not produce tweets array for LinkedIn", async () => {
       const input: AdaptationInput = {
-        parsedContent: createParsedContent([
-          { type: "text", text: "Some LinkedIn post" },
-        ]),
+        parsedContent: createParsedContent([{ type: "text", text: "Some LinkedIn post" }]),
         platform: "linkedin",
       };
 
@@ -487,9 +462,7 @@ describe("AdaptationEngine", () => {
       engine = new AdaptationEngine(mockProvider);
 
       const input: AdaptationInput = {
-        parsedContent: createParsedContent([
-          { type: "text", text: "Короткий пост" },
-        ]),
+        parsedContent: createParsedContent([{ type: "text", text: "Короткий пост" }]),
         platform: "twitter",
       };
 
@@ -514,9 +487,7 @@ describe("AdaptationEngine", () => {
       engine = new AdaptationEngine(mockProvider);
 
       const input: AdaptationInput = {
-        parsedContent: createParsedContent([
-          { type: "text", text: "Длинный пост о технологиях" },
-        ]),
+        parsedContent: createParsedContent([{ type: "text", text: "Длинный пост о технологиях" }]),
         platform: "twitter",
       };
 
@@ -541,9 +512,7 @@ describe("AdaptationEngine", () => {
       };
 
       const input: AdaptationInput = {
-        parsedContent: createParsedContent([
-          { type: "text", text: "Пост о финтехе" },
-        ]),
+        parsedContent: createParsedContent([{ type: "text", text: "Пост о финтехе" }]),
         platform: "linkedin",
         channelProfile: profile,
       };
@@ -554,6 +523,8 @@ describe("AdaptationEngine", () => {
         {
           content: "Пост о финтехе",
           platform: "linkedin",
+          sourceLanguage: "ru",
+          targetLanguage: "en",
           channelProfile: profile,
         },
         undefined,
@@ -570,9 +541,7 @@ describe("AdaptationEngine", () => {
       };
 
       const input: AdaptationInput = {
-        parsedContent: createParsedContent([
-          { type: "text", text: "Some content" },
-        ]),
+        parsedContent: createParsedContent([{ type: "text", text: "Some content" }]),
         platform: "linkedin",
       };
 
@@ -592,40 +561,27 @@ describe("AdaptationEngine", () => {
         platform: "linkedin",
       };
 
-      await expect(engine.adapt(input)).rejects.toThrow(
-        "No text content to adapt",
-      );
+      await expect(engine.adapt(input)).rejects.toThrow("No text content to adapt");
     });
 
     it("throws for whitespace-only content", async () => {
       const input: AdaptationInput = {
-        parsedContent: createParsedContent(
-          [{ type: "text", text: "   \n\t  " }],
-          "   ",
-        ),
+        parsedContent: createParsedContent([{ type: "text", text: "   \n\t  " }], "   "),
         platform: "linkedin",
       };
 
-      await expect(engine.adapt(input)).rejects.toThrow(
-        "No text content to adapt",
-      );
+      await expect(engine.adapt(input)).rejects.toThrow("No text content to adapt");
     });
 
     it("propagates AI provider errors", async () => {
-      mockProvider.adaptContent.mockRejectedValue(
-        new Error("API rate limit exceeded"),
-      );
+      mockProvider.adaptContent.mockRejectedValue(new Error("API rate limit exceeded"));
 
       const input: AdaptationInput = {
-        parsedContent: createParsedContent([
-          { type: "text", text: "Some content" },
-        ]),
+        parsedContent: createParsedContent([{ type: "text", text: "Some content" }]),
         platform: "linkedin",
       };
 
-      await expect(engine.adapt(input)).rejects.toThrow(
-        "API rate limit exceeded",
-      );
+      await expect(engine.adapt(input)).rejects.toThrow("API rate limit exceeded");
     });
   });
 
@@ -650,6 +606,8 @@ describe("AdaptationEngine", () => {
       expect(mockProvider.adaptContent).toHaveBeenCalledWith(
         expect.objectContaining({
           content: "Start https://example.com middle quoted text end",
+          sourceLanguage: "en",
+          targetLanguage: "en",
         }),
         undefined,
       );

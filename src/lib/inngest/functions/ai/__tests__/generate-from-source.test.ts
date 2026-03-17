@@ -16,6 +16,7 @@ const {
   mockDbReturning,
   mockEnforceAiQuota,
   mockIncrementAiUsage,
+  mockRecordAiTelemetry,
   mockGenerationEngineGenerate,
   mockParseUrl,
 } = vi.hoisted(() => {
@@ -32,6 +33,7 @@ const {
     mockDbReturning: vi.fn(),
     mockEnforceAiQuota: vi.fn(),
     mockIncrementAiUsage: vi.fn(),
+    mockRecordAiTelemetry: vi.fn(),
     mockGenerationEngineGenerate: mockGenerationEngineGenerate,
     mockParseUrl: vi.fn(),
   };
@@ -111,6 +113,10 @@ vi.mock("@/lib/billing/ai-quota", () => ({
       this.upgradeUrl = "/dashboard/billing";
     }
   },
+}));
+
+vi.mock("@/lib/ai/telemetry", () => ({
+  recordAiTelemetry: mockRecordAiTelemetry,
 }));
 
 vi.mock("@/lib/ai/google", () => ({
@@ -221,6 +227,7 @@ beforeEach(() => {
 
   mockEnforceAiQuota.mockResolvedValue({ allowed: true });
   mockIncrementAiUsage.mockResolvedValue(undefined);
+  mockRecordAiTelemetry.mockResolvedValue(undefined);
   mockGenerationEngineGenerate.mockResolvedValue(MOCK_GENERATION_RESULT);
   mockParseUrl.mockReturnValue({ type: "article" });
 });
@@ -281,6 +288,7 @@ describe("generateFromSource", () => {
 
     // Verify usage was incremented
     expect(mockIncrementAiUsage).toHaveBeenCalledWith("user-uuid-1");
+    expect(mockRecordAiTelemetry).toHaveBeenCalled();
 
     // Verify return value includes childIds
     expect(result).toEqual(

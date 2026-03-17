@@ -24,9 +24,7 @@ describe("renderTemplate", () => {
   });
 
   it("handles missing variables (leaves them as-is)", () => {
-    expect(renderTemplate("Hi {name}, {unknown}", { name: "Bob" })).toBe(
-      "Hi Bob, {unknown}",
-    );
+    expect(renderTemplate("Hi {name}, {unknown}", { name: "Bob" })).toBe("Hi Bob, {unknown}");
   });
 
   it("handles empty template", () => {
@@ -34,9 +32,7 @@ describe("renderTemplate", () => {
   });
 
   it("replaces multiple occurrences of the same variable", () => {
-    expect(renderTemplate("{name} and {name}", { name: "Eve" })).toBe(
-      "Eve and Eve",
-    );
+    expect(renderTemplate("{name} and {name}", { name: "Eve" })).toBe("Eve and Eve");
   });
 });
 
@@ -140,7 +136,10 @@ describe("handleNewChatMember", () => {
     rateLimitMap.clear();
     mockGetTemplate = vi.fn();
     mockSendMessage = vi.fn().mockResolvedValue(undefined);
-    deps = { getTemplate: mockGetTemplate, sendMessage: mockSendMessage };
+    deps = {
+      getTemplate: mockGetTemplate as unknown as WelcomeHandlerDeps["getTemplate"],
+      sendMessage: mockSendMessage as unknown as WelcomeHandlerDeps["sendMessage"],
+    };
   });
 
   it("does nothing when no new_chat_members", async () => {
@@ -155,10 +154,7 @@ describe("handleNewChatMember", () => {
 
   it("does nothing when no template found", async () => {
     mockGetTemplate.mockResolvedValue(null);
-    await handleNewChatMember(
-      makeMessage([{ id: 1, is_bot: false, first_name: "Alice" }]),
-      deps,
-    );
+    await handleNewChatMember(makeMessage([{ id: 1, is_bot: false, first_name: "Alice" }]), deps);
     expect(mockSendMessage).not.toHaveBeenCalled();
   });
 
@@ -169,10 +165,7 @@ describe("handleNewChatMember", () => {
       memberCount: 10,
       botToken: null,
     });
-    await handleNewChatMember(
-      makeMessage([{ id: 1, is_bot: false, first_name: "Alice" }]),
-      deps,
-    );
+    await handleNewChatMember(makeMessage([{ id: 1, is_bot: false, first_name: "Alice" }]), deps);
     expect(mockSendMessage).not.toHaveBeenCalled();
   });
 
@@ -183,16 +176,10 @@ describe("handleNewChatMember", () => {
       memberCount: 100,
       botToken: "bot-token-123",
     });
-    await handleNewChatMember(
-      makeMessage([{ id: 42, is_bot: false, first_name: "Alice" }]),
-      deps,
-    );
-    expect(mockSendMessage).toHaveBeenCalledWith(
-      "bot-token-123",
-      -100123,
-      "Welcome Alice!",
-      { parse_mode: "MarkdownV2" },
-    );
+    await handleNewChatMember(makeMessage([{ id: 42, is_bot: false, first_name: "Alice" }]), deps);
+    expect(mockSendMessage).toHaveBeenCalledWith("bot-token-123", -100123, "Welcome Alice!", {
+      parse_mode: "MarkdownV2",
+    });
   });
 
   it("skips bot members", async () => {
@@ -202,10 +189,7 @@ describe("handleNewChatMember", () => {
       memberCount: 10,
       botToken: "tok",
     });
-    await handleNewChatMember(
-      makeMessage([{ id: 99, is_bot: true, first_name: "BotName" }]),
-      deps,
-    );
+    await handleNewChatMember(makeMessage([{ id: 99, is_bot: true, first_name: "BotName" }]), deps);
     expect(mockSendMessage).not.toHaveBeenCalled();
   });
 
@@ -218,10 +202,7 @@ describe("handleNewChatMember", () => {
     });
     // Pre-record so the member is rate-limited
     recordWelcomeSent("-100123", 42);
-    await handleNewChatMember(
-      makeMessage([{ id: 42, is_bot: false, first_name: "Alice" }]),
-      deps,
-    );
+    await handleNewChatMember(makeMessage([{ id: 42, is_bot: false, first_name: "Alice" }]), deps);
     expect(mockSendMessage).not.toHaveBeenCalled();
   });
 
@@ -280,10 +261,7 @@ describe("handleNewChatMember", () => {
       memberCount: 10,
       botToken: "tok",
     });
-    await handleNewChatMember(
-      makeMessage([{ id: 42, is_bot: false, first_name: "Alice" }]),
-      deps,
-    );
+    await handleNewChatMember(makeMessage([{ id: 42, is_bot: false, first_name: "Alice" }]), deps);
     // Now the same member should be rate-limited
     expect(isRateLimited("-100123", 42)).toBe(true);
   });

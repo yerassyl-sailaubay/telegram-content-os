@@ -9,6 +9,8 @@ import { contentLibrary } from "./content-library";
 import { mediaFiles } from "./media-files";
 import { telegramLinkTokens } from "./telegram-link-tokens";
 import { usageTracking } from "./usage-tracking";
+import { aiUsageEvents } from "./ai-usage-events";
+import { aiPromptCache } from "./ai-prompt-cache";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -35,4 +37,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   mediaFiles: many(mediaFiles),
   telegramLinkTokens: many(telegramLinkTokens),
   usageTracking: many(usageTracking),
+  aiUsageEvents: many(aiUsageEvents),
+  aiPromptCache: many(aiPromptCache),
 }));

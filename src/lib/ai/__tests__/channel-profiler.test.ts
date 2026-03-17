@@ -7,9 +7,7 @@ import type { ChannelProfileResult } from "../types";
 // Mock AIProvider
 // ---------------------------------------------------------------------------
 
-function createMockProvider(
-  overrides?: Partial<AIProvider>,
-): AIProvider {
+function createMockProvider(overrides?: Partial<AIProvider>): AIProvider {
   return {
     adaptContent: vi.fn(),
     analyzeChannelProfile: vi.fn().mockResolvedValue({
@@ -49,10 +47,7 @@ describe("ChannelProfiler", () => {
     });
 
     it("returns the validated profile result", async () => {
-      const result = await profiler.generateProfile("TechChannel", [
-        "Post 1",
-        "Post 2",
-      ]);
+      const result = await profiler.generateProfile("TechChannel", ["Post 1", "Post 2"]);
 
       expect(result.niche).toBe("Technology");
       expect(result.tone).toBe("informative");
@@ -63,9 +58,30 @@ describe("ChannelProfiler", () => {
     it("passes modelTier option to the provider", async () => {
       await profiler.generateProfile("Ch", ["Post"], { modelTier: "pro" });
 
+      expect(mockProvider.analyzeChannelProfile).toHaveBeenCalledWith(expect.anything(), {
+        modelTier: "pro",
+      });
+    });
+  });
+
+  describe("updateProfile", () => {
+    it("passes existing profile to analyzeChannelProfile", async () => {
+      const existingProfile = {
+        niche: "Technology",
+        tone: "Analytical",
+        topTopics: ["AI", "startups"],
+        language: "en",
+      };
+
+      await profiler.updateProfile("TechChannel", existingProfile, ["New post about AI tooling"]);
+
       expect(mockProvider.analyzeChannelProfile).toHaveBeenCalledWith(
-        expect.anything(),
-        { modelTier: "pro" },
+        {
+          posts: ["New post about AI tooling"],
+          channelName: "TechChannel",
+          existingProfile,
+        },
+        { modelTier: undefined },
       );
     });
   });
@@ -75,8 +91,7 @@ describe("ChannelProfiler", () => {
       const posts = Array.from({ length: 80 }, (_, i) => `Post ${i}`);
       await profiler.generateProfile("Ch", posts);
 
-      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock
-        .calls[0]![0];
+      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock.calls[0]![0];
       expect(callArgs.posts).toHaveLength(50);
     });
 
@@ -84,8 +99,7 @@ describe("ChannelProfiler", () => {
       const posts = Array.from({ length: 20 }, (_, i) => `Post ${i}`);
       await profiler.generateProfile("Ch", posts, { maxPosts: 5 });
 
-      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock
-        .calls[0]![0];
+      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock.calls[0]![0];
       expect(callArgs.posts).toHaveLength(5);
     });
 
@@ -93,8 +107,7 @@ describe("ChannelProfiler", () => {
       const posts = ["Post 1", "Post 2", "Post 3"];
       await profiler.generateProfile("Ch", posts);
 
-      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock
-        .calls[0]![0];
+      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock.calls[0]![0];
       expect(callArgs.posts).toHaveLength(3);
     });
   });
@@ -104,8 +117,7 @@ describe("ChannelProfiler", () => {
       const posts = ["Good post", "", "Another good post", ""];
       await profiler.generateProfile("Ch", posts);
 
-      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock
-        .calls[0]![0];
+      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock.calls[0]![0];
       expect(callArgs.posts).toEqual(["Good post", "Another good post"]);
     });
 
@@ -113,23 +125,20 @@ describe("ChannelProfiler", () => {
       const posts = ["Good post", "   ", "\t\n", "Another"];
       await profiler.generateProfile("Ch", posts);
 
-      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock
-        .calls[0]![0];
+      const callArgs = vi.mocked(mockProvider.analyzeChannelProfile).mock.calls[0]![0];
       expect(callArgs.posts).toEqual(["Good post", "Another"]);
     });
   });
 
   describe("error handling", () => {
     it("throws when all posts are empty after filtering", async () => {
-      await expect(
-        profiler.generateProfile("Ch", ["", "  ", "\n"]),
-      ).rejects.toThrow("Not enough posts");
+      await expect(profiler.generateProfile("Ch", ["", "  ", "\n"])).rejects.toThrow(
+        "Not enough posts",
+      );
     });
 
     it("throws when posts array is empty", async () => {
-      await expect(
-        profiler.generateProfile("Ch", []),
-      ).rejects.toThrow("Not enough posts");
+      await expect(profiler.generateProfile("Ch", [])).rejects.toThrow("Not enough posts");
     });
 
     it("throws when AI returns empty niche", async () => {
@@ -145,9 +154,7 @@ describe("ChannelProfiler", () => {
       });
       profiler = new ChannelProfiler(mockProvider);
 
-      await expect(
-        profiler.generateProfile("Ch", ["Post"]),
-      ).rejects.toThrow("empty niche");
+      await expect(profiler.generateProfile("Ch", ["Post"])).rejects.toThrow("empty niche");
     });
 
     it("throws when AI returns empty tone", async () => {
@@ -163,9 +170,7 @@ describe("ChannelProfiler", () => {
       });
       profiler = new ChannelProfiler(mockProvider);
 
-      await expect(
-        profiler.generateProfile("Ch", ["Post"]),
-      ).rejects.toThrow("empty tone");
+      await expect(profiler.generateProfile("Ch", ["Post"])).rejects.toThrow("empty tone");
     });
 
     it("throws when AI returns non-array topTopics", async () => {
@@ -181,9 +186,7 @@ describe("ChannelProfiler", () => {
       });
       profiler = new ChannelProfiler(mockProvider);
 
-      await expect(
-        profiler.generateProfile("Ch", ["Post"]),
-      ).rejects.toThrow("invalid topTopics");
+      await expect(profiler.generateProfile("Ch", ["Post"])).rejects.toThrow("invalid topTopics");
     });
   });
 

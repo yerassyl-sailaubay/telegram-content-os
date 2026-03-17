@@ -16,6 +16,9 @@ import { developIdea } from "./ai/develop-idea";
 import { repurposeContent } from "./ai/repurpose-content";
 import { publishToTelegram } from "./telegram/publish-to-telegram";
 import { suggestCalendarFill } from "./ai/suggest-calendar-fill";
+import { cleanupPromptCache } from "./ai/cleanup-prompt-cache";
+import { postToLinkedIn } from "./platforms/post-to-linkedin";
+import { postToTwitter } from "./platforms/post-to-twitter";
 export const functions = [
   helloWorld,
   scheduledExample,
@@ -32,6 +35,9 @@ export const functions = [
   generateFromSource,
   developIdea,
   repurposeContent,
+  cleanupPromptCache,
   publishToTelegram,
   suggestCalendarFill,
+  postToLinkedIn,
+  postToTwitter,
 ];

@@ -196,6 +196,7 @@ describe("saveTelegramDraft", () => {
 describe("scheduleTelegramPost", () => {
   it("returns validation error when channel is missing", async () => {
     const result = await scheduleTelegramPost({
+      channelId: "",
       content: "Scheduled content",
       scheduledAt: new Date(Date.now() + 3600_000).toISOString(),
       timezone: "UTC",

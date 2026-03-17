@@ -32,7 +32,7 @@ describe("admin access helpers", () => {
   });
 
   it("uses open_dev mode in non-production when no admin emails configured", () => {
-    process.env.NODE_ENV = "test";
+    process.env = { ...process.env, NODE_ENV: "test" };
 
     expect(getConfiguredAdminEmails()).toEqual([]);
     expect(getAdminAccessMode()).toBe("open_dev");
@@ -40,7 +40,7 @@ describe("admin access helpers", () => {
   });
 
   it("denies all users in production when no admin emails configured", () => {
-    process.env.NODE_ENV = "production";
+    process.env = { ...process.env, NODE_ENV: "production" };
 
     expect(getConfiguredAdminEmails()).toEqual([]);
     expect(getAdminAccessMode()).toBe("restricted");

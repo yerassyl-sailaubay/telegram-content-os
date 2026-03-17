@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { GoogleClient } from "@/lib/ai/google";
 import { AI_MODELS } from "@/lib/ai/types";
 import { ChannelProfiler } from "@/lib/ai/channel-profiler";
+import { recordAiTelemetry } from "@/lib/ai/telemetry";
 import { eq, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -22,6 +23,9 @@ export interface GeneratedPostResult {
   content: string;
   suggestedHashtags: string[];
 }
+
+const MAX_AI_WRITER_EXAMPLES = 3;
+const MAX_AI_WRITER_EXAMPLE_CHARS = 700;
 
 async function getCurrentUserId(): Promise<string> {
   const supabase = await createClient();
@@ -83,6 +87,18 @@ export async function analyzeChannelVoice(
       channel.title || channel.username || "Channel",
       postContents,
     );
+
+    await recordAiTelemetry({
+      userId,
+      channelId,
+      feature: "channel_profile_full",
+      modelId: profile.modelUsed,
+      tokenUsage: profile.tokenUsage,
+      metadata: {
+        postsAnalyzed: postContents.length,
+        triggeredBy: "manual_action",
+      },
+    });
 
     // Store the profile
     await db
@@ -160,66 +176,87 @@ export async function generatePostWithAI(
 
     const postExamples = recentPosts
       .map((p) => p.content)
-      .filter((c) => c && c.trim().length > 0)
-      .slice(0, 5);
+      .filter((c): c is string => typeof c === "string" && c.trim().length > 0)
+      .slice(0, MAX_AI_WRITER_EXAMPLES)
+      .map((post) => {
+        const text = post.trim();
+        if (text.length <= MAX_AI_WRITER_EXAMPLE_CHARS) return text;
+        return `${text.slice(0, MAX_AI_WRITER_EXAMPLE_CHARS).trimEnd()}...`;
+      });
 
     // Use AI to generate post
     const aiProvider = new GoogleClient();
 
-    const systemPrompt = `You are an expert content creator who can perfectly mimic the writing style of any channel.
+    const profileContext = profile
+      ? `Niche: ${profile.niche ?? "general"}
+Tone: ${profile.tone ?? "neutral"}
+Top topics: ${Array.isArray(profile.topTopics) ? profile.topTopics.join(", ") : "N/A"}
+Language: ${profile.language || "ru"}`
+      : "No saved channel profile. Infer voice from examples.";
 
-${
-  profile
-    ? `CHANNEL PROFILE:
-- Niche: ${profile.niche}
-- Tone: ${profile.tone}
-- Top Topics: ${Array.isArray(profile.topTopics) ? profile.topTopics.join(", ") : "N/A"}
-- Language: ${profile.language || "ru"}`
-    : "No channel profile exists yet. Analyze the example posts below to understand the voice."
-}
-
-${
-  postExamples.length > 0
-    ? `\nEXAMPLE POSTS FROM THIS CHANNEL:\n${postExamples
-        .map((p, i) => `${i + 1}. ${p}`)
-        .join("\n")}`
-    : ""
-}
-
-INSTRUCTIONS:
-1. Write in the EXACT same style, tone, and voice as the example posts
-2. Match the formatting patterns (emojis, paragraph breaks, etc.)
-3. Use similar vocabulary and sentence structure
-4. Keep the content relevant to the channel's niche
-5. ${input.tone ? `Use a ${input.tone} tone` : "Match the channel's usual tone"}
-6. Maximum ${input.maxLength || 1000} characters
-7. Include 3-5 relevant hashtags at the end
-8. Write in ${profile?.language || "the same language as the examples"}
-
-OUTPUT FORMAT:
-Return ONLY a JSON object with this exact structure:
-{
-  "content": "The generated post text without hashtags",
-  "hashtags": ["#tag1", "#tag2", "#tag3"]
-}`;
+    const examplesContext =
+      postExamples.length > 0
+        ? postExamples.map((post, index) => `Example ${index + 1}:\n${post}`).join("\n\n")
+        : "No examples available.";
 
     const response = await aiProvider.complete({
       model: AI_MODELS.default.id,
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `Generate a post about: ${input.topic}` },
+        {
+          role: "system",
+          content: `You write Telegram posts that match an existing channel voice.
+Return JSON only with fields: "content" (string) and "hashtags" (string array).
+
+Requirements:
+- Match channel style, formatting patterns, and vocabulary
+- Keep content relevant to channel niche
+- ${input.tone ? `Use ${input.tone} tone` : "Match the channel's usual tone"}
+- Keep "content" within ${input.maxLength || 1000} characters
+- Return 3-5 hashtags in "hashtags"
+- Write in ${profile?.language || "the channel language from examples"}`,
+        },
+        {
+          role: "user",
+          content: `Topic: ${input.topic}
+
+Channel profile:
+${profileContext}
+
+Examples:
+${examplesContext}`,
+        },
       ],
-      temperature: 0.8,
+      temperature: 0.65,
       max_tokens: 1000,
+      response_mime_type: "application/json",
+      response_json_schema: {
+        type: "object",
+        additionalProperties: false,
+        required: ["content", "hashtags"],
+        properties: {
+          content: { type: "string" },
+          hashtags: {
+            type: "array",
+            items: { type: "string" },
+            minItems: 0,
+            maxItems: 10,
+          },
+        },
+      },
     });
 
     let result: GeneratedPostResult;
     try {
       // Try to parse as JSON
-      const parsed = JSON.parse(response.content);
+      const parsed = JSON.parse(response.content) as {
+        content?: unknown;
+        hashtags?: unknown;
+      };
       result = {
-        content: parsed.content,
-        suggestedHashtags: parsed.hashtags || [],
+        content: typeof parsed.content === "string" ? parsed.content : "",
+        suggestedHashtags: Array.isArray(parsed.hashtags)
+          ? parsed.hashtags.filter((tag): tag is string => typeof tag === "string")
+          : [],
       };
     } catch {
       // Fallback: treat entire response as content
@@ -228,6 +265,19 @@ Return ONLY a JSON object with this exact structure:
         suggestedHashtags: [],
       };
     }
+
+    await recordAiTelemetry({
+      userId,
+      channelId: input.channelId,
+      feature: "ai_writer",
+      modelId: response.model,
+      tokenUsage: response.tokenUsage,
+      metadata: {
+        topic: input.topic,
+        hasProfile: Boolean(profile),
+        examplesUsed: postExamples.length,
+      },
+    });
 
     return { success: true, data: result };
   } catch (error) {

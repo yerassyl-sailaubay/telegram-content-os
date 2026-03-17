@@ -7,13 +7,12 @@
  */
 
 import type { AIProvider } from "./provider";
-import type {
-  ChannelProfileResult,
-  ModelTier,
-} from "./types";
+import type { ChannelProfileResult, ChannelProfile, ModelTier } from "./types";
 
 /** Default maximum number of posts to analyze. */
 const DEFAULT_MAX_POSTS = 50;
+const DEFAULT_MAX_NEW_POSTS = 20;
+const MAX_CHARS_PER_POST = 1200;
 
 /** Minimum number of posts required for meaningful analysis. */
 const MIN_POSTS_FOR_ANALYSIS = 1;
@@ -40,11 +39,7 @@ export class ChannelProfiler {
     options?: { modelTier?: ModelTier; maxPosts?: number },
   ): Promise<ChannelProfileResult> {
     const maxPosts = options?.maxPosts ?? DEFAULT_MAX_POSTS;
-
-    // Filter out empty/whitespace-only posts
-    const validPosts = posts
-      .filter((p) => p.trim().length > 0)
-      .slice(0, maxPosts);
+    const validPosts = this.preparePosts(posts, maxPosts);
 
     if (validPosts.length < MIN_POSTS_FOR_ANALYSIS) {
       throw new Error(
@@ -63,27 +58,63 @@ export class ChannelProfiler {
     return result;
   }
 
+  async updateProfile(
+    channelName: string,
+    existingProfile: ChannelProfile,
+    newPosts: string[],
+    options?: { modelTier?: ModelTier; maxPosts?: number },
+  ): Promise<ChannelProfileResult> {
+    const maxPosts = options?.maxPosts ?? DEFAULT_MAX_NEW_POSTS;
+    const validPosts = this.preparePosts(newPosts, maxPosts);
+
+    if (validPosts.length < MIN_POSTS_FOR_ANALYSIS) {
+      throw new Error(
+        `Not enough new posts to update profile. Need at least ${MIN_POSTS_FOR_ANALYSIS}, got ${validPosts.length}.`,
+      );
+    }
+
+    const result = await this.aiProvider.analyzeChannelProfile(
+      {
+        posts: validPosts,
+        channelName,
+        existingProfile,
+      },
+      { modelTier: options?.modelTier },
+    );
+
+    this.validateResult(result);
+    return result;
+  }
+
+  private preparePosts(posts: string[], maxPosts: number): string[] {
+    return posts
+      .map((post) => post.replace(/\s+/g, " ").trim())
+      .filter((post) => post.length > 0)
+      .slice(0, maxPosts)
+      .map((post) => {
+        if (post.length <= MAX_CHARS_PER_POST) {
+          return post;
+        }
+
+        return `${post.slice(0, MAX_CHARS_PER_POST).trimEnd()}...`;
+      });
+  }
+
   /**
    * Validates that the AI-generated profile has the required fields
    * with meaningful values.
    */
   private validateResult(result: ChannelProfileResult): void {
     if (!result.niche || result.niche.trim().length === 0) {
-      throw new Error(
-        "AI returned an empty niche. The response may be malformed.",
-      );
+      throw new Error("AI returned an empty niche. The response may be malformed.");
     }
 
     if (!result.tone || result.tone.trim().length === 0) {
-      throw new Error(
-        "AI returned an empty tone. The response may be malformed.",
-      );
+      throw new Error("AI returned an empty tone. The response may be malformed.");
     }
 
     if (!Array.isArray(result.topTopics)) {
-      throw new Error(
-        "AI returned invalid topTopics (expected an array of strings).",
-      );
+      throw new Error("AI returned invalid topTopics (expected an array of strings).");
     }
 
     // Ensure topTopics are strings and cap at 10

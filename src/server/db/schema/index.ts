@@ -30,6 +30,8 @@ export {
 export { mediaFiles, mediaFilesRelations } from "./media-files";
 export { channelProfiles, channelProfilesRelations } from "./channel-profiles";
 export { usageTracking, usageTrackingRelations } from "./usage-tracking";
+export { aiUsageEvents, aiUsageEventsRelations } from "./ai-usage-events";
+export { aiPromptCache, aiPromptCacheRelations } from "./ai-prompt-cache";
 export { welcomeMessages, welcomeMessagesRelations } from "./welcome-messages";
 export { postAnalytics, postAnalyticsRelations } from "./post-analytics";
 export { channelMetrics, channelMetricsRelations } from "./channel-metrics";

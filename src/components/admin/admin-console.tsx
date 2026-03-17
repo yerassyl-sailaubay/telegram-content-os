@@ -38,6 +38,10 @@ function formatDateTime(iso: string | null): string {
   return new Date(iso).toLocaleString();
 }
 
+function formatUsd(value: number): string {
+  return `$${value.toFixed(4)}`;
+}
+
 function StatusBadge({ status }: { status: string }) {
   if (status === "failed" || status === "past_due" || status === "canceled") {
     return <Badge variant="destructive">{status}</Badge>;
@@ -205,6 +209,26 @@ export function AdminConsole({ initialData }: { initialData: AdminConsoleData })
                 <CardTitle>{initialData.overview.totalAiCallsThisMonth}</CardTitle>
               </CardHeader>
             </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>{t("metrics.aiCostMonth")}</CardDescription>
+                <CardTitle>{formatUsd(initialData.aiInsights.totalCostUsdThisMonth)}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>{t("metrics.aiCost24h")}</CardDescription>
+                <CardTitle>{formatUsd(initialData.aiInsights.totalCostUsdLast24h)}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>{t("metrics.promptCacheHitRate")}</CardDescription>
+                <CardTitle>
+                  {initialData.aiInsights.promptCacheHitRatePercent.toFixed(1)}%
+                </CardTitle>
+              </CardHeader>
+            </Card>
           </div>
 
           <Card data-testid="admin-env-checks">
@@ -241,6 +265,72 @@ export function AdminConsole({ initialData }: { initialData: AdminConsoleData })
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="admin-ai-insights">
+            <CardHeader>
+              <CardTitle>{t("aiInsights.title")}</CardTitle>
+              <CardDescription>{t("aiInsights.description")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground text-xs">{t("aiInsights.totalEvents")}</p>
+                  <p className="text-lg font-semibold">
+                    {initialData.aiInsights.totalAiEventsThisMonth}
+                  </p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground text-xs">{t("aiInsights.totalTokens")}</p>
+                  <p className="text-lg font-semibold">
+                    {initialData.aiInsights.totalTokensThisMonth}
+                  </p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground text-xs">{t("aiInsights.cacheEntries")}</p>
+                  <p className="text-lg font-semibold">
+                    {initialData.aiInsights.promptCacheActiveEntries}
+                  </p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground text-xs">{t("aiInsights.cacheHits")}</p>
+                  <p className="text-lg font-semibold">
+                    {initialData.aiInsights.promptCacheTotalHits}
+                  </p>
+                </div>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("aiInsights.columns.feature")}</TableHead>
+                    <TableHead>{t("aiInsights.columns.calls")}</TableHead>
+                    <TableHead>{t("aiInsights.columns.tokens")}</TableHead>
+                    <TableHead>{t("aiInsights.columns.totalCost")}</TableHead>
+                    <TableHead>{t("aiInsights.columns.avgCost")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {initialData.aiInsights.topCostFeatures.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-muted-foreground text-center">
+                        {t("aiInsights.empty")}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    initialData.aiInsights.topCostFeatures.map((item) => (
+                      <TableRow key={item.feature}>
+                        <TableCell className="font-mono text-xs">{item.feature}</TableCell>
+                        <TableCell>{item.calls}</TableCell>
+                        <TableCell>{item.totalTokens}</TableCell>
+                        <TableCell>{formatUsd(item.totalCostUsd)}</TableCell>
+                        <TableCell>{formatUsd(item.avgCostUsd)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>

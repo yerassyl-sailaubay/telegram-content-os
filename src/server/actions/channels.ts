@@ -377,7 +377,7 @@ export async function refreshChannelProfile(channelId: string): Promise<ActionRe
     const { inngest } = await import("@/lib/inngest/client");
     await inngest.send({
       name: "ai/profile-channel",
-      data: { channelId, userId },
+      data: { channelId, userId, mode: "full" },
     });
 
     return { success: true, data: undefined };

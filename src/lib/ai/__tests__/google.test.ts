@@ -286,6 +286,22 @@ describe("Prompt Templates", () => {
       expect(systemPrompt).toContain("topic");
       expect(systemPrompt).toContain("language");
     });
+
+    it("supports incremental profile updates when existing profile is provided", () => {
+      const messages = buildChannelProfilePrompt({
+        posts: ["A new post"],
+        channelName: "Test",
+        existingProfile: {
+          niche: "Tech",
+          tone: "Casual",
+          topTopics: ["AI"],
+          language: "en",
+        },
+      });
+
+      expect(messages[1].content).toContain("Existing profile");
+      expect(messages[1].content).toContain('"niche":"Tech"');
+    });
   });
 });
 
@@ -964,6 +980,24 @@ describe("GoogleClient", () => {
       expect(result.platform).toBe("twitter");
       // Both translate and adapt calls
       expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+    });
+
+    it("skips translation call when source and target languages already match", async () => {
+      mockGenerateContent.mockResolvedValueOnce(
+        mockGeminiResponse("Already English adaptation #Tech"),
+      );
+
+      const client = new GoogleClient();
+      const result = await client.adaptContent({
+        content: "Already English content",
+        platform: "linkedin",
+        sourceLanguage: "en",
+        targetLanguage: "en",
+      });
+
+      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+      expect(result.translatedContent).toBe("Already English content");
+      expect(result.content).toContain("Already English adaptation");
     });
 
     it("passes channel profile to adapt prompt when provided", async () => {

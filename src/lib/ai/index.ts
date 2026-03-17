@@ -38,6 +38,9 @@ export { buildTranslatePrompt } from "./prompts/translate";
 export { buildLinkedInAdaptPrompt } from "./prompts/adapt-linkedin";
 export { buildTwitterAdaptPrompt } from "./prompts/adapt-twitter";
 export { buildChannelProfilePrompt } from "./prompts/channel-profile";
+export { summarizeSourceForGeneration } from "./source-summarizer";
+export { estimateAiCost, recordAiTelemetry } from "./telemetry";
+export { createPromptCacheKey, readPromptCache, writePromptCache } from "./prompt-cache";
 
 // Channel profiler
 export { ChannelProfiler } from "./channel-profiler";

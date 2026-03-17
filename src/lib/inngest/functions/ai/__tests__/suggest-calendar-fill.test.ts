@@ -7,19 +7,25 @@ const {
   mockEnforceAiQuota,
   mockIncrementAiUsage,
   mockGenerateEngine,
-  scheduleResults,
   contentResults,
   channelProfileResults,
   insertResults,
+  mockCreatePromptCacheKey,
+  mockReadPromptCache,
+  mockWritePromptCache,
+  mockRecordAiTelemetry,
 } = vi.hoisted(() => ({
   mockDetectCalendarGaps: vi.fn(),
   mockEnforceAiQuota: vi.fn(),
   mockIncrementAiUsage: vi.fn(),
   mockGenerateEngine: { generate: vi.fn() },
-  scheduleResults: [] as unknown[][],
   contentResults: [] as unknown[][],
   channelProfileResults: [] as unknown[][],
   insertResults: [] as unknown[][],
+  mockCreatePromptCacheKey: vi.fn(),
+  mockReadPromptCache: vi.fn(),
+  mockWritePromptCache: vi.fn(),
+  mockRecordAiTelemetry: vi.fn(),
 }));
 
 vi.mock("@/lib/scheduling/calendar-gaps", () => ({
@@ -41,6 +47,16 @@ vi.mock("@/lib/ai/google", () => ({
   GoogleClient: vi.fn(function () {
     return {};
   }),
+}));
+
+vi.mock("@/lib/ai/prompt-cache", () => ({
+  createPromptCacheKey: mockCreatePromptCacheKey,
+  readPromptCache: mockReadPromptCache,
+  writePromptCache: mockWritePromptCache,
+}));
+
+vi.mock("@/lib/ai/telemetry", () => ({
+  recordAiTelemetry: mockRecordAiTelemetry,
 }));
 
 function createSelectChain(resultQueue: unknown[][]) {
@@ -73,9 +89,7 @@ vi.mock("@/server/db", () => ({
   db: {
     select: () => {
       selectCallIdx++;
-      // Call 1: existing schedules/content titles, Call 2: channel profile
-      if (selectCallIdx % 3 === 1) return createSelectChain(scheduleResults);
-      if (selectCallIdx % 3 === 2) return createSelectChain(contentResults);
+      if (selectCallIdx % 2 === 1) return createSelectChain(contentResults);
       return createSelectChain(channelProfileResults);
     },
     insert: () => createInsertChain(),
@@ -90,7 +104,7 @@ vi.mock("drizzle-orm", async (importOriginal) => {
     and: vi.fn((...conditions: unknown[]) => ({ type: "and", conditions })),
     gte: vi.fn((_col: unknown, val: unknown) => ({ type: "gte", val })),
     lte: vi.fn((_col: unknown, val: unknown) => ({ type: "lte", val })),
-    desc: vi.fn((_col: unknown) => ({ type: "desc" })),
+    desc: vi.fn((col: unknown) => ({ type: "desc", col })),
   };
 });
 
@@ -137,11 +151,14 @@ async function runHandler(
 
 beforeEach(() => {
   vi.clearAllMocks();
-  scheduleResults.length = 0;
   contentResults.length = 0;
   channelProfileResults.length = 0;
   insertResults.length = 0;
   selectCallIdx = 0;
+  mockCreatePromptCacheKey.mockReturnValue("cache-key");
+  mockReadPromptCache.mockResolvedValue(null);
+  mockWritePromptCache.mockResolvedValue(undefined);
+  mockRecordAiTelemetry.mockResolvedValue(undefined);
 });
 
 describe("suggestCalendarFill", () => {
@@ -210,6 +227,7 @@ describe("suggestCalendarFill", () => {
       }),
     );
     expect(mockIncrementAiUsage).toHaveBeenCalledWith("user-uuid-1");
+    expect(mockRecordAiTelemetry).toHaveBeenCalledTimes(1);
     expect(result).toEqual(
       expect.objectContaining({
         status: "completed",
@@ -300,6 +318,8 @@ describe("suggestCalendarFill", () => {
       "detect-gaps",
       "load-existing-content",
       "load-channel-profile",
+      "build-cache-key",
+      "load-cache",
       "check-quota",
       "generate-suggestions",
       "store-suggestions",

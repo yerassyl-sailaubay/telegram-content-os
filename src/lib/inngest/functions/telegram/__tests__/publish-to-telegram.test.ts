@@ -434,7 +434,7 @@ describe("publishToTelegram", () => {
     await runHandler(event, step);
 
     const statuses = mockDbSet.mock.calls
-      .map((call) => call[0]?.status)
+      .map((call: unknown[]) => (call[0] as { status?: string } | undefined)?.status)
       .filter((status) => typeof status === "string");
 
     expect(statuses).toContain("processing");
@@ -466,7 +466,7 @@ describe("publishToTelegram", () => {
     await expect(runHandler(event, step)).rejects.toThrow(/forbidden/i);
 
     const statuses = mockDbSet.mock.calls
-      .map((call) => call[0]?.status)
+      .map((call: unknown[]) => (call[0] as { status?: string } | undefined)?.status)
       .filter((status) => typeof status === "string");
 
     expect(statuses).toContain("failed");

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local agent skills and tooling are not part of the production app.
+    ".agents/**",
   ]),
 ]);
 

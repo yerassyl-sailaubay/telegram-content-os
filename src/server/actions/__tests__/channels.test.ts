@@ -61,6 +61,7 @@ function createSelectChain() {
   chain.limit = vi.fn().mockReturnValue(chain);
   chain.offset = vi.fn().mockReturnValue(chain);
   chain.orderBy = vi.fn().mockReturnValue(chain);
+  chain.groupBy = vi.fn().mockReturnValue(chain);
   chain.then = thenFn;
   return chain;
 }
@@ -167,7 +168,7 @@ describe("listChannels", () => {
     // First select: channels list
     selectResults.push([mockChannel]);
     // Second select: post stats for channel-1
-    selectResults.push([{ count: 5, lastPostAt: new Date("2026-01-15") }]);
+    selectResults.push([{ channelId: "channel-1", count: 5, lastPostAt: new Date("2026-01-15") }]);
 
     const result = await listChannels();
     expect(result.success).toBe(true);
@@ -195,7 +196,7 @@ describe("listChannels", () => {
     };
 
     selectResults.push([mockChannel]);
-    selectResults.push([{ count: 0, lastPostAt: null }]);
+    selectResults.push([{ channelId: "channel-1", count: 0, lastPostAt: null }]);
 
     const result = await listChannels();
     expect(result.success).toBe(true);
@@ -317,7 +318,7 @@ describe("connectChannel", () => {
     }
   });
 
-  it("returns error when channel is already connected", async () => {
+  it("returns existing channel when channel is already connected", async () => {
     mockTgGetChat.mockResolvedValueOnce({
       id: -100123456,
       type: "channel",
@@ -327,19 +328,29 @@ describe("connectChannel", () => {
     mockTgGetChatMemberCount.mockResolvedValueOnce(500);
 
     // Existing channel lookup returns a result
-    selectResults.push([
-      {
-        id: "channel-1",
-        userId: "user-123",
-        telegramChatId: "-100123456",
-      },
-    ]);
+    const existingChannel = {
+      id: "channel-1",
+      userId: "user-123",
+      telegramChatId: "-100123456",
+      title: "My Channel",
+      username: "mychannel",
+      description: null,
+      memberCount: 500,
+      botTokenEncrypted: null,
+      webhookSecret: null,
+      connectedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    selectResults.push([existingChannel]);
+    mockReturning.mockResolvedValueOnce([existingChannel]);
 
     const result = await connectChannel({ username: "mychannel" });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error).toContain("already connected");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.id).toBe("channel-1");
     }
+    expect(mockUpdate).toHaveBeenCalled();
   });
 
   it("strips @ prefix from username", async () => {
@@ -458,7 +469,7 @@ describe("disconnectChannel", () => {
       expect(result.data.id).toBe("channel-1");
     }
     expect(mockDelete).toHaveBeenCalled();
-    expect(mockTgDeleteWebhook).toHaveBeenCalled();
+    expect(mockTgDeleteWebhook).not.toHaveBeenCalled();
   });
 
   it("proceeds with deletion even if webhook removal fails", async () => {
@@ -470,7 +481,6 @@ describe("disconnectChannel", () => {
 
     selectResults.push([mockChannel]);
 
-    mockTgDeleteWebhook.mockRejectedValueOnce(new Error("Webhook error"));
     mockReturning.mockResolvedValueOnce([{ id: "channel-1" }]);
 
     const result = await disconnectChannel("channel-1");

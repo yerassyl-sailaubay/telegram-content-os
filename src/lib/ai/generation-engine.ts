@@ -33,9 +33,8 @@ export function getModelTierForType(type: GenerationType): ModelTier {
       return "fast";
     case "source_to_telegram":
     case "repurpose":
-      return "default";
     case "calendar_fill":
-      return "pro";
+      return "default";
   }
 }
 
@@ -125,6 +124,7 @@ export class GenerationEngine {
             topTopics: [],
             language: "ru",
           },
+          existingDrafts: request.options?.existingDrafts,
         });
 
       case "calendar_fill": {

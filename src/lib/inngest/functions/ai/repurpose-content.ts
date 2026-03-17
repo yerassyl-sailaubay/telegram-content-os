@@ -130,7 +130,20 @@ export const repurposeContent = inngest.createFunction(
 
     await step.run("track-usage", async () => {
       const { incrementAiUsage } = await import("@/lib/billing/ai-quota");
+      const { recordAiTelemetry } = await import("@/lib/ai/telemetry");
       await incrementAiUsage(userId);
+      await recordAiTelemetry({
+        userId,
+        channelId: channelId ?? content.channelId,
+        contentId,
+        feature: "repurpose",
+        modelId: result.modelUsed,
+        tokenUsage: result.tokenUsage,
+        metadata: {
+          mode,
+          numVariations,
+        },
+      });
     });
 
     return {

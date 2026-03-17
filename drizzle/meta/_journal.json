@@ -57,6 +57,20 @@
       "when": 1773053384700,
       "tag": "0007_perpetual_ender_wiggin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773676800000,
+      "tag": "0008_ai_telemetry_and_prompt_cache",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1773659488112,
+      "tag": "0009_rls_initplan_and_ai_usage_fk_index",
+      "breakpoints": true
     }
   ]
 }

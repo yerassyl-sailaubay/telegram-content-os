@@ -1,13 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockEnforceAiQuota, mockIncrementAiUsage, mockGenerate, mockDbSelect, mockDbUpdate } =
-  vi.hoisted(() => ({
-    mockEnforceAiQuota: vi.fn(),
-    mockIncrementAiUsage: vi.fn(),
-    mockGenerate: vi.fn(),
-    mockDbSelect: vi.fn(),
-    mockDbUpdate: vi.fn(),
-  }));
+const {
+  mockEnforceAiQuota,
+  mockIncrementAiUsage,
+  mockGenerate,
+  mockDbSelect,
+  mockDbUpdate,
+  mockRecordAiTelemetry,
+} = vi.hoisted(() => ({
+  mockEnforceAiQuota: vi.fn(),
+  mockIncrementAiUsage: vi.fn(),
+  mockGenerate: vi.fn(),
+  mockDbSelect: vi.fn(),
+  mockDbUpdate: vi.fn(),
+  mockRecordAiTelemetry: vi.fn(),
+}));
 
 vi.mock("@/lib/billing/ai-quota", () => ({
   enforceAiQuota: mockEnforceAiQuota,
@@ -22,6 +29,10 @@ vi.mock("@/lib/ai/generation-engine", () => ({
 
 vi.mock("@/lib/ai/google", () => ({
   GoogleClient: class {},
+}));
+
+vi.mock("@/lib/ai/telemetry", () => ({
+  recordAiTelemetry: mockRecordAiTelemetry,
 }));
 
 function createSelectChain(data: unknown[]) {
@@ -124,6 +135,7 @@ beforeEach(() => {
   selectResults.length = 0;
   mockEnforceAiQuota.mockResolvedValue({ allowed: true });
   mockIncrementAiUsage.mockResolvedValue(undefined);
+  mockRecordAiTelemetry.mockResolvedValue(undefined);
 });
 
 describe("developIdea Inngest function", () => {
@@ -194,9 +206,13 @@ describe("developIdea Inngest function", () => {
       expect.objectContaining({
         type: "idea_to_draft",
         sourceContent: "An idea about AI trends",
+        options: expect.objectContaining({
+          existingDrafts: ["Existing Draft 1", "Existing Draft 2"],
+        }),
       }),
     );
     expect(mockIncrementAiUsage).toHaveBeenCalledWith("user-uuid-1");
+    expect(mockRecordAiTelemetry).toHaveBeenCalledTimes(1);
 
     const stepNames = step.run.mock.calls.map((call: unknown[]) => call[0]);
     expect(stepNames).toContain("load-content");
