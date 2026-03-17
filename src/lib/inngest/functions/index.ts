@@ -1,5 +1,6 @@
 import { helloWorld } from "./hello-world";
 import { scheduledExample } from "./scheduled-example";
+import { telegramInboxReceived } from "./telegram/inbox-received";
 import { telegramPostReceived } from "./telegram/post-received";
 
 import { executeScheduledPost } from "./scheduling/execute-scheduled-post";
@@ -22,6 +23,7 @@ import { postToTwitter } from "./platforms/post-to-twitter";
 export const functions = [
   helloWorld,
   scheduledExample,
+  telegramInboxReceived,
   telegramPostReceived,
   executeScheduledPost,
   profileChannel,
