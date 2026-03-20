@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Geist, Geist_Mono, Rubik, Manrope } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TourProvider } from "@/components/providers/tour-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { homeSeoCopy } from "@/lib/seo/content";
 import { createPublicMetadata, getMetadataBase, SITE_NAME, type AppLocale } from "@/lib/seo/site";
@@ -112,7 +113,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <TourProvider>{children}</TourProvider>
             <Toaster />
             <Analytics />
             <SpeedInsights />
