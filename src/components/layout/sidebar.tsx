@@ -15,6 +15,7 @@ import {
   Link2,
   Shield,
 } from "lucide-react";
+import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -158,6 +159,10 @@ export function AppSidebar({ userEmail, isAdmin = false }: AppSidebarProps) {
             <NavItemsList items={secondaryNavItems} t={t} isAdmin={isAdmin} />
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <div className="mt-auto">
+          <OnboardingChecklist />
+        </div>
       </SidebarContent>
 
       <SidebarFooter className="border-sidebar-border border-t">
