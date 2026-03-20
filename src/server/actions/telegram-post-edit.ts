@@ -4,6 +4,10 @@ import { db } from "@/server/db";
 import { telegramChannels, telegramPosts } from "@/server/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { getTelegramClient } from "@/lib/telegram/client";
+import {
+  prepareTelegramTextForSend,
+  type TelegramComposerParseMode,
+} from "@/lib/telegram/formatting";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -12,7 +16,7 @@ export type ActionResult<T = void> = { success: true; data: T } | { success: fal
 export interface EditPostInput {
   postId: string;
   content: string;
-  parseMode?: "HTML" | "MarkdownV2";
+  parseMode?: TelegramComposerParseMode;
 }
 
 export interface EditPostResult {
@@ -84,15 +88,20 @@ export async function editTelegramPost(
     const tgClient = getTelegramClient();
     const telegramChatId = channel.telegramChatId;
     const messageId = post.telegramMessageId;
+    const formatted = prepareTelegramTextForSend(input.content, input.parseMode);
 
     if (messageId == null) {
       return { success: false, error: "Invalid message ID" };
     }
 
     try {
-      await tgClient.editMessageText(telegramChatId, messageId, input.content.trim(), {
-        parse_mode: input.parseMode,
-      });
+      if (formatted.parseMode) {
+        await tgClient.editMessageText(telegramChatId, messageId, formatted.text, {
+          parse_mode: formatted.parseMode,
+        });
+      } else {
+        await tgClient.editMessageText(telegramChatId, messageId, formatted.text);
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to edit message on Telegram";

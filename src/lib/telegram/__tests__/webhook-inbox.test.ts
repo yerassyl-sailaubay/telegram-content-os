@@ -228,6 +228,55 @@ describe("POST /api/telegram/webhook inbox routing", () => {
     expect(mockSendMessage).toHaveBeenCalledTimes(1);
   });
 
+  it("captures linked private voice notes and queues transcription", async () => {
+    selectResults.push([{ id: "user-123" }], []);
+    insertResults.push([{ id: "content-voice-1" }]);
+
+    const req = makeRequest(
+      makePrivateMessageUpdate({
+        text: undefined,
+        voice: {
+          file_id: "voice-file-id-1",
+          file_unique_id: "voice-unique-1",
+          duration: 23,
+          mime_type: "audio/ogg",
+        },
+      }),
+    );
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(mockDbInsert).toHaveBeenCalledTimes(1);
+    expect(mockDbValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-123",
+        sourceType: "idea",
+        status: "draft",
+      }),
+    );
+    expect(mockDbValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceMetadata: expect.objectContaining({
+          telegramCaptureType: "bot_inbox_voice",
+          telegramVoiceFileId: "voice-file-id-1",
+          telegramVoiceMimeType: "audio/ogg",
+          telegramVoiceDurationSec: 23,
+        }),
+      }),
+    );
+    expect(mockInngestSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "telegram/inbox.received",
+        data: expect.objectContaining({
+          contentId: "content-voice-1",
+          userId: "user-123",
+          captureType: "voice",
+        }),
+      }),
+    );
+    expect(mockSendMessage).toHaveBeenCalledTimes(1);
+  });
+
   it("prompts unlinked users to connect their account", async () => {
     selectResults.push([]);
 

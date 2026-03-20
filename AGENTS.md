@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-09
-**Commit:** 47dc025
+**Generated:** 2026-03-20
+**Commit:** 4387972
 **Branch:** work/telegram-content-os
 
 ## OVERVIEW
@@ -123,9 +123,26 @@ bunx tsc --noEmit    # CI typecheck command
 - To redeploy on Heroku, run `git push heroku main` (or `git push heroku HEAD:main`).
 - GitHub `main` can auto-deploy only if Heroku Deploy -> GitHub integration with Automatic Deploys is explicitly enabled.
 
+## TESTING
+
+| Type  | Framework                 | Location                       | Pattern                        |
+| ----- | ------------------------- | ------------------------------ | ------------------------------ |
+| Unit  | Vitest + Testing Library  | Colocated `__tests__/`         | `*.test.ts` / `*.test.tsx`     |
+| E2E   | Playwright                | Top-level `e2e/`               | `*.spec.ts`                    |
+| Smoke | Playwright (agent config) | `e2e/agent-prod-smoke.spec.ts` | Production authenticated flows |
+
+**Shared utilities**: `src/test/setup.ts`, `src/test/utils.tsx`, `src/test/factories.ts`
+
+**Key patterns**:
+
+- Use `vi.hoisted()` for mock setup in server action tests
+- Add `data-testid` attributes for E2E selectors
+- Mock Drizzle with chainable `createSelectChain()` / `createMutationChain()` helpers
+
 ## NOTES
 
-- Current database migrations include `drizzle/0000` through `drizzle/0005`.
+- Current database migrations include `drizzle/0000` through `drizzle/0009`.
 - DB schema currently has **19 tables**; full inventory lives in `src/server/db/schema/AGENTS.md`.
 - Middleware file naming is still `middleware.ts`; Next.js 16 warns that `proxy` is the newer convention.
-- `telegram-content-os-landing/` is a separate Vite app excluded from the main `tsconfig.json`; it is not the production landing route.
+- `telegram-content-os-landing/` is a separate Vite app excluded from the main `tsconfig.json`; see `telegram-content-os-landing/AGENTS.md`.
+- **22 Inngest functions** registered (up from 17) — see `src/lib/inngest/functions/index.ts`.

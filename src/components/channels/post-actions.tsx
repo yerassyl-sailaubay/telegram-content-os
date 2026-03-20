@@ -22,7 +22,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Loader2, Send } from "lucide-react";
 import { editTelegramPost, deleteTelegramPost } from "@/server/actions/telegram-post-edit";
 import { cn } from "@/lib/utils";
@@ -47,12 +46,12 @@ interface PostActionsProps {
 }
 
 export function PostActions({ post, channel }: PostActionsProps) {
+  void channel;
   const t = useTranslations("posts");
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editContent, setEditContent] = useState(post.contentRaw || "");
-  const [parseMode, setParseMode] = useState<"HTML" | "MarkdownV2" | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -69,7 +68,7 @@ export function PostActions({ post, channel }: PostActionsProps) {
     const response = await editTelegramPost({
       postId: post.id,
       content: editContent.trim(),
-      parseMode,
+      parseMode: "MarkdownV2",
     });
 
     if (response.success) {
@@ -150,33 +149,6 @@ export function PostActions({ post, channel }: PostActionsProps) {
                 className="min-h-[200px]"
                 maxLength={maxChars}
               />
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-sm font-medium">{t("formatting")}</span>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={parseMode === undefined ? "default" : "secondary"}
-                  className="cursor-pointer"
-                  onClick={() => setParseMode(undefined)}
-                >
-                  {t("plainText")}
-                </Badge>
-                <Badge
-                  variant={parseMode === "HTML" ? "default" : "secondary"}
-                  className="cursor-pointer"
-                  onClick={() => setParseMode("HTML")}
-                >
-                  HTML
-                </Badge>
-                <Badge
-                  variant={parseMode === "MarkdownV2" ? "default" : "secondary"}
-                  className="cursor-pointer"
-                  onClick={() => setParseMode("MarkdownV2")}
-                >
-                  Markdown
-                </Badge>
-              </div>
             </div>
 
             {result && (

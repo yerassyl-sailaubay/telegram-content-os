@@ -143,7 +143,7 @@ describe("TelegramPostComposer", () => {
         contentId: "content-1",
         channelId: "ch-1",
         content: "Updated draft content",
-        parseMode: undefined,
+        parseMode: "MarkdownV2",
         imageUrl: undefined,
       });
     });

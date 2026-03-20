@@ -72,6 +72,14 @@ export interface TelegramAudio {
   thumbnail?: TelegramPhotoSize;
 }
 
+export interface TelegramVoice {
+  file_id: string;
+  file_unique_id: string;
+  duration: number;
+  mime_type?: string;
+  file_size?: number;
+}
+
 export interface TelegramAnimation {
   file_id: string;
   file_unique_id: string;
@@ -111,6 +119,7 @@ export interface TelegramMessage {
   document?: TelegramDocument;
   video?: TelegramVideo;
   audio?: TelegramAudio;
+  voice?: TelegramVoice;
   animation?: TelegramAnimation;
   media_group_id?: string;
   forward_date?: number;

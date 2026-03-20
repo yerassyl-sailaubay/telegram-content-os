@@ -145,7 +145,7 @@ describe("publishToTelegram", () => {
     expect((publishToTelegram as unknown as InngestHandler).fn).toBeTypeOf("function");
   });
 
-  it("plain text → sendMessage called with MarkdownV2", async () => {
+  it("plain text → sendMessage called without parse mode", async () => {
     const event = createEvent();
     const step = createMockStep();
 
@@ -169,8 +169,7 @@ describe("publishToTelegram", () => {
 
     expect(mockTelegramClient.sendMessage).toHaveBeenCalledWith(
       "-1001234567890",
-      expect.any(String),
-      { parse_mode: "MarkdownV2" },
+      "Hello world, this is a test post",
     );
     expect(mockTelegramClient.sendPhoto).not.toHaveBeenCalled();
     expect(mockTelegramClient.sendPoll).not.toHaveBeenCalled();
@@ -202,7 +201,7 @@ describe("publishToTelegram", () => {
     expect(mockTelegramClient.sendPhoto).toHaveBeenCalledWith(
       "-1001234567890",
       "https://example.com/photo.jpg",
-      expect.objectContaining({ parse_mode: "MarkdownV2" }),
+      expect.objectContaining({ caption: "Check this out" }),
     );
     expect(mockTelegramClient.sendMessage).not.toHaveBeenCalled();
     expect(result).toEqual(expect.objectContaining({ status: "published", format: "photo" }));
@@ -328,7 +327,7 @@ describe("publishToTelegram", () => {
     await expect(runHandler(event, step)).rejects.toThrow(/not found/i);
   });
 
-  it("MarkdownV2 special characters are escaped in text content", async () => {
+  it("MarkdownV2 in composer metadata is converted to HTML parse mode", async () => {
     const event = createEvent();
     const step = createMockStep();
 
@@ -338,6 +337,11 @@ describe("publishToTelegram", () => {
         content: "Hello! Use *bold* and _italic_ (also [links](http://example.com))",
         status: "draft",
         userId: "user-uuid-1",
+        sourceMetadata: {
+          telegramComposer: {
+            parseMode: "MarkdownV2",
+          },
+        },
       },
       {
         id: "channel-uuid-1",
@@ -351,13 +355,48 @@ describe("publishToTelegram", () => {
     await runHandler(event, step);
 
     const sentText = mockTelegramClient.sendMessage.mock.calls[0][1] as string;
-    expect(sentText).toContain("\\!");
-    expect(sentText).toContain("\\*");
-    expect(sentText).toContain("\\_");
-    expect(sentText).toContain("\\(");
-    expect(sentText).toContain("\\)");
-    expect(sentText).toContain("\\[");
-    expect(sentText).toContain("\\]");
+    const sendOptions = mockTelegramClient.sendMessage.mock.calls[0][2] as
+      | { parse_mode?: string }
+      | undefined;
+
+    expect(sentText).toContain("<b>bold</b>");
+    expect(sentText).toContain("<i>italic</i>");
+    expect(sentText).toContain('<a href="http://example.com/">links</a>');
+    expect(sendOptions?.parse_mode).toBe("HTML");
+  });
+
+  it("uses metadata imageUrl for scheduled composer image posts", async () => {
+    const event = createEvent();
+    const step = createMockStep();
+
+    setupDbMocks(
+      {
+        id: "content-uuid-1",
+        content: "Caption only",
+        status: "draft",
+        userId: "user-uuid-1",
+        sourceMetadata: {
+          telegramComposer: {
+            imageUrl: "https://cdn.example.com/photo.jpg",
+          },
+        },
+      },
+      {
+        id: "channel-uuid-1",
+        telegramChatId: "-1001234567890",
+        botTokenEncrypted: "fake-bot-token",
+      },
+    );
+
+    mockTelegramClient.sendPhoto.mockResolvedValue({ message_id: 50 });
+
+    await runHandler(event, step);
+
+    expect(mockTelegramClient.sendPhoto).toHaveBeenCalledWith(
+      "-1001234567890",
+      "https://cdn.example.com/photo.jpg",
+      expect.objectContaining({ caption: "Caption only" }),
+    );
   });
 
   it("updates content status to 'published' after successful publish", async () => {

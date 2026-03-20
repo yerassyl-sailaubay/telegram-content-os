@@ -1,4 +1,8 @@
 import { inngest } from "@/lib/inngest/client";
+import {
+  prepareTelegramTextForSend,
+  readTelegramComposerMetadata,
+} from "@/lib/telegram/formatting";
 
 interface PublishToTelegramEvent {
   data: {
@@ -15,13 +19,10 @@ type ContentFormat = "text" | "photo" | "media_group" | "poll";
 const IMAGE_URL_RE = /https?:\/\/\S+\.(?:jpg|jpeg|png|gif|webp)(?:\?\S*)?/gi;
 const POLL_PREFIX = "POLL:";
 
-const MARKDOWN_V2_ESCAPE_RE = /([_*\[\]()~`>#+\-=|{}.!\\])/g;
-
-export function escapeMarkdownV2(text: string): string {
-  return text.replace(MARKDOWN_V2_ESCAPE_RE, "\\$1");
-}
-
-function detectFormat(content: string): {
+function detectFormat(
+  content: string,
+  imageUrlFromMetadata: string | null,
+): {
   format: ContentFormat;
   imageUrls: string[];
   pollData: { question: string; options: string[] } | null;
@@ -37,7 +38,12 @@ function detectFormat(content: string): {
     }
   }
 
-  const imageUrls = content.match(IMAGE_URL_RE) ?? [];
+  const imageUrlsFromContent = content.match(IMAGE_URL_RE) ?? [];
+  const mergedImageUrls = new Set(imageUrlsFromContent);
+  if (imageUrlFromMetadata) {
+    mergedImageUrls.add(imageUrlFromMetadata);
+  }
+  const imageUrls = [...mergedImageUrls];
 
   if (imageUrls.length > 1) {
     return { format: "media_group", imageUrls, pollData: null };
@@ -89,7 +95,15 @@ export const publishToTelegram = inngest.createFunction(
           throw new Error(`Cannot publish content with status '${row.status}'`);
         }
 
-        return { id: row.id, text: row.content ?? "", status: row.status };
+        const composerMetadata = readTelegramComposerMetadata(row.sourceMetadata);
+
+        return {
+          id: row.id,
+          text: row.content ?? "",
+          status: row.status,
+          parseMode: composerMetadata.parseMode,
+          imageUrl: composerMetadata.imageUrl,
+        };
       });
 
       const channel = await step.run("load-channel", async () => {
@@ -148,7 +162,7 @@ export const publishToTelegram = inngest.createFunction(
       }
 
       const detected = await step.run("detect-format", async () => {
-        return detectFormat(content.text);
+        return detectFormat(content.text, content.imageUrl);
       });
 
       await step.run("publish", async () => {
@@ -159,26 +173,46 @@ export const publishToTelegram = inngest.createFunction(
 
         switch (detected.format) {
           case "text": {
-            const escaped = escapeMarkdownV2(content.text);
-            await client.sendMessage(chatId, escaped, { parse_mode: "MarkdownV2" });
+            const preparedText = prepareTelegramTextForSend(content.text, content.parseMode);
+            if (preparedText.parseMode) {
+              await client.sendMessage(chatId, preparedText.text, {
+                parse_mode: preparedText.parseMode,
+              });
+            } else {
+              await client.sendMessage(chatId, preparedText.text);
+            }
             break;
           }
           case "photo": {
             const caption = stripImageUrls(content.text, detected.imageUrls);
-            const escaped = escapeMarkdownV2(caption);
-            await client.sendPhoto(chatId, detected.imageUrls[0]!, {
-              caption: escaped,
-              parse_mode: "MarkdownV2",
-            });
+            const preparedCaption = prepareTelegramTextForSend(caption, content.parseMode);
+            const photoOptions: { caption?: string; parse_mode?: "HTML" | "MarkdownV2" } = {};
+            if (preparedCaption.text) {
+              photoOptions.caption = preparedCaption.text;
+              if (preparedCaption.parseMode) {
+                photoOptions.parse_mode = preparedCaption.parseMode;
+              }
+            }
+
+            await client.sendPhoto(
+              chatId,
+              detected.imageUrls[0]!,
+              Object.keys(photoOptions).length > 0 ? photoOptions : undefined,
+            );
             break;
           }
           case "media_group": {
             const caption = stripImageUrls(content.text, detected.imageUrls);
-            const escaped = escapeMarkdownV2(caption);
+            const preparedCaption = prepareTelegramTextForSend(caption, content.parseMode);
             const media = detected.imageUrls.map((url, i) => ({
               type: "photo" as const,
               media: url,
-              ...(i === 0 ? { caption: escaped, parse_mode: "MarkdownV2" as const } : {}),
+              ...(i === 0 && preparedCaption.text
+                ? {
+                    caption: preparedCaption.text,
+                    ...(preparedCaption.parseMode ? { parse_mode: preparedCaption.parseMode } : {}),
+                  }
+                : {}),
             }));
             await client.sendMediaGroup(chatId, media);
             break;

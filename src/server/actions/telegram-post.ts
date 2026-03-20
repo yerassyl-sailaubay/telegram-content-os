@@ -4,6 +4,10 @@ import { db } from "@/server/db";
 import { contentLibrary, telegramChannels, telegramPosts } from "@/server/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { getTelegramClient } from "@/lib/telegram/client";
+import {
+  prepareTelegramTextForSend,
+  type TelegramComposerParseMode,
+} from "@/lib/telegram/formatting";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { publishToTelegram } from "./publish-telegram";
@@ -13,7 +17,7 @@ export type ActionResult<T = void> = { success: true; data: T } | { success: fal
 export interface TelegramPostInput {
   channelId: string;
   content: string;
-  parseMode?: "HTML" | "MarkdownV2";
+  parseMode?: TelegramComposerParseMode;
   imageUrl?: string;
 }
 
@@ -27,7 +31,7 @@ export interface SaveTelegramDraftInput {
   contentId?: string;
   channelId?: string;
   content: string;
-  parseMode?: "HTML" | "MarkdownV2";
+  parseMode?: TelegramComposerParseMode;
   imageUrl?: string;
 }
 
@@ -309,20 +313,36 @@ export async function postToTelegram(
     // Send message to Telegram
     const tgClient = getTelegramClient();
     const telegramChatId = channel.telegramChatId;
+    const formatted = prepareTelegramTextForSend(input.content ?? "", input.parseMode);
 
     let sentMessage;
     try {
       if (input.imageUrl) {
+        const photoOptions: { caption?: string; parse_mode?: "HTML" | "MarkdownV2" } = {};
+        if (formatted.text) {
+          photoOptions.caption = formatted.text;
+          if (formatted.parseMode) {
+            photoOptions.parse_mode = formatted.parseMode;
+          }
+        }
+
         // Send photo with caption
-        sentMessage = await tgClient.sendPhoto(telegramChatId, input.imageUrl, {
-          caption: input.content?.trim(),
-          parse_mode: input.parseMode,
-        });
+        sentMessage = await tgClient.sendPhoto(
+          telegramChatId,
+          input.imageUrl,
+          Object.keys(photoOptions).length > 0 ? photoOptions : undefined,
+        );
       } else {
+        if (!formatted.text) {
+          return { success: false, error: "Content or image is required" };
+        }
+
         // Send text only
-        sentMessage = await tgClient.sendMessage(telegramChatId, input.content.trim(), {
-          parse_mode: input.parseMode,
-        });
+        sentMessage = formatted.parseMode
+          ? await tgClient.sendMessage(telegramChatId, formatted.text, {
+              parse_mode: formatted.parseMode,
+            })
+          : await tgClient.sendMessage(telegramChatId, formatted.text);
       }
     } catch (error) {
       const errorMessage =

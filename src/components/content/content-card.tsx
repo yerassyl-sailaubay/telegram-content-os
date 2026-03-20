@@ -139,14 +139,31 @@ type ContentCardProps = {
   onEdit?: (item: ContentItem) => void;
 };
 
+function readVoiceTranscript(sourceMetadata: unknown): string | null {
+  if (!sourceMetadata || typeof sourceMetadata !== "object" || Array.isArray(sourceMetadata)) {
+    return null;
+  }
+
+  const metadata = sourceMetadata as Record<string, unknown>;
+  const transcript = metadata.voiceTranscript;
+  if (typeof transcript !== "string") {
+    return null;
+  }
+
+  const normalized = transcript.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 export function ContentCard({ item, onArchived, onEdit }: ContentCardProps) {
   const t = useTranslations("content");
   const [isArchiving, setIsArchiving] = React.useState(false);
+  const [isTranscriptOpen, setIsTranscriptOpen] = React.useState(false);
 
   const title =
     item.title?.trim() ||
     (item.content ? item.content.slice(0, 60).replace(/\n/g, " ") + "…" : t("noTitle"));
 
+  const voiceTranscript = readVoiceTranscript(item.sourceMetadata);
   const preview = item.content
     ? item.content.slice(0, 120).replace(/\n+/g, " ") + (item.content.length > 120 ? "…" : "")
     : null;
@@ -231,6 +248,30 @@ export function ContentCard({ item, onArchived, onEdit }: ContentCardProps) {
 
       <CardContent className="flex-1 px-4 pb-3">
         {preview && <p className="text-muted-foreground line-clamp-2 text-xs">{preview}</p>}
+        {voiceTranscript && (
+          <div className="mt-2 space-y-2" data-testid="voice-transcript-section">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto p-0 text-xs"
+              onClick={() => setIsTranscriptOpen((prev) => !prev)}
+              data-testid="toggle-voice-transcript"
+            >
+              {isTranscriptOpen ? t("hideTranscript") : t("showTranscript")}
+            </Button>
+            {isTranscriptOpen && (
+              <div className="bg-muted/40 rounded-md p-2" data-testid="voice-transcript-block">
+                <p className="text-muted-foreground mb-1 text-[10px] font-medium tracking-wide uppercase">
+                  {t("voiceTranscriptLabel")}
+                </p>
+                <p className="text-foreground text-xs leading-relaxed whitespace-pre-wrap">
+                  {voiceTranscript}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
 
       <CardFooter className="flex items-center justify-between gap-2 px-4 pt-0 pb-4">

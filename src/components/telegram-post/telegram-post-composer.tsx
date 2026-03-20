@@ -46,6 +46,11 @@ import {
   analyzeChannelVoice,
   getChannelProfile,
 } from "@/server/actions/ai-writer";
+import {
+  prepareTelegramTextForSend,
+  readTelegramComposerMetadata,
+  type TelegramComposerParseMode,
+} from "@/lib/telegram/formatting";
 import { cn } from "@/lib/utils";
 
 interface Channel {
@@ -69,40 +74,10 @@ interface TelegramDraftItem {
   sourceMetadata: unknown;
 }
 
-interface TelegramComposerMetadata {
-  parseMode?: "HTML" | "MarkdownV2";
-  imageUrl: string | null;
-}
-
 interface TelegramPostComposerProps {
   initialChannels: Channel[];
   initialDraft?: TelegramDraftItem | null;
   initialSchedule?: { scheduledAt: string; timezone: string } | null;
-}
-
-function readTelegramComposerMetadata(sourceMetadata: unknown): TelegramComposerMetadata {
-  if (!sourceMetadata || typeof sourceMetadata !== "object" || Array.isArray(sourceMetadata)) {
-    return { parseMode: undefined, imageUrl: null };
-  }
-
-  const metadata = sourceMetadata as Record<string, unknown>;
-  const composer = metadata.telegramComposer;
-
-  if (!composer || typeof composer !== "object" || Array.isArray(composer)) {
-    return { parseMode: undefined, imageUrl: null };
-  }
-
-  const parsedComposer = composer as Record<string, unknown>;
-  const parseModeRaw = parsedComposer.parseMode;
-  const imageUrlRaw = parsedComposer.imageUrl;
-
-  const parseMode =
-    parseModeRaw === "HTML" || parseModeRaw === "MarkdownV2" ? parseModeRaw : undefined;
-
-  return {
-    parseMode,
-    imageUrl: typeof imageUrlRaw === "string" && imageUrlRaw.length > 0 ? imageUrlRaw : null,
-  };
 }
 
 export function TelegramPostComposer({
@@ -134,8 +109,8 @@ export function TelegramPostComposer({
   const [draftId, setDraftId] = useState<string | null>(initialDraft?.id ?? null);
   const [selectedChannel, setSelectedChannel] = useState<string>(initialDraft?.channelId ?? "");
   const [content, setContent] = useState(initialDraft?.content ?? "");
-  const [parseMode, setParseMode] = useState<"HTML" | "MarkdownV2" | undefined>(
-    initialMetadata.parseMode,
+  const [parseMode, setParseMode] = useState<TelegramComposerParseMode | undefined>(
+    initialMetadata.parseMode ?? "MarkdownV2",
   );
   const [imageUrl, setImageUrl] = useState<string | null>(initialMetadata.imageUrl);
   const [isUploading, setIsUploading] = useState(false);
@@ -407,6 +382,7 @@ export function TelegramPostComposer({
       if (result.success) {
         const hashtags = result.data.suggestedHashtags.join(" ");
         setContent(result.data.content + (hashtags ? "\n\n" + hashtags : ""));
+        setParseMode("MarkdownV2");
         setAiDialogOpen(false);
         setAiTopic("");
         setResult({
@@ -591,34 +567,6 @@ export function TelegramPostComposer({
                 className="min-h-[200px] resize-none"
                 maxLength={maxChars}
               />
-            </div>
-
-            {/* Format Options */}
-            <div className="space-y-2">
-              <Label>{t("formatting")}</Label>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={parseMode === undefined ? "default" : "secondary"}
-                  className="cursor-pointer"
-                  onClick={() => setParseMode(undefined)}
-                >
-                  {t("plainText")}
-                </Badge>
-                <Badge
-                  variant={parseMode === "HTML" ? "default" : "secondary"}
-                  className="cursor-pointer"
-                  onClick={() => setParseMode("HTML")}
-                >
-                  HTML
-                </Badge>
-                <Badge
-                  variant={parseMode === "MarkdownV2" ? "default" : "secondary"}
-                  className="cursor-pointer"
-                  onClick={() => setParseMode("MarkdownV2")}
-                >
-                  Markdown
-                </Badge>
-              </div>
             </div>
 
             {/* Draft + Schedule Controls */}
@@ -852,79 +800,84 @@ interface TelegramPreviewProps {
   content: string;
   imageUrl?: string | null;
   channel?: Channel;
-  parseMode?: "HTML" | "MarkdownV2";
+  parseMode?: TelegramComposerParseMode;
 }
 
 function TelegramPreview({ content, imageUrl, channel, parseMode }: TelegramPreviewProps) {
   const t = useTranslations("telegramPost");
+  const prepared = content ? prepareTelegramTextForSend(content, parseMode) : null;
+  const timeString = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="rounded-lg border bg-[#17212b] p-4 text-white">
-      {/* Channel Header */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-lg font-bold">
+    <div className="relative flex flex-col overflow-hidden rounded-xl border bg-[#0e1621] font-sans">
+      {/* Fake Chat Header */}
+      <div className="flex items-center gap-3 border-b border-black/20 bg-[#17212b] px-4 py-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500 text-base font-bold text-white">
           {(channel?.title?.[0] || channel?.username?.[0] || "C").toUpperCase()}
         </div>
-        <div>
-          <p className="font-medium text-[#fff]">
+        <div className="flex flex-col">
+          <span className="line-clamp-1 text-[15px] font-semibold text-white">
             {channel?.title || channel?.username || t("previewChannelName")}
-          </p>
-          {channel?.memberCount ? (
-            <p className="text-xs text-[#6c7883]">
-              {channel.memberCount.toLocaleString()} {t("subscribers")}
-            </p>
-          ) : (
-            <p className="text-xs text-[#6c7883]">{t("previewSubscribers")}</p>
+          </span>
+          <span className="text-[13px] text-[#7f91a4]">
+            {channel?.memberCount
+              ? `${channel.memberCount.toLocaleString()} ${t("subscribers")}`
+              : t("previewSubscribers")}
+          </span>
+        </div>
+      </div>
+
+      {/* Chat History Background */}
+      <div className="flex flex-col bg-[#0e1621] p-4 sm:p-6">
+        {/* Message Bubble */}
+        <div className="relative max-w-[85%] self-start rounded-2xl bg-[#18222d] text-white shadow-sm sm:max-w-[400px]">
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt="Post preview"
+              className={cn(
+                "w-full object-cover",
+                content ? "max-h-80 rounded-t-2xl" : "max-h-96 rounded-2xl",
+              )}
+            />
           )}
-        </div>
-      </div>
 
-      {/* Image */}
-      {imageUrl && (
-        <div className="mb-3">
-          <img
-            src={imageUrl}
-            alt="Post image"
-            className="max-h-64 w-full rounded-lg object-cover"
-          />
-        </div>
-      )}
-
-      {/* Message */}
-      <div className="space-y-2">
-        {content ? (
-          <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
-            {parseMode === "HTML" ? (
-              <div dangerouslySetInnerHTML={{ __html: content }} />
-            ) : parseMode === "MarkdownV2" ? (
-              <MarkdownPreview content={content} />
-            ) : (
-              content
+          {/* Content Area */}
+          <div className={cn("relative", content || !imageUrl ? "px-3 pt-2 pb-2" : "")}>
+            {(content || !imageUrl) && (
+              <div className="text-[15px] leading-relaxed break-words whitespace-pre-wrap text-white">
+                {content ? (
+                  prepared?.parseMode === "HTML" ? (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: prepared.text }}
+                      className="[&>a]:text-[#5390ce]"
+                    />
+                  ) : (
+                    content
+                  )
+                ) : (
+                  <span className="text-[#7f91a4] italic">{t("previewPlaceholder")}</span>
+                )}
+              </div>
             )}
-          </div>
-        ) : (
-          <p className="text-[#6c7883] italic">{t("previewPlaceholder")}</p>
-        )}
-      </div>
 
-      {/* Timestamp */}
-      <div className="mt-3 text-right">
-        <span className="text-xs text-[#6c7883]">
-          {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </span>
+            {/* Timestamp Badge */}
+            <div
+              className={cn(
+                "flex items-center gap-1 text-[11px]",
+                !content && imageUrl
+                  ? "absolute right-1.5 bottom-1.5 rounded-[10px] bg-black/30 px-1.5 py-[2px] text-white backdrop-blur-md"
+                  : "float-right mt-1 -mb-1 ml-3 text-[#7f91a4]",
+              )}
+            >
+              <span>{timeString}</span>
+            </div>
+
+            {/* Clear float for text-based timestamp */}
+            {!(!content && imageUrl) && <div className="clear-both" />}
+          </div>
+        </div>
       </div>
     </div>
   );
-}
-
-// Simple Markdown preview
-function MarkdownPreview({ content }: { content: string }) {
-  const processed = content
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/__(.+?)__/g, "<u>$1</u>")
-    .replace(/`(.+?)`/g, '<code class="bg-[#242f3d] px-1 rounded">$1</code>')
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/~~(.+?)~~/g, "<s>$1</s>");
-
-  return <span dangerouslySetInnerHTML={{ __html: processed }} />;
 }

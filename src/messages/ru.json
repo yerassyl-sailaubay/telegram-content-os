@@ -171,7 +171,10 @@
     "emptyScheduled": "Ничего не запланировано",
     "emptyScheduledDescription": "Запланированный контент будет отображаться здесь.",
     "filterChannel": "Все каналы",
-    "noTitle": "Без заголовка"
+    "noTitle": "Без заголовка",
+    "showTranscript": "Показать расшифровку",
+    "hideTranscript": "Скрыть расшифровку",
+    "voiceTranscriptLabel": "Расшифровка голосового"
   },
   "schedule": {
     "title": "Расписание",

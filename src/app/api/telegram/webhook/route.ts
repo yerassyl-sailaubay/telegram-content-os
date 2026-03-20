@@ -119,6 +119,10 @@ function extractMediaUrls(message: TelegramMessage): string[] {
     urls.push(message.audio.file_id);
   }
 
+  if (message.voice) {
+    urls.push(message.voice.file_id);
+  }
+
   if (message.animation) {
     urls.push(message.animation.file_id);
   }
@@ -141,7 +145,9 @@ function buildContentParsed(message: TelegramMessage): Record<string, unknown> {
     has_video: Boolean(message.video),
     has_document: Boolean(message.document),
     has_audio: Boolean(message.audio),
+    has_voice: Boolean(message.voice),
     has_animation: Boolean(message.animation),
+    voice_duration: message.voice?.duration ?? null,
     forward_date: message.forward_date ?? null,
   };
 }
@@ -182,7 +188,7 @@ function getLinkPromptText(): string {
 }
 
 function getLinkSuccessText(): string {
-  return "Telegram connected. Send me text ideas anytime and I will save them as drafts.";
+  return "Telegram connected. Send me text ideas or voice notes and I will save them as drafts.";
 }
 
 function getExpiredLinkText(): string {
@@ -190,11 +196,15 @@ function getExpiredLinkText(): string {
 }
 
 function getUnsupportedInboxText(): string {
-  return "Text ideas are supported first. Send a text message and I will save it as a draft.";
+  return "Send a text idea or a voice note and I will save it as a draft.";
 }
 
 function getSavedIdeaText(): string {
   return "Saved as an idea draft.";
+}
+
+function getVoiceIdeaQueuedText(): string {
+  return "Voice note received. I am transcribing and polishing it into a draft now.";
 }
 
 async function sendBotReply(chatId: string | number, text: string): Promise<void> {
@@ -262,18 +272,20 @@ async function findExistingInboxIdea(
 ): Promise<{ id: string } | undefined> {
   const db = await getDb();
   const { contentLibrary } = await getSchema();
-  const { eq, and } = await getDrizzleOps();
+  const { eq } = await getDrizzleOps();
 
   const rows = await db
     .select({ id: contentLibrary.id, sourceMetadata: contentLibrary.sourceMetadata })
     .from(contentLibrary)
-    .where(and(eq(contentLibrary.userId, userId), eq(contentLibrary.sourceType, "idea")))
+    .where(eq(contentLibrary.userId, userId))
     .limit(50);
 
   return rows.find((row) => {
     const meta = row.sourceMetadata as Record<string, unknown> | null;
+    const captureType = meta?.telegramCaptureType;
+    const isInboxCapture = captureType === "bot_inbox" || captureType === "bot_inbox_voice";
     return (
-      meta?.telegramCaptureType === "bot_inbox" &&
+      isInboxCapture &&
       meta?.telegramUserId === telegramUserId &&
       meta?.telegramMessageId === messageId
     );
@@ -287,8 +299,9 @@ async function createInboxIdea(
 ): Promise<string | undefined> {
   const telegramUserId = getTelegramUserId(message);
   const text = extractInboxText(message);
+  const isVoiceCapture = Boolean(message.voice?.file_id);
 
-  if (!telegramUserId || !text) {
+  if (!telegramUserId || (!text && !isVoiceCapture)) {
     return undefined;
   }
 
@@ -304,18 +317,21 @@ async function createInboxIdea(
     .insert(contentLibrary)
     .values({
       userId,
-      title: buildIdeaTitle(text),
-      content: text,
+      title: buildIdeaTitle(text || "Voice note idea"),
+      content: text || null,
       sourceType: "idea",
       status: "draft",
       sourceMetadata: {
-        telegramCaptureType: "bot_inbox",
+        telegramCaptureType: isVoiceCapture ? "bot_inbox_voice" : "bot_inbox",
         telegramUpdateId: update.update_id,
         telegramMessageId: message.message_id,
         telegramUserId,
         telegramChatId: String(message.chat.id),
         telegramUsername: message.from?.username ?? null,
         telegramFirstName: message.from?.first_name ?? null,
+        telegramVoiceFileId: message.voice?.file_id ?? null,
+        telegramVoiceMimeType: message.voice?.mime_type ?? null,
+        telegramVoiceDurationSec: message.voice?.duration ?? null,
         capturedAt: new Date(message.date * 1000).toISOString(),
       },
     })
@@ -358,8 +374,9 @@ async function handlePrivateMessage(
     return;
   }
 
+  const isVoiceCapture = Boolean(message.voice?.file_id);
   const text = extractInboxText(message);
-  if (!text) {
+  if (!text && !isVoiceCapture) {
     await sendBotReply(message.chat.id, getUnsupportedInboxText());
     return;
   }
@@ -379,10 +396,14 @@ async function handlePrivateMessage(
       telegramUserId,
       telegramChatId: String(message.chat.id),
       messageId: message.message_id,
+      captureType: isVoiceCapture ? "voice" : "text",
     },
   });
 
-  await sendBotReply(message.chat.id, getSavedIdeaText());
+  await sendBotReply(
+    message.chat.id,
+    isVoiceCapture ? getVoiceIdeaQueuedText() : getSavedIdeaText(),
+  );
 }
 
 /**

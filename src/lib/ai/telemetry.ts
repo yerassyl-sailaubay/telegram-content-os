@@ -11,7 +11,8 @@ export type AiTelemetryFeature =
   | "channel_profile_full"
   | "channel_profile_incremental"
   | "cross_platform_adaptation"
-  | "ai_writer";
+  | "ai_writer"
+  | "voice_note_to_post";
 
 export interface AiCostEstimate {
   inputCostUsd: number;
