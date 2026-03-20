@@ -28,9 +28,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   if (!code || !state) {
-    return NextResponse.redirect(
-      `${settingsUrl}?error=twitter_missing_params`,
-    );
+    return NextResponse.redirect(`${settingsUrl}?error=twitter_missing_params`);
   }
 
   // 2. Verify state and get code_verifier from cookies
@@ -39,24 +37,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const codeVerifier = cookies.get("twitter_code_verifier")?.value;
 
   if (!storedState || storedState !== state) {
-    return NextResponse.redirect(
-      `${settingsUrl}?error=twitter_state_mismatch`,
-    );
+    return NextResponse.redirect(`${settingsUrl}?error=twitter_state_mismatch`);
   }
 
   if (!codeVerifier) {
-    return NextResponse.redirect(
-      `${settingsUrl}?error=twitter_missing_verifier`,
-    );
+    return NextResponse.redirect(`${settingsUrl}?error=twitter_missing_verifier`);
   }
 
   const clientId = process.env.TWITTER_CLIENT_ID;
   const clientSecret = process.env.TWITTER_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    return NextResponse.redirect(
-      `${settingsUrl}?error=twitter_not_configured`,
-    );
+    return NextResponse.redirect(`${settingsUrl}?error=twitter_not_configured`);
   }
 
   const redirectUri = `${url.origin}/api/auth/twitter/callback`;
@@ -136,9 +128,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       });
 
     // 8. Clear cookies and redirect to settings
-    const response = NextResponse.redirect(
-      `${settingsUrl}?twitter=connected`,
-    );
+    const response = NextResponse.redirect(`${settingsUrl}?twitter=connected`);
 
     response.cookies.delete("twitter_code_verifier");
     response.cookies.delete("twitter_oauth_state");
@@ -146,8 +136,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return response;
   } catch (err) {
     console.error("Twitter OAuth callback error:", err);
-    const message =
-      err instanceof Error ? err.message : "Unknown error";
+    const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.redirect(
       `${settingsUrl}?error=twitter_callback_failed&detail=${encodeURIComponent(message)}`,
     );

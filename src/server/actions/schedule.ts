@@ -82,17 +82,10 @@ export async function rescheduleAction(formData: FormData) {
   return result;
 }
 
-export async function getSchedulesForCalendar(
-  startUtc: string,
-  endUtc: string,
-) {
+export async function getSchedulesForCalendar(startUtc: string, endUtc: string) {
   const user = await requireUser();
 
-  const schedules = await getSchedulesInRange(
-    user.id,
-    new Date(startUtc),
-    new Date(endUtc),
-  );
+  const schedules = await getSchedulesInRange(user.id, new Date(startUtc), new Date(endUtc));
 
   return schedules;
 }

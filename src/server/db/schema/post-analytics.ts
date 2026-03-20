@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  integer,
-  boolean,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { crossPosts } from "./cross-posts";
 import { platformEnum } from "./platform-connections";

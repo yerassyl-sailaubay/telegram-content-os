@@ -64,7 +64,11 @@ vi.mock("@/lib/inngest/client", () => ({
 
 // Mock DB schema (just pass through — the mock DB doesn't use real Drizzle)
 vi.mock("@/server/db/schema", () => ({
-  telegramChannels: { id: "id", telegramChatId: "telegram_chat_id", webhookSecret: "webhook_secret" },
+  telegramChannels: {
+    id: "id",
+    telegramChatId: "telegram_chat_id",
+    webhookSecret: "webhook_secret",
+  },
   telegramPosts: { id: "id" },
 }));
 
@@ -81,7 +85,7 @@ let mockDbReturningResult: Array<Record<string, unknown>> = [];
 // Import POST handler after mocks
 // ---------------------------------------------------------------------------
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+ 
 let POST: typeof import("@/app/api/telegram/webhook/route").POST;
 
 beforeEach(async () => {
@@ -115,10 +119,7 @@ afterEach(() => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeRequest(
-  body: unknown,
-  headers?: Record<string, string>,
-): NextRequest {
+function makeRequest(body: unknown, headers?: Record<string, string>): NextRequest {
   return new NextRequest("https://example.com/api/telegram/webhook", {
     method: "POST",
     headers: {
@@ -129,9 +130,7 @@ function makeRequest(
   });
 }
 
-function makeChannelPostUpdate(
-  overrides?: Partial<TelegramUpdate>,
-): TelegramUpdate {
+function makeChannelPostUpdate(overrides?: Partial<TelegramUpdate>): TelegramUpdate {
   return {
     update_id: 123456,
     channel_post: {
@@ -224,9 +223,7 @@ describe("POST /api/telegram/webhook", () => {
   describe("channel post processing", () => {
     it("stores a new channel post and fires Inngest event", async () => {
       // Mock: channel found in DB
-      mockDbLimitResult = [
-        { id: "channel-uuid-123", webhookSecret: null },
-      ];
+      mockDbLimitResult = [{ id: "channel-uuid-123", webhookSecret: null }];
 
       const update = makeChannelPostUpdate();
       const req = makeRequest(update, {
@@ -286,9 +283,7 @@ describe("POST /api/telegram/webhook", () => {
     });
 
     it("handles post with caption and media (photo)", async () => {
-      mockDbLimitResult = [
-        { id: "channel-uuid-456", webhookSecret: null },
-      ];
+      mockDbLimitResult = [{ id: "channel-uuid-456", webhookSecret: null }];
 
       const update: TelegramUpdate = {
         update_id: 2,
@@ -335,9 +330,7 @@ describe("POST /api/telegram/webhook", () => {
     });
 
     it("returns 200 even when DB operation fails (to prevent Telegram retries)", async () => {
-      mockDbLimitResult = [
-        { id: "channel-uuid-789", webhookSecret: null },
-      ];
+      mockDbLimitResult = [{ id: "channel-uuid-789", webhookSecret: null }];
 
       // Make the insert throw
       mockDbReturningResult = [];

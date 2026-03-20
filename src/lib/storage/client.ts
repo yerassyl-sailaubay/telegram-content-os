@@ -23,9 +23,7 @@ const MIME_TYPE_CATEGORIES: Record<FileCategory, readonly string[]> = {
   all: [...ALLOWED_MIME_TYPES],
 };
 
-export function isAllowedMimeType(
-  mimeType: string,
-): mimeType is AllowedMimeType {
+export function isAllowedMimeType(mimeType: string): mimeType is AllowedMimeType {
   return (ALLOWED_MIME_TYPES as readonly string[]).includes(mimeType);
 }
 
@@ -51,12 +49,10 @@ export async function uploadFile(
   file: File | Buffer,
   contentType: string,
 ): Promise<{ path: string }> {
-  const { data, error } = await supabase.storage
-    .from(BUCKET_NAME)
-    .upload(storagePath, file, {
-      contentType,
-      upsert: false,
-    });
+  const { data, error } = await supabase.storage.from(BUCKET_NAME).upload(storagePath, file, {
+    contentType,
+    upsert: false,
+  });
 
   if (error) {
     throw new Error(`Storage upload failed: ${error.message}`);
@@ -65,13 +61,8 @@ export async function uploadFile(
   return { path: data.path };
 }
 
-export async function deleteFile(
-  supabase: SupabaseClient,
-  storagePath: string,
-): Promise<void> {
-  const { error } = await supabase.storage
-    .from(BUCKET_NAME)
-    .remove([storagePath]);
+export async function deleteFile(supabase: SupabaseClient, storagePath: string): Promise<void> {
+  const { error } = await supabase.storage.from(BUCKET_NAME).remove([storagePath]);
 
   if (error) {
     throw new Error(`Storage delete failed: ${error.message}`);
@@ -94,9 +85,4 @@ export async function getSignedUrl(
   return data.signedUrl;
 }
 
-export {
-  BUCKET_NAME,
-  MAX_FILE_SIZE,
-  ALLOWED_MIME_TYPES,
-  MIME_TYPE_CATEGORIES,
-};
+export { BUCKET_NAME, MAX_FILE_SIZE, ALLOWED_MIME_TYPES, MIME_TYPE_CATEGORIES };

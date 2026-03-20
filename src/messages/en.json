@@ -63,13 +63,15 @@
     "statScheduledDescription": "Posts queued for publishing.",
     "statWeeklyEngagement": "Engagement",
     "statWeeklyEngagementDescription": "Reactions, clicks, and shares over 7 days.",
+    "statEngagementGrowth": "Engagement Trends",
+    "statEngagementDescription": "Showing how your channel's engagement is trending over time.",
     "actionNewPost": "New Post",
     "actionCreateFromUrl": "Create from URL",
     "actionViewSchedule": "View Schedule",
     "activityFeedTitle": "Recent Activity",
     "activityEmpty": "No activity yet",
     "activityEmptyDescription": "Your publishing activity will appear here.",
-    "activityType_adapted": "adapted",
+    "activityType_created": "created",
     "activityType_scheduled": "scheduled",
     "activityType_published": "published",
     "activityType_failed": "failed",
@@ -560,6 +562,9 @@
         "linkReady": "Telegram bot link is ready.",
         "linkCopied": "Telegram bot link copied.",
         "linkCopyFailed": "Could not copy the Telegram bot link.",
+        "copyStartCommand": "Copy /start command",
+        "startCommandCopied": "/start command copied.",
+        "startCommandCopyFailed": "Could not copy the /start command.",
         "refreshStatus": "Refresh bot status"
       }
     },
@@ -1147,7 +1152,7 @@
           "cta": "Start free",
           "features": {
             "telegram": "Telegram-first capture and drafting",
-            "quota": "50 AI generations per month",
+            "quota": "15 AI generations per month",
             "capture": "No credit card required"
           }
         },
@@ -1159,7 +1164,7 @@
           "description": "For creators who publish consistently and want drafting, scheduling, and optional external adaptation in one product.",
           "cta": "Choose Plus",
           "features": {
-            "quota": "500 AI generations per month",
+            "quota": "150 AI generations per month",
             "adaptation": "AI generation and adaptation",
             "crosspost": "Cross-channel adaptation workflows",
             "analytics": "Channel analytics"
@@ -1172,7 +1177,7 @@
           "description": "For teams running heavier publishing volume, more channels, and a tighter operational cadence.",
           "cta": "Choose Pro",
           "features": {
-            "unlimited": "Unlimited AI generations",
+            "unlimited": "1000 AI generations per month",
             "calendar": "Advanced scheduling and recurring flows",
             "channels": "High-volume channel operations",
             "priority": "Priority access to core features"

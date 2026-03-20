@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  integer,
-  date,
-  timestamp,
-  index,
-  unique,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, integer, date, timestamp, index, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { telegramChannels } from "./telegram-channels";
 import { platformEnum } from "./platform-connections";
@@ -35,12 +27,9 @@ export const channelMetrics = pgTable(
   ],
 );
 
-export const channelMetricsRelations = relations(
-  channelMetrics,
-  ({ one }) => ({
-    channel: one(telegramChannels, {
-      fields: [channelMetrics.channelId],
-      references: [telegramChannels.id],
-    }),
+export const channelMetricsRelations = relations(channelMetrics, ({ one }) => ({
+  channel: one(telegramChannels, {
+    fields: [channelMetrics.channelId],
+    references: [telegramChannels.id],
   }),
-);
+}));

@@ -41,7 +41,11 @@ export const schedules = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
   (table) => [
-    index("schedules_user_status_scheduled_at_idx").on(table.userId, table.status, table.scheduledAt),
+    index("schedules_user_status_scheduled_at_idx").on(
+      table.userId,
+      table.status,
+      table.scheduledAt,
+    ),
     index("schedules_recurrence_scheduled_at_idx").on(table.recurrenceRule, table.scheduledAt),
     index("schedules_cross_post_id_idx").on(table.crossPostId),
     index("schedules_content_library_id_idx").on(table.contentLibraryId),

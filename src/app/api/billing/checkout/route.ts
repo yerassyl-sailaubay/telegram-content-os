@@ -27,10 +27,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = (await request.json()) as { priceId?: string };
 
     if (!body.priceId) {
-      return NextResponse.json(
-        { error: "priceId is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "priceId is required" }, { status: 400 });
     }
 
     const { createCheckoutSession } = await createCheckoutSessionPromise;

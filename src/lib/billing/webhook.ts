@@ -23,10 +23,7 @@ import type { WebhookEventResult } from "./types";
 /**
  * Verify and construct a Stripe webhook event from raw body + signature.
  */
-export function constructWebhookEvent(
-  rawBody: string,
-  signature: string,
-): Stripe.Event {
+export function constructWebhookEvent(rawBody: string, signature: string): Stripe.Event {
   const stripe = getStripe();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -43,9 +40,7 @@ export function constructWebhookEvent(
 // Event handlers
 // ---------------------------------------------------------------------------
 
-async function handleCheckoutSessionCompleted(
-  session: Stripe.Checkout.Session,
-): Promise<void> {
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session): Promise<void> {
   const userId = session.metadata?.userId;
   if (!userId) {
     console.error("checkout.session.completed: no userId in metadata");
@@ -57,13 +52,11 @@ async function handleCheckoutSessionCompleted(
   const { eq } = await import("drizzle-orm");
 
   const customerId =
-    typeof session.customer === "string"
-      ? session.customer
-      : session.customer?.id ?? null;
+    typeof session.customer === "string" ? session.customer : (session.customer?.id ?? null);
   const subscriptionId =
     typeof session.subscription === "string"
       ? session.subscription
-      : session.subscription?.id ?? null;
+      : (session.subscription?.id ?? null);
 
   // Fetch the subscription to get price details
   let priceId: string | null = null;
@@ -97,9 +90,7 @@ async function handleCheckoutSessionCompleted(
     .where(eq(subscriptions.userId, userId));
 }
 
-async function handleSubscriptionUpdated(
-  subscription: Stripe.Subscription,
-): Promise<void> {
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
   const userId = subscription.metadata?.userId;
   if (!userId) {
     console.error("customer.subscription.updated: no userId in metadata");
@@ -141,9 +132,7 @@ async function handleSubscriptionUpdated(
     .where(eq(subscriptions.userId, userId));
 }
 
-async function handleSubscriptionDeleted(
-  subscription: Stripe.Subscription,
-): Promise<void> {
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
   const userId = subscription.metadata?.userId;
   if (!userId) {
     console.error("customer.subscription.deleted: no userId in metadata");
@@ -167,13 +156,9 @@ async function handleSubscriptionDeleted(
     .where(eq(subscriptions.userId, userId));
 }
 
-async function handleInvoicePaymentFailed(
-  invoice: Stripe.Invoice,
-): Promise<void> {
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const customerId =
-    typeof invoice.customer === "string"
-      ? invoice.customer
-      : invoice.customer?.id ?? null;
+    typeof invoice.customer === "string" ? invoice.customer : (invoice.customer?.id ?? null);
 
   if (!customerId) {
     console.error("invoice.payment_failed: no customer ID");
@@ -200,33 +185,23 @@ async function handleInvoicePaymentFailed(
 /**
  * Handle a verified Stripe webhook event.
  */
-export async function handleWebhookEvent(
-  event: Stripe.Event,
-): Promise<WebhookEventResult> {
+export async function handleWebhookEvent(event: Stripe.Event): Promise<WebhookEventResult> {
   try {
     switch (event.type) {
       case "checkout.session.completed":
-        await handleCheckoutSessionCompleted(
-          event.data.object as Stripe.Checkout.Session,
-        );
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         return { handled: true, eventType: event.type };
 
       case "customer.subscription.updated":
-        await handleSubscriptionUpdated(
-          event.data.object as Stripe.Subscription,
-        );
+        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
         return { handled: true, eventType: event.type };
 
       case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(
-          event.data.object as Stripe.Subscription,
-        );
+        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
         return { handled: true, eventType: event.type };
 
       case "invoice.payment_failed":
-        await handleInvoicePaymentFailed(
-          event.data.object as Stripe.Invoice,
-        );
+        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
         return { handled: true, eventType: event.type };
 
       default:

@@ -1,10 +1,10 @@
-import { test, expect } from "@playwright/test"
+import { test, expect } from "@playwright/test";
 
 test("GET /api/health returns { status: 'ok' }", async ({ request }) => {
-  const response = await request.get("/api/health")
+  const response = await request.get("/api/health");
 
-  expect(response.status()).toBe(200)
+  expect(response.status()).toBe(200);
 
-  const body = await response.json()
-  expect(body).toEqual({ status: "ok" })
-})
+  const body = await response.json();
+  expect(body).toEqual({ status: "ok" });
+});

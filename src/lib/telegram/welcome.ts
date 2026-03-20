@@ -16,10 +16,7 @@ import type { TelegramMessage, TelegramUser } from "./types";
  * Substitute template variables with actual values.
  * Supported variables: {name}, {channel_name}, {member_count}
  */
-export function renderTemplate(
-  template: string,
-  vars: Record<string, string>,
-): string {
+export function renderTemplate(template: string, vars: Record<string, string>): string {
   let result = template;
   for (const [key, value] of Object.entries(vars)) {
     result = result.replaceAll(`{${key}}`, value);
@@ -63,10 +60,7 @@ function rateLimitKey(channelTelegramChatId: string, userId: number): string {
  * Check if a welcome message was already sent for this member recently.
  * Returns true if rate-limited (should NOT send).
  */
-export function isRateLimited(
-  channelTelegramChatId: string,
-  userId: number,
-): boolean {
+export function isRateLimited(channelTelegramChatId: string, userId: number): boolean {
   const key = rateLimitKey(channelTelegramChatId, userId);
   const lastSent = rateLimitMap.get(key);
   if (lastSent && Date.now() - lastSent < RATE_LIMIT_TTL_MS) {
@@ -78,10 +72,7 @@ export function isRateLimited(
 /**
  * Record that a welcome message was sent for this member.
  */
-export function recordWelcomeSent(
-  channelTelegramChatId: string,
-  userId: number,
-): void {
+export function recordWelcomeSent(channelTelegramChatId: string, userId: number): void {
   const key = rateLimitKey(channelTelegramChatId, userId);
   rateLimitMap.set(key, Date.now());
 
@@ -155,10 +146,7 @@ export async function handleNewChatMember(
       recordWelcomeSent(chatId, member.id);
     } catch (error) {
       // Log but don't throw — other members should still get welcomed
-      console.error(
-        `Failed to send welcome message to ${member.id} in ${chatId}:`,
-        error,
-      );
+      console.error(`Failed to send welcome message to ${member.id} in ${chatId}:`, error);
     }
   }
 }

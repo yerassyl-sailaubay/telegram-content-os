@@ -24,15 +24,9 @@ const TWITTER_AUTH_URL = "https://x.com/i/oauth2/authorize";
 const TWITTER_TOKEN_URL = "https://api.x.com/2/oauth2/token";
 const TWITTER_TWEETS_URL = "https://api.x.com/2/tweets";
 const TWITTER_USERINFO_URL = "https://api.x.com/2/users/me";
-const TWITTER_MEDIA_UPLOAD_URL =
-  "https://upload.twitter.com/1.1/media/upload.json";
+const TWITTER_MEDIA_UPLOAD_URL = "https://upload.twitter.com/1.1/media/upload.json";
 
-const TWITTER_SCOPES = [
-  "tweet.read",
-  "tweet.write",
-  "users.read",
-  "offline.access",
-];
+const TWITTER_SCOPES = ["tweet.read", "tweet.write", "users.read", "offline.access"];
 
 /** Twitter free tier: 1,500 posts per month. */
 export const TWITTER_MONTHLY_POST_LIMIT = 1500;
@@ -56,10 +50,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {},
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES;
   const baseDelayMs = options.baseDelayMs ?? DEFAULT_BASE_DELAY_MS;
 
@@ -71,8 +62,7 @@ export async function withRetry<T>(
     } catch (error) {
       lastError = error;
 
-      const isRetryable =
-        error instanceof TwitterApiError && error.retryable;
+      const isRetryable = error instanceof TwitterApiError && error.retryable;
 
       if (!isRetryable || attempt === maxRetries) {
         throw error;
@@ -103,9 +93,7 @@ export function generateCodeVerifier(): string {
 /**
  * Derives a S256 code challenge from a code verifier.
  */
-export async function generateCodeChallenge(
-  codeVerifier: string,
-): Promise<string> {
+export async function generateCodeChallenge(codeVerifier: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(codeVerifier);
   const digest = await crypto.subtle.digest("SHA-256", data);
@@ -238,9 +226,7 @@ export async function refreshAccessToken(params: {
 /**
  * Fetches the authenticated user's profile from Twitter.
  */
-export async function getTwitterUserInfo(
-  accessToken: string,
-): Promise<TwitterUserInfo> {
+export async function getTwitterUserInfo(accessToken: string): Promise<TwitterUserInfo> {
   const response = await fetch(TWITTER_USERINFO_URL, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -427,9 +413,7 @@ export function getCurrentMonth(): string {
  * Checks if the user has exceeded their monthly post limit.
  * Returns rate limit info.
  */
-export async function checkRateLimit(
-  userId: string,
-): Promise<{
+export async function checkRateLimit(userId: string): Promise<{
   allowed: boolean;
   currentCount: number;
   limit: number;
@@ -444,9 +428,7 @@ export async function checkRateLimit(
   const rows = await db
     .select({ crossPostsCount: usageTracking.crossPostsCount })
     .from(usageTracking)
-    .where(
-      and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)),
-    )
+    .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)))
     .limit(1);
 
   const currentCount = rows[0]?.crossPostsCount ?? 0;
@@ -464,10 +446,7 @@ export async function checkRateLimit(
  * Increments the monthly cross-post count for a user.
  * Creates the tracking row if it doesn't exist (upsert).
  */
-export async function incrementPostCount(
-  userId: string,
-  count: number = 1,
-): Promise<void> {
+export async function incrementPostCount(userId: string, count: number = 1): Promise<void> {
   const { db } = await import("@/server/db");
   const { usageTracking } = await import("@/server/db/schema");
   const { eq, and, sql } = await import("drizzle-orm");
@@ -481,9 +460,7 @@ export async function incrementPostCount(
       crossPostsCount: sql`${usageTracking.crossPostsCount} + ${count}`,
       updatedAt: new Date(),
     })
-    .where(
-      and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)),
-    )
+    .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)))
     .returning({ id: usageTracking.id });
 
   // If no row existed, insert one

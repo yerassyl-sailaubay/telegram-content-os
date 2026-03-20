@@ -26,7 +26,7 @@ vi.mock("next-intl", () => ({
         activityFeedTitle: "Recent Activity",
         activityEmpty: "No activity yet",
         activityEmptyDescription: "Your publishing activity will appear here.",
-        activityType_adapted: "adapted",
+        activityType_created: "created",
         activityType_scheduled: "scheduled",
         activityType_published: "published",
         activityType_failed: "failed",
@@ -127,7 +127,7 @@ function makeActivityEvents(): ActivityEvent[] {
     },
     {
       id: "evt-4",
-      type: "adapted",
+      type: "created",
       platform: "twitter",
       contentSnippet: "Adapted tweet content",
       timestamp: new Date("2024-01-14T12:00:00Z"),
@@ -347,7 +347,7 @@ describe("ActivityFeed", () => {
     expect(screen.getByText("published")).toBeTruthy();
     expect(screen.getByText("scheduled")).toBeTruthy();
     expect(screen.getByText("failed")).toBeTruthy();
-    expect(screen.getByText("adapted")).toBeTruthy();
+    expect(screen.getByText("created")).toBeTruthy();
   });
 
   it("shows empty state when no events", () => {

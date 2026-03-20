@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  integer,
-  text,
-  jsonb,
-  timestamp,
-  index,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, integer, text, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { telegramChannels } from "./telegram-channels";
 import { crossPosts } from "./cross-posts";
@@ -34,13 +26,10 @@ export const telegramPosts = pgTable(
   ],
 );
 
-export const telegramPostsRelations = relations(
-  telegramPosts,
-  ({ one, many }) => ({
-    channel: one(telegramChannels, {
-      fields: [telegramPosts.channelId],
-      references: [telegramChannels.id],
-    }),
-    crossPosts: many(crossPosts),
+export const telegramPostsRelations = relations(telegramPosts, ({ one, many }) => ({
+  channel: one(telegramChannels, {
+    fields: [telegramPosts.channelId],
+    references: [telegramChannels.id],
   }),
-);
+  crossPosts: many(crossPosts),
+}));

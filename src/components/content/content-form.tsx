@@ -100,12 +100,10 @@ export function ContentForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[640px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>
-              {isEditing ? t("editContent") : t("newContent")}
-            </DialogTitle>
+            <DialogTitle>{isEditing ? t("editContent") : t("newContent")}</DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -144,13 +142,9 @@ export function ContentForm({
                 <TabsContent value="preview" className="mt-2">
                   <div className="min-h-[200px] rounded-md border p-3 text-sm">
                     {content ? (
-                      <pre className="whitespace-pre-wrap font-sans">
-                        {content}
-                      </pre>
+                      <pre className="font-sans whitespace-pre-wrap">{content}</pre>
                     ) : (
-                      <p className="text-muted-foreground italic">
-                        {t("bodyPlaceholder")}
-                      </p>
+                      <p className="text-muted-foreground italic">{t("bodyPlaceholder")}</p>
                     )}
                   </div>
                 </TabsContent>
@@ -165,9 +159,7 @@ export function ContentForm({
                     <SelectValue placeholder={t("categoryPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">
-                      {t("uncategorized")}
-                    </SelectItem>
+                    <SelectItem value="__none__">{t("uncategorized")}</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
@@ -194,7 +186,7 @@ export function ContentForm({
                 id="content-template"
                 checked={isTemplate}
                 onChange={(e) => setIsTemplate(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
+                className="border-input h-4 w-4 rounded"
               />
               <Label htmlFor="content-template" className="text-sm font-normal">
                 {t("templateLabel")}

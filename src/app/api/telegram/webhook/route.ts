@@ -188,7 +188,7 @@ function getLinkPromptText(): string {
 }
 
 function getLinkSuccessText(): string {
-  return "Telegram connected. Send me text ideas or voice notes and I will save them as drafts.";
+  return "You're connected! Send me text ideas or voice notes, and I will save them as drafts.";
 }
 
 function getExpiredLinkText(): string {

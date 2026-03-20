@@ -38,12 +38,7 @@ const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_BASE_DELAY_MS = 1000;
 
 /** OAuth scopes needed for personal profile posting. */
-const LINKEDIN_SCOPES = [
-  "openid",
-  "profile",
-  "email",
-  "w_member_social",
-].join(" ");
+const LINKEDIN_SCOPES = ["openid", "profile", "email", "w_member_social"].join(" ");
 
 // ---------------------------------------------------------------------------
 // PKCE helpers
@@ -55,28 +50,17 @@ const LINKEDIN_SCOPES = [
  */
 export function generateCodeVerifier(): string {
   const buffer = crypto.randomBytes(32);
-  return buffer
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
+  return buffer.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
 /**
  * Generates the S256 code challenge from a code verifier.
  * Uses SHA-256 hash, base64url-encoded without padding.
  */
-export async function generateCodeChallenge(
-  codeVerifier: string,
-): Promise<string> {
+export async function generateCodeChallenge(codeVerifier: string): Promise<string> {
   const hash = crypto.createHash("sha256").update(codeVerifier).digest();
-  return hash
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
+  return hash.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
-
 
 // ---------------------------------------------------------------------------
 // Retry logic
@@ -110,8 +94,7 @@ export async function withLinkedInRetry<T>(
       lastError = error;
 
       const isRetryable =
-        error instanceof LinkedInApiError &&
-        RETRYABLE_STATUS_CODES.has(error.statusCode);
+        error instanceof LinkedInApiError && RETRYABLE_STATUS_CODES.has(error.statusCode);
 
       if (!isRetryable || attempt === maxRetries) {
         throw error;
@@ -252,9 +235,7 @@ export async function refreshAccessToken(params: {
 /**
  * Fetches the LinkedIn user profile using the OpenID Connect userinfo endpoint.
  */
-export async function getUserInfo(
-  accessToken: string,
-): Promise<LinkedInUserInfo> {
+export async function getUserInfo(accessToken: string): Promise<LinkedInUserInfo> {
   const response = await fetch(`${LINKEDIN_API_BASE}/v2/userinfo`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -368,14 +349,11 @@ export async function uploadImage(params: {
     },
   };
 
-  const initResponse = await fetch(
-    `${LINKEDIN_API_BASE}/rest/images?action=initializeUpload`,
-    {
-      method: "POST",
-      headers: linkedInHeaders(params.accessToken),
-      body: JSON.stringify(initBody),
-    },
-  );
+  const initResponse = await fetch(`${LINKEDIN_API_BASE}/rest/images?action=initializeUpload`, {
+    method: "POST",
+    headers: linkedInHeaders(params.accessToken),
+    body: JSON.stringify(initBody),
+  });
 
   if (!initResponse.ok) {
     const errorText = await initResponse.text();

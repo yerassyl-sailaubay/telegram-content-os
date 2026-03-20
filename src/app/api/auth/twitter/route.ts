@@ -10,19 +10,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Lazy imports to avoid build-time failures
-  const {
-    generateCodeVerifier,
-    generateCodeChallenge,
-    generateState,
-    buildAuthorizationUrl,
-  } = await import("@/lib/platforms/twitter");
+  const { generateCodeVerifier, generateCodeChallenge, generateState, buildAuthorizationUrl } =
+    await import("@/lib/platforms/twitter");
 
   const clientId = process.env.TWITTER_CLIENT_ID;
   if (!clientId) {
-    return NextResponse.json(
-      { error: "Twitter OAuth is not configured" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Twitter OAuth is not configured" }, { status: 500 });
   }
 
   // Determine redirect URI from request origin

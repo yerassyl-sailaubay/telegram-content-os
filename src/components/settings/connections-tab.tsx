@@ -150,6 +150,7 @@ export function ConnectionsTab({ initialConnections, initialTelegramBot }: Conne
   const [isBotPending, startBotTransition] = useTransition();
   const [connections, setConnections] = useState<ConnectionStatus[]>(initialConnections);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [generatedStartCommand, setGeneratedStartCommand] = useState<string | null>(null);
   const [loadingPlatform, setLoadingPlatform] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const telegramBot = initialTelegramBot;
@@ -193,6 +194,7 @@ export function ConnectionsTab({ initialConnections, initialTelegramBot }: Conne
       }
 
       setGeneratedLink(result.data.deepLinkUrl);
+      setGeneratedStartCommand(`/start ${result.data.token}`);
       toast.success(t("connections.telegramBot.linkReady"));
     });
   }
@@ -205,6 +207,17 @@ export function ConnectionsTab({ initialConnections, initialTelegramBot }: Conne
     navigator.clipboard.writeText(generatedLink).then(
       () => toast.success(t("connections.telegramBot.linkCopied")),
       () => toast.error(t("connections.telegramBot.linkCopyFailed")),
+    );
+  }
+
+  function handleCopyTelegramStartCommand() {
+    if (!generatedStartCommand) {
+      return;
+    }
+
+    navigator.clipboard.writeText(generatedStartCommand).then(
+      () => toast.success(t("connections.telegramBot.startCommandCopied")),
+      () => toast.error(t("connections.telegramBot.startCommandCopyFailed")),
     );
   }
 
@@ -274,33 +287,52 @@ export function ConnectionsTab({ initialConnections, initialTelegramBot }: Conne
           </div>
 
           {generatedLink && (
-            <div className="bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
-              <code className="min-w-0 flex-1 truncate">{generatedLink}</code>
-              <Button asChild variant="ghost" size="sm" className="h-7 shrink-0 px-2">
-                <a href={generatedLink} target="_blank" rel="noreferrer">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0"
-                onClick={handleCopyTelegramLink}
-                data-testid="copy-telegram-bot-link-button"
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0"
-                onClick={handleRefreshTelegramBotStatus}
-                data-testid="refresh-telegram-bot-status-button"
-                title={t("connections.telegramBot.refreshStatus")}
-                aria-label={t("connections.telegramBot.refreshStatus")}
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-              </Button>
+            <div className="space-y-2">
+              <div className="bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                <code className="min-w-0 flex-1 truncate">{generatedLink}</code>
+                <Button asChild variant="ghost" size="sm" className="h-7 shrink-0 px-2">
+                  <a href={generatedLink} target="_blank" rel="noreferrer">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={handleCopyTelegramLink}
+                  data-testid="copy-telegram-bot-link-button"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={handleRefreshTelegramBotStatus}
+                  data-testid="refresh-telegram-bot-status-button"
+                  title={t("connections.telegramBot.refreshStatus")}
+                  aria-label={t("connections.telegramBot.refreshStatus")}
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+
+              {generatedStartCommand && (
+                <div className="bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
+                  <code className="min-w-0 flex-1 truncate">{generatedStartCommand}</code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={handleCopyTelegramStartCommand}
+                    data-testid="copy-telegram-bot-start-command-button"
+                    title={t("connections.telegramBot.copyStartCommand")}
+                    aria-label={t("connections.telegramBot.copyStartCommand")}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

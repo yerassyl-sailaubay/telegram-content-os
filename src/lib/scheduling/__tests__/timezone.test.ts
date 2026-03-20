@@ -72,36 +72,24 @@ describe("timezone utilities", () => {
     });
 
     it("returns correct offset for Almaty", () => {
-      const offset = getUtcOffset(
-        "Asia/Almaty",
-        new Date("2026-01-15T00:00:00Z"),
-      );
+      const offset = getUtcOffset("Asia/Almaty", new Date("2026-01-15T00:00:00Z"));
       expect(offset).toBe("+05:00");
     });
 
     it("returns correct offset for Tokyo", () => {
-      const offset = getUtcOffset(
-        "Asia/Tokyo",
-        new Date("2026-01-15T00:00:00Z"),
-      );
+      const offset = getUtcOffset("Asia/Tokyo", new Date("2026-01-15T00:00:00Z"));
       expect(offset).toBe("+09:00");
     });
   });
 
   describe("formatTimezoneDisplay", () => {
     it("formats timezone with offset", () => {
-      const display = formatTimezoneDisplay(
-        "Asia/Almaty",
-        new Date("2026-06-15T00:00:00Z"),
-      );
+      const display = formatTimezoneDisplay("Asia/Almaty", new Date("2026-06-15T00:00:00Z"));
       expect(display).toBe("Asia/Almaty (UTC+05:00)");
     });
 
     it("replaces underscores with spaces", () => {
-      const display = formatTimezoneDisplay(
-        "America/New_York",
-        new Date("2026-01-15T00:00:00Z"),
-      );
+      const display = formatTimezoneDisplay("America/New_York", new Date("2026-01-15T00:00:00Z"));
       expect(display).toContain("America/New York");
     });
   });
@@ -134,10 +122,7 @@ describe("timezone utilities", () => {
     });
 
     it("ALL_TIMEZONES contains all timezone values", () => {
-      const total = TIMEZONE_GROUPS.reduce(
-        (sum, g) => sum + g.timezones.length,
-        0,
-      );
+      const total = TIMEZONE_GROUPS.reduce((sum, g) => sum + g.timezones.length, 0);
       expect(ALL_TIMEZONES).toHaveLength(total);
     });
 

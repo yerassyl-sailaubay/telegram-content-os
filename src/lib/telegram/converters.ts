@@ -9,12 +9,7 @@
  * All functions are pure — no side effects.
  */
 
-import type {
-  ParsedContent,
-  ParsedMediaGroup,
-  ContentBlock,
-  FormattingMark,
-} from "./parser.types";
+import type { ParsedContent, ParsedMediaGroup, ContentBlock, FormattingMark } from "./parser.types";
 
 // ─── HTML Escaping (XSS Prevention) ─────────────────────────────────────────
 
@@ -48,7 +43,6 @@ export function sanitizeUrl(url: string): string {
   }
   return url;
 }
-
 
 /**
  * Simple formatting application: for each contiguous run of characters
@@ -86,20 +80,11 @@ function applyFormattingSimple(
     const midpoint = segStart; // Check which marks are active at this segment start
 
     // Find active marks for this segment
-    const activeMarks = formatting.filter(
-      (mark) => mark.start <= midpoint && mark.end > midpoint,
-    );
+    const activeMarks = formatting.filter((mark) => mark.start <= midpoint && mark.end > midpoint);
 
     // Apply marks from outermost to innermost
     // Order: bold, italic, underline, strikethrough, code, spoiler
-    const markOrder = [
-      "bold",
-      "italic",
-      "underline",
-      "strikethrough",
-      "spoiler",
-      "code",
-    ];
+    const markOrder = ["bold", "italic", "underline", "strikethrough", "spoiler", "code"];
     const sortedMarks = activeMarks.sort(
       (a, b) => markOrder.indexOf(a.type) - markOrder.indexOf(b.type),
     );
@@ -241,9 +226,7 @@ export function toMarkdown(content: ParsedContent | ParsedMediaGroup): string {
 /**
  * Convert parsed content to plain text (no formatting).
  */
-export function toPlainText(
-  content: ParsedContent | ParsedMediaGroup,
-): string {
+export function toPlainText(content: ParsedContent | ParsedMediaGroup): string {
   const parts: string[] = [];
 
   // Forward attribution

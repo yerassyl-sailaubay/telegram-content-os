@@ -394,12 +394,10 @@ describe("server actions: media", () => {
       });
 
       mockSupabaseClient.storage.from.mockReturnValue({
-        createSignedUrl: vi
-          .fn()
-          .mockResolvedValue({
-            data: { signedUrl: "https://example.com/signed-url" },
-            error: null,
-          }),
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: "https://example.com/signed-url" },
+          error: null,
+        }),
       });
 
       const result = await getMediaUrl("media-uuid-1");

@@ -1,20 +1,13 @@
 "use server";
 
 import { db } from "@/server/db";
-import {
-  postAnalytics,
-  crossPosts,
-  channelMetrics,
-  telegramChannels,
-} from "@/server/db/schema";
+import { postAnalytics, crossPosts, channelMetrics, telegramChannels } from "@/server/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { eq, and, desc, gte, sql, count } from "drizzle-orm";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+export type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 export type DateRange = "7d" | "30d" | "90d";
 
@@ -139,12 +132,7 @@ export async function getAnalyticsDashboard(
       })
       .from(crossPosts)
       .leftJoin(postAnalytics, eq(postAnalytics.crossPostId, crossPosts.id))
-      .where(
-        and(
-          eq(crossPosts.userId, userId),
-          gte(crossPosts.createdAt, rangeStart),
-        ),
-      )
+      .where(and(eq(crossPosts.userId, userId), gte(crossPosts.createdAt, rangeStart)))
       .orderBy(desc(crossPosts.createdAt))
       .limit(200);
 
@@ -156,20 +144,14 @@ export async function getAnalyticsDashboard(
     const platformsUsed = new Set<string>();
 
     for (const row of crossPostsWithAnalytics) {
-      const eng =
-        (row.likes ?? 0) +
-        (row.comments ?? 0) +
-        (row.shares ?? 0) +
-        (row.clicks ?? 0);
+      const eng = (row.likes ?? 0) + (row.comments ?? 0) + (row.shares ?? 0) + (row.clicks ?? 0);
       totalEngagement += eng;
       totalImpressions += row.impressions ?? 0;
       platformsUsed.add(row.platform);
     }
 
     const avgEngagementRate =
-      totalImpressions > 0
-        ? Math.round((totalEngagement / totalImpressions) * 10000) / 100
-        : 0;
+      totalImpressions > 0 ? Math.round((totalEngagement / totalImpressions) * 10000) / 100 : 0;
 
     const overview: OverviewMetrics = {
       totalCrossPosts,
@@ -191,29 +173,23 @@ export async function getAnalyticsDashboard(
     }
 
     for (const row of crossPostsWithAnalytics) {
-      const dateKey = (row.postedAt ?? row.createdAt)
-        ?.toISOString()
-        .split("T")[0];
+      const dateKey = (row.postedAt ?? row.createdAt)?.toISOString().split("T")[0];
       if (!dateKey) continue;
       const entry = engagementMap.get(dateKey);
       if (!entry) continue;
-      const eng =
-        (row.likes ?? 0) +
-        (row.comments ?? 0) +
-        (row.shares ?? 0) +
-        (row.clicks ?? 0);
+      const eng = (row.likes ?? 0) + (row.comments ?? 0) + (row.shares ?? 0) + (row.clicks ?? 0);
       if (row.platform === "linkedin") entry.linkedin += eng;
       else if (row.platform === "twitter") entry.twitter += eng;
     }
 
-    const engagementOverTime: EngagementDataPoint[] = Array.from(
-      engagementMap.entries(),
-    ).map(([date, v]) => ({
-      date,
-      linkedin: v.linkedin,
-      twitter: v.twitter,
-      total: v.linkedin + v.twitter,
-    }));
+    const engagementOverTime: EngagementDataPoint[] = Array.from(engagementMap.entries()).map(
+      ([date, v]) => ({
+        date,
+        linkedin: v.linkedin,
+        twitter: v.twitter,
+        total: v.linkedin + v.twitter,
+      }),
+    );
 
     // ── Platform comparison ───────────────────────────────────────────────
     const platformStats = new Map<
@@ -243,31 +219,24 @@ export async function getAnalyticsDashboard(
       platformStats.set(row.platform, existing);
     }
 
-    const platformComparison: PlatformComparisonData[] = Array.from(
-      platformStats.entries(),
-    ).map(([platform, stats]) => ({
-      platform,
-      ...stats,
-      totalEngagement:
-        stats.likes + stats.comments + stats.shares + stats.clicks,
-    }));
+    const platformComparison: PlatformComparisonData[] = Array.from(platformStats.entries()).map(
+      ([platform, stats]) => ({
+        platform,
+        ...stats,
+        totalEngagement: stats.likes + stats.comments + stats.shares + stats.clicks,
+      }),
+    );
 
     // ── Heatmap (best posting times) ──────────────────────────────────────
     // Indexed by [day][hour] where day=0 Mon, hour=0-23
-    const heatGrid: number[][] = Array.from({ length: 7 }, () =>
-      Array(24).fill(0),
-    );
+    const heatGrid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
 
     for (const row of crossPostsWithAnalytics) {
       const date = row.postedAt ?? row.createdAt;
       if (!date) continue;
       const dayOfWeek = (date.getDay() + 6) % 7; // convert Sun=0 to Mon=0
       const hour = date.getHours();
-      const eng =
-        (row.likes ?? 0) +
-        (row.comments ?? 0) +
-        (row.shares ?? 0) +
-        (row.clicks ?? 0);
+      const eng = (row.likes ?? 0) + (row.comments ?? 0) + (row.shares ?? 0) + (row.clicks ?? 0);
       heatGrid[dayOfWeek][hour] += eng;
     }
 
@@ -279,26 +248,21 @@ export async function getAnalyticsDashboard(
     }
 
     // ── Recent posts ──────────────────────────────────────────────────────
-    const recentPosts: RecentPostRow[] = crossPostsWithAnalytics
-      .slice(0, 20)
-      .map((row) => ({
-        id: row.id,
-        platform: row.platform,
-        adaptedContent: row.adaptedContent,
-        status: row.status,
-        postedAt: row.postedAt,
-        createdAt: row.createdAt,
-        impressions: row.impressions,
-        likes: row.likes,
-        comments: row.comments,
-        shares: row.shares,
-        clicks: row.clicks,
-        totalEngagement:
-          (row.likes ?? 0) +
-          (row.comments ?? 0) +
-          (row.shares ?? 0) +
-          (row.clicks ?? 0),
-      }));
+    const recentPosts: RecentPostRow[] = crossPostsWithAnalytics.slice(0, 20).map((row) => ({
+      id: row.id,
+      platform: row.platform,
+      adaptedContent: row.adaptedContent,
+      status: row.status,
+      postedAt: row.postedAt,
+      createdAt: row.createdAt,
+      impressions: row.impressions,
+      likes: row.likes,
+      comments: row.comments,
+      shares: row.shares,
+      clicks: row.clicks,
+      totalEngagement:
+        (row.likes ?? 0) + (row.comments ?? 0) + (row.shares ?? 0) + (row.clicks ?? 0),
+    }));
 
     const channels: ChannelOption[] = userChannels.map((c) => ({
       id: c.id,
@@ -318,10 +282,7 @@ export async function getAnalyticsDashboard(
       },
     };
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to load analytics data";
+    const message = error instanceof Error ? error.message : "Failed to load analytics data";
     return { success: false, error: message };
   }
 }

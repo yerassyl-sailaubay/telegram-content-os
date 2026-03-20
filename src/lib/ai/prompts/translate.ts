@@ -27,9 +27,7 @@ function getLanguageName(code: string): string {
  * Builds the message array for a literal translation request.
  * The system prompt emphasizes literal, faithful translation.
  */
-export function buildTranslatePrompt(
-  input: TranslatePromptInput,
-): OpenRouterMessage[] {
+export function buildTranslatePrompt(input: TranslatePromptInput): OpenRouterMessage[] {
   const sourceLang = getLanguageName(input.sourceLanguage ?? "ru");
   const targetLang = getLanguageName(input.targetLanguage ?? "en");
 

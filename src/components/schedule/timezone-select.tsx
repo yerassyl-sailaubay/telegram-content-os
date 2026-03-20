@@ -19,11 +19,7 @@ type TimezoneSelectProps = {
   className?: string;
 };
 
-export function TimezoneSelect({
-  value,
-  onValueChange,
-  className,
-}: TimezoneSelectProps) {
+export function TimezoneSelect({ value, onValueChange, className }: TimezoneSelectProps) {
   const t = useTranslations("schedule");
   const now = new Date();
 
@@ -31,14 +27,14 @@ export function TimezoneSelect({
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger className={className}>
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <Globe className="text-muted-foreground h-4 w-4 shrink-0" />
           <SelectValue placeholder={t("timezone")} />
         </div>
       </SelectTrigger>
       <SelectContent>
         {TIMEZONE_GROUPS.map((group) => (
           <SelectGroup key={group.label}>
-            <SelectLabel className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <SelectLabel className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
               {group.label}
             </SelectLabel>
             {group.timezones.map((tz) => {
@@ -47,9 +43,7 @@ export function TimezoneSelect({
                 <SelectItem key={tz.value} value={tz.value}>
                   <span className="flex items-center justify-between gap-3">
                     <span>{tz.label}</span>
-                    <span className="font-mono text-xs text-muted-foreground">
-                      UTC{offset}
-                    </span>
+                    <span className="text-muted-foreground font-mono text-xs">UTC{offset}</span>
                   </span>
                 </SelectItem>
               );

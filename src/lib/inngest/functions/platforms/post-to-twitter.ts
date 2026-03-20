@@ -97,10 +97,7 @@ export const postToTwitter = inngest.createFunction(
     // Step 4: Refresh token if expired
     let accessToken = connectionData.accessToken;
 
-    if (
-      connectionData.tokenExpiresAt &&
-      new Date(connectionData.tokenExpiresAt) <= new Date()
-    ) {
+    if (connectionData.tokenExpiresAt && new Date(connectionData.tokenExpiresAt) <= new Date()) {
       const refreshResult = await step.run("refresh-token", async () => {
         const { refreshAccessToken } = await import("@/lib/platforms/twitter");
         const { encrypt } = await import("@/lib/platforms/encryption");
@@ -142,9 +139,7 @@ export const postToTwitter = inngest.createFunction(
 
     // Step 5: Post to Twitter
     const postResult = await step.run("post-to-twitter", async () => {
-      const { createTweet, createThread } = await import(
-        "@/lib/platforms/twitter"
-      );
+      const { createTweet, createThread } = await import("@/lib/platforms/twitter");
 
       try {
         if (threadTweets && threadTweets.length > 1) {
@@ -176,9 +171,7 @@ export const postToTwitter = inngest.createFunction(
           "statusCode" in error &&
           (error as { statusCode: number }).statusCode === 401
         ) {
-          const { refreshAccessToken } = await import(
-            "@/lib/platforms/twitter"
-          );
+          const { refreshAccessToken } = await import("@/lib/platforms/twitter");
           const { encrypt } = await import("@/lib/platforms/encryption");
           const { db } = await import("@/server/db");
           const { platformConnections } = await import("@/server/db/schema");
@@ -197,9 +190,7 @@ export const postToTwitter = inngest.createFunction(
             clientSecret,
           });
 
-          const newExpiresAt = new Date(
-            Date.now() + tokens.expires_in * 1000,
-          );
+          const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
           await db
             .update(platformConnections)
@@ -222,11 +213,9 @@ export const postToTwitter = inngest.createFunction(
               isThread: true,
             };
           } else {
-            const retryResult = await createTweet(
-              newToken,
-              threadTweets?.[0] ?? content,
-              { mediaIds },
-            );
+            const retryResult = await createTweet(newToken, threadTweets?.[0] ?? content, {
+              mediaIds,
+            });
             return {
               platformPostId: retryResult.platformPostId ?? "",
               allPostIds: [retryResult.platformPostId ?? ""],
@@ -260,9 +249,7 @@ export const postToTwitter = inngest.createFunction(
     await step.run("increment-usage", async () => {
       const { incrementPostCount } = await import("@/lib/platforms/twitter");
 
-      const count = postResult.isThread
-        ? postResult.allPostIds.length
-        : 1;
+      const count = postResult.isThread ? postResult.allPostIds.length : 1;
       await incrementPostCount(userId, count);
     });
 

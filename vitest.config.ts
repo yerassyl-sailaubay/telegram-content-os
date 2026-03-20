@@ -1,6 +1,6 @@
-import { defineConfig } from "vitest/config"
-import react from "@vitejs/plugin-react"
-import { resolve } from "path"
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
+import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react()],
@@ -12,13 +12,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      exclude: [
-        "node_modules/**",
-        ".next/**",
-        "src/test/**",
-        "**/*.config.*",
-        "e2e/**",
-      ],
+      exclude: ["node_modules/**", ".next/**", "src/test/**", "**/*.config.*", "e2e/**"],
     },
   },
   resolve: {
@@ -26,4 +20,4 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
     },
   },
-})
+});

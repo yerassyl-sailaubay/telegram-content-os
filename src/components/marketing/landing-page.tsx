@@ -73,7 +73,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               {t("nav.links.workflow")}
             </a>
             <a href="#features" className="hover:text-foreground transition-colors">
-              Features
+              {t("nav.links.proof")}
             </a>
             <a href="#pricing" className="hover:text-foreground transition-colors">
               {t("nav.links.pricing")}
@@ -106,7 +106,6 @@ export function LandingPage({ locale }: LandingPageProps) {
         <ProblemsSection />
         <WorkflowStepsSection />
         <BentoFeaturesSection />
-        <IntegrationsSection />
         <PricingSection />
         <FaqSection />
         <FinalCtaSection />
@@ -151,20 +150,19 @@ function HeroSection() {
         {/* Animated Badge */}
         <div className="group border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30 inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium backdrop-blur-sm transition-all">
           <Sparkles className="size-4 animate-pulse" />
-          <span>{t("badge")} — The Future of Content OS</span>
+          <span>{t("badge")}</span>
           <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </div>
 
         <h1 className="text-foreground mt-8 max-w-4xl font-[family-name:var(--font-display)] text-5xl font-bold tracking-tight text-balance sm:text-6xl lg:text-7xl">
-          Your ultimate solution for{" "}
+          {t("title")}{" "}
           <span className="from-primary via-primary/80 to-secondary bg-gradient-to-r bg-clip-text text-transparent">
-            Telegram Automation
+            {t("titleAccent")}
           </span>
         </h1>
 
         <p className="text-muted-foreground mt-6 max-w-2xl text-lg leading-relaxed text-balance sm:text-xl">
-          {t("subtitle")} Let AI capture, adapt, and distribute your content seamlessly across
-          channels.
+          {t("subtitle")}
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -428,60 +426,54 @@ function StatsSection() {
 }
 
 function ProblemsSection() {
-  const t = useTranslations("landing.comparison");
+  const t = useTranslations("landing.proof");
   return (
     <section className={`${sectionShell} mt-24 sm:mt-32`}>
       <div className="text-center">
         <h2 className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">
-          The Problem
+          {t("label")}
         </h2>
         <p className="text-foreground mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
-          Content OS is Built to Fix That
+          {t("title")}
         </p>
-        <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">
-          We noticed the chaotic, manual processes of running Telegram channels and built a
-          streamlined OS to solve them.
-        </p>
+        <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">{t("subtitle")}</p>
       </div>
 
-      <div className="mt-14 grid gap-6 md:grid-cols-2 lg:gap-8">
-        {/* Pain Point 1 */}
-        <div className={glassCard + " flex flex-col justify-between p-8 xl:p-10"}>
-          <div>
-            <div className="bg-destructive/10 text-destructive flex size-12 items-center justify-center rounded-xl">
-              <Clock3 className="size-6" />
+      <div className="mt-14 grid gap-6 md:grid-cols-3 lg:gap-8">
+        {[
+          {
+            icon: <Clock3 className="size-6" />,
+            color: "text-blue-500",
+            bg: "bg-blue-500/10",
+            key: "telegram",
+          },
+          {
+            icon: <MessageSquareQuote className="size-6" />,
+            color: "text-purple-500",
+            bg: "bg-purple-500/10",
+            key: "voice",
+          },
+          {
+            icon: <BarChart3 className="size-6" />,
+            color: "text-emerald-500",
+            bg: "bg-emerald-500/10",
+            key: "loop",
+          },
+        ].map((item) => (
+          <div key={item.key} className={glassCard + " flex flex-col justify-between p-8"}>
+            <div>
+              <div
+                className={`flex size-12 items-center justify-center rounded-xl ${item.bg} ${item.color}`}
+              >
+                {item.icon}
+              </div>
+              <h3 className="text-foreground mt-6 text-xl font-semibold">
+                {t(`cards.${item.key}.title`)}
+              </h3>
+              <p className="text-muted-foreground mt-2">{t(`cards.${item.key}.description`)}</p>
             </div>
-            <h3 className="text-foreground mt-6 text-xl font-semibold">
-              Manual saving is too hard
-            </h3>
-            <p className="text-muted-foreground mt-2">
-              You lose ideas in &apos;Saved Messages&apos; and forget where you put your links and
-              voice notes.
-            </p>
           </div>
-          <div className="border-primary/20 bg-primary/5 mt-8 rounded-xl border p-4">
-            <p className="text-primary flex items-center gap-2 font-medium">
-              <CheckCircle2 className="size-4" /> Capture instantly to our universal inbox
-            </p>
-          </div>
-        </div>
-        {/* Pain Point 2 */}
-        <div className={glassCard + " flex flex-col justify-between p-8 xl:p-10"}>
-          <div>
-            <div className="flex size-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
-              <MessageSquareQuote className="size-6" />
-            </div>
-            <h3 className="text-foreground mt-6 text-xl font-semibold">Writing takes hours</h3>
-            <p className="text-muted-foreground mt-2">
-              Turning raw thoughts into polished, engaging Telegram posts eats up your entire day.
-            </p>
-          </div>
-          <div className="border-primary/20 bg-primary/5 mt-8 rounded-xl border p-4">
-            <p className="text-primary flex items-center gap-2 font-medium">
-              <CheckCircle2 className="size-4" /> AI adapts and drafts instantly
-            </p>
-          </div>
-        </div>
+        ))}
       </div>
     </section>
   );
@@ -497,10 +489,10 @@ function WorkflowStepsSection() {
       >
         <div className="text-center">
           <h2 className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">
-            How it works
+            {tw("label")}
           </h2>
           <p className="text-foreground mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
-            Automate in 3 Simple Steps!
+            {tw("title")}
           </p>
         </div>
 
@@ -510,9 +502,11 @@ function WorkflowStepsSection() {
             <div className="bg-primary/10 text-primary group-hover:bg-primary/20 mx-auto flex size-20 items-center justify-center rounded-2xl transition-all group-hover:scale-110">
               <Layers3 className="size-10" />
             </div>
-            <h3 className="text-foreground mt-6 text-xl font-bold">1. Capture</h3>
+            <h3 className="text-foreground mt-6 text-xl font-bold">
+              1. {tw("steps.capture.title")}
+            </h3>
             <p className="text-muted-foreground mt-3 leading-relaxed">
-              Forward messages, record voice notes, or drop links directly into the OS inbox.
+              {tw("steps.capture.description")}
             </p>
             {/* Connector Arrow (Desktop only) */}
             <div className="text-muted-foreground/30 absolute top-10 -right-6 hidden lg:block">
@@ -522,13 +516,12 @@ function WorkflowStepsSection() {
 
           {/* Step 2 */}
           <div className="group relative text-center">
-            <div className="bg-secondary/10 text-secondary group-hover:bg-secondary/20 mx-auto flex size-20 items-center justify-center rounded-2xl transition-all group-hover:scale-110">
+            <div className="mx-auto flex size-20 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-500 transition-all group-hover:scale-110 group-hover:bg-purple-500/20">
               <BrainCircuit className="size-10" />
             </div>
-            <h3 className="text-foreground mt-6 text-xl font-bold">2. Shape & Adapt</h3>
+            <h3 className="text-foreground mt-6 text-xl font-bold">2. {tw("steps.shape.title")}</h3>
             <p className="text-muted-foreground mt-3 leading-relaxed">
-              Our AI automatically transcribes, summarizes, and rewrites content to match your exact
-              tone of voice.
+              {tw("steps.shape.description")}
             </p>
             {/* Connector Arrow (Desktop only) */}
             <div className="text-muted-foreground/30 absolute top-10 -right-6 hidden lg:block">
@@ -541,10 +534,11 @@ function WorkflowStepsSection() {
             <div className="mx-auto flex size-20 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500 transition-all group-hover:scale-110 group-hover:bg-emerald-500/20">
               <Send className="size-10" />
             </div>
-            <h3 className="text-foreground mt-6 text-xl font-bold">3. Distribute</h3>
+            <h3 className="text-foreground mt-6 text-xl font-bold">
+              3. {tw("steps.distribute.title")}
+            </h3>
             <p className="text-muted-foreground mt-3 leading-relaxed">
-              Schedule your posts dynamically with our visual timeline and cross-post across
-              multiple Telegram channels effortlessly.
+              {tw("steps.distribute.description")}
             </p>
           </div>
         </div>
@@ -554,42 +548,40 @@ function WorkflowStepsSection() {
 }
 
 function BentoFeaturesSection() {
+  const ts = useTranslations("landing.system");
   const features = [
     {
-      title: "Advanced AI Adaptation",
-      description: "Auto-rewrite content based on custom prompts and previous successful formats.",
+      title: ts("cards.capture.title"),
+      description: ts("cards.capture.description"),
       icon: <BrainCircuit className="size-6" />,
       colSpan: "md:col-span-2",
       bg: "bg-gradient-to-br from-primary/10 to-transparent",
     },
     {
-      title: "Real-Time Tracking",
-      description: "Monitor views, engagement, and cross-post performance from a single dashboard.",
-      icon: <BarChart3 className="size-6" />,
-      colSpan: "md:col-span-1",
-      bg: "bg-muted/40",
-    },
-    {
-      title: "Seamless Workflows",
-      description:
-        "Group channels and set up pipelines to manage multiple projects without context switching.",
-      icon: <Workflow className="size-6" />,
-      colSpan: "md:col-span-1",
-      bg: "bg-muted/40",
-    },
-    {
-      title: "Voice-to-Text Magic",
-      description:
-        "Send a quick voice note on the go; we transcribe and format it into a perfect post.",
+      title: ts("cards.voice.title"),
+      description: ts("cards.voice.description"),
       icon: <Mic className="size-6" />,
       colSpan: "md:col-span-1",
       bg: "bg-muted/40",
     },
     {
-      title: "Visual Content Calendar",
-      description:
-        "Plan your whole month visually. Identify gaps and auto-schedule evergreen content.",
+      title: ts("cards.adapt.title"),
+      description: ts("cards.adapt.description"),
+      icon: <Workflow className="size-6" />,
+      colSpan: "md:col-span-1",
+      bg: "bg-muted/40",
+    },
+    {
+      title: ts("cards.schedule.title"),
+      description: ts("cards.schedule.description"),
       icon: <CalendarRange className="size-6" />,
+      colSpan: "md:col-span-1",
+      bg: "bg-muted/40",
+    },
+    {
+      title: ts("cards.analytics.title"),
+      description: ts("cards.analytics.description"),
+      icon: <BarChart3 className="size-6" />,
       colSpan: "md:col-span-1",
       bg: "bg-gradient-to-tl from-secondary/10 to-transparent",
     },
@@ -598,13 +590,13 @@ function BentoFeaturesSection() {
   return (
     <section id="features" className={`${sectionShell} mt-24 sm:mt-32`}>
       <div className="text-center">
-        <h2 className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">Features</h2>
+        <h2 className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">
+          {ts("label")}
+        </h2>
         <p className="text-foreground mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
-          Features That Set Us Apart
+          {ts("title")}
         </p>
-        <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">
-          Everything you need to run an automated, high-growth sequence for your Telegram empire.
-        </p>
+        <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">{ts("subtitle")}</p>
       </div>
 
       <div className="mt-14 grid gap-4 md:grid-cols-3">
@@ -622,47 +614,6 @@ function BentoFeaturesSection() {
             <p className="text-muted-foreground mt-4 leading-relaxed">{feature.description}</p>
           </div>
         ))}
-      </div>
-    </section>
-  );
-}
-
-function IntegrationsSection() {
-  return (
-    <section className={`${sectionShell} mt-24 sm:mt-32`}>
-      <div className="border-border bg-card/20 relative overflow-hidden rounded-[2.5rem] border px-6 py-20 text-center shadow-sm backdrop-blur-3xl sm:px-16 sm:py-24">
-        {/* Glow behind */}
-        <div className="from-primary/5 absolute inset-0 -z-10 bg-gradient-to-b to-transparent" />
-
-        <h2 className="text-foreground font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-          Connect, Automate, and Scale
-        </h2>
-        <p className="text-muted-foreground mx-auto mt-6 max-w-xl text-lg">
-          Instantly integrate with your favorite tools. Send data to Telegram, Notion, Google Drive,
-          and more without writing a single line of code.
-        </p>
-
-        {/* Visual Integrations Arch (simplified CSS arch mimicking the design) */}
-        <div className="relative mx-auto mt-16 h-32 max-w-2xl sm:h-48">
-          <div className="border-border/60 absolute top-0 left-1/2 h-full w-[150%] -translate-x-1/2 rounded-[100%] border-t-2 border-dashed" />
-
-          {/* Nodes placed on arch */}
-          <div className="bg-background border-border absolute top-[40%] left-[10%] flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg">
-            <Globe2 className="size-6 text-blue-500" />
-          </div>
-          <div className="bg-background border-border absolute top-[10%] left-[30%] flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg">
-            <LayoutTemplate className="size-7 text-emerald-500" />
-          </div>
-          <div className="bg-primary text-primary-foreground shadow-primary/30 absolute top-[-10px] left-1/2 z-10 flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl shadow-xl">
-            <Send className="size-10" />
-          </div>
-          <div className="bg-background border-border absolute top-[10%] left-[70%] flex size-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg">
-            <Bot className="size-7 text-purple-500" />
-          </div>
-          <div className="bg-background border-border absolute top-[40%] left-[90%] flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg">
-            <Zap className="size-6 text-amber-500" />
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -696,7 +647,7 @@ function PricingSection() {
       ],
       cta: t("plans.plus.cta"),
       featured: true,
-      badge: "Most Popular",
+      badge: t("plans.plus.badge") || "Most Popular",
     },
     {
       name: t("plans.pro.name"),
@@ -716,13 +667,13 @@ function PricingSection() {
   return (
     <section id="pricing" className={`${sectionShell} mt-24 sm:mt-32`}>
       <div className="text-center">
-        <h2 className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">Pricing</h2>
+        <h2 className="text-primary text-xs font-semibold tracking-[0.2em] uppercase">
+          {t("label")}
+        </h2>
         <p className="text-foreground mt-3 font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl">
-          Flexible Plans for Every Creator
+          {t("title")}
         </p>
-        <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">
-          Start for free, upgrade when you&apos;re ready to scale your operations.
-        </p>
+        <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">{t("subtitle")}</p>
       </div>
 
       <div className="mt-14 grid gap-6 md:grid-cols-3 lg:gap-8 lg:px-6">
@@ -815,22 +766,25 @@ function FinalCtaSection() {
 
   return (
     <section className={`${sectionShell} mt-24 sm:mt-32`}>
-      <div className="bg-foreground text-background relative overflow-hidden rounded-[2.5rem] px-8 py-16 text-center sm:px-16 sm:py-20 lg:py-24">
-        <div className="from-primary/30 absolute inset-0 bg-gradient-to-br via-transparent to-transparent opacity-20" />
+      <div className="border-primary/20 from-primary/5 via-primary/10 to-background relative overflow-hidden rounded-[2.5rem] border bg-gradient-to-br px-8 py-16 text-center shadow-xl sm:px-16 sm:py-20 lg:py-24">
+        {/* Animated Glow Elements */}
+        <div className="bg-primary/20 absolute top-0 left-1/4 h-64 w-64 -translate-y-1/2 animate-pulse rounded-full opacity-50 blur-3xl" />
+        <div className="bg-secondary/20 absolute right-1/4 bottom-0 hidden h-64 w-64 translate-y-1/2 animate-pulse rounded-full opacity-50 blur-3xl sm:block" />
+
         <div className="relative z-10 mx-auto max-w-3xl">
-          <h2 className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Supercharge Your Workflow — Try Content OS Now
+          <div className="bg-primary text-primary-foreground shadow-primary/30 mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl shadow-lg">
+            <Zap className="size-8" />
+          </div>
+          <h2 className="text-foreground font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+            {t("title")}
           </h2>
-          <p className="text-background/80 mt-6 text-lg">
-            Join thousands of creators automating their Telegram empire and generating exponential
-            engagement effortlessly.
-          </p>
+          <p className="text-muted-foreground mt-6 text-lg">{t("subtitle")}</p>
           <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               href="/signup"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:outline-primary inline-flex h-12 items-center justify-center gap-2 rounded-full px-8 text-base font-semibold shadow-lg transition-all hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="bg-primary text-primary-foreground hover:bg-primary/95 focus-visible:outline-primary inline-flex h-12 items-center justify-center gap-2 rounded-full px-8 text-base font-semibold shadow-lg transition-all hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2"
             >
-              Start For Free
+              {t("primary")}
               <ArrowRight className="size-4" />
             </Link>
           </div>

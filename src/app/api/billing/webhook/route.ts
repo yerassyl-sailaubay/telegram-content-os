@@ -11,26 +11,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const signature = request.headers.get("stripe-signature");
 
   if (!signature) {
-    return NextResponse.json(
-      { error: "Missing stripe-signature header" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
   }
 
   let rawBody: string;
   try {
     rawBody = await request.text();
   } catch {
-    return NextResponse.json(
-      { error: "Failed to read request body" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Failed to read request body" }, { status: 400 });
   }
 
   try {
-    const { constructWebhookEvent, handleWebhookEvent } = await import(
-      "@/lib/billing/webhook"
-    );
+    const { constructWebhookEvent, handleWebhookEvent } = await import("@/lib/billing/webhook");
 
     const event = constructWebhookEvent(rawBody, signature);
     const result = await handleWebhookEvent(event);

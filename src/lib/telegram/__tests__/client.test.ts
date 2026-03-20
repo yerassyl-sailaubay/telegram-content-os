@@ -56,9 +56,7 @@ describe("TelegramClient", () => {
         username: "test_bot",
       };
 
-      mockFetch.mockResolvedValueOnce(
-        mockResponse({ ok: true, result: botUser }),
-      );
+      mockFetch.mockResolvedValueOnce(mockResponse({ ok: true, result: botUser }));
 
       const result = await client.getMe();
 
@@ -71,10 +69,7 @@ describe("TelegramClient", () => {
 
     it("throws TelegramApiError on API failure", async () => {
       mockFetch.mockResolvedValueOnce(
-        mockResponse(
-          { ok: false, description: "Unauthorized", error_code: 401 },
-          401,
-        ),
+        mockResponse({ ok: false, description: "Unauthorized", error_code: 401 }, 401),
       );
 
       await expect(client.getMe()).rejects.toThrow(TelegramApiError);
@@ -91,9 +86,7 @@ describe("TelegramClient", () => {
         username: "test_channel",
       };
 
-      mockFetch.mockResolvedValueOnce(
-        mockResponse({ ok: true, result: chat }),
-      );
+      mockFetch.mockResolvedValueOnce(mockResponse({ ok: true, result: chat }));
 
       const result = await client.getChat(-1001234567890);
 
@@ -110,9 +103,7 @@ describe("TelegramClient", () => {
 
   describe("getChatMemberCount", () => {
     it("returns member count", async () => {
-      mockFetch.mockResolvedValueOnce(
-        mockResponse({ ok: true, result: 42 }),
-      );
+      mockFetch.mockResolvedValueOnce(mockResponse({ ok: true, result: 42 }));
 
       const count = await client.getChatMemberCount(-1001234567890);
 
@@ -129,9 +120,7 @@ describe("TelegramClient", () => {
         text: "Hello!",
       };
 
-      mockFetch.mockResolvedValueOnce(
-        mockResponse({ ok: true, result: sent }),
-      );
+      mockFetch.mockResolvedValueOnce(mockResponse({ ok: true, result: sent }));
 
       const result = await client.sendMessage(-1001234567890, "Hello!");
 
@@ -179,9 +168,7 @@ describe("TelegramClient", () => {
 
   describe("setWebhook", () => {
     it("sets webhook with secret token", async () => {
-      mockFetch.mockResolvedValueOnce(
-        mockResponse({ ok: true, result: true }),
-      );
+      mockFetch.mockResolvedValueOnce(mockResponse({ ok: true, result: true }));
 
       const result = await client.setWebhook("https://example.com/webhook", {
         secret_token: "my-secret",
@@ -204,9 +191,7 @@ describe("TelegramClient", () => {
 
   describe("deleteWebhook", () => {
     it("deletes webhook", async () => {
-      mockFetch.mockResolvedValueOnce(
-        mockResponse({ ok: true, result: true }),
-      );
+      mockFetch.mockResolvedValueOnce(mockResponse({ ok: true, result: true }));
 
       const result = await client.deleteWebhook(true);
 
@@ -311,13 +296,9 @@ describe("withRetry", () => {
   });
 
   it("does not retry non-retryable errors", async () => {
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce(new TelegramApiError("Bad Request", 400));
+    const fn = vi.fn().mockRejectedValueOnce(new TelegramApiError("Bad Request", 400));
 
-    await expect(
-      withRetry(fn, { maxRetries: 3, baseDelayMs: 10 }),
-    ).rejects.toThrow("Bad Request");
+    await expect(withRetry(fn, { maxRetries: 3, baseDelayMs: 10 })).rejects.toThrow("Bad Request");
 
     expect(fn).toHaveBeenCalledTimes(1);
   });
@@ -330,9 +311,7 @@ describe("withRetry", () => {
       return Promise.reject(new TelegramApiError("Rate limited", 429));
     });
 
-    await expect(
-      withRetry(fn, { maxRetries: 2, baseDelayMs: 1 }),
-    ).rejects.toThrow("Rate limited");
+    await expect(withRetry(fn, { maxRetries: 2, baseDelayMs: 1 })).rejects.toThrow("Rate limited");
 
     expect(callCount).toBe(3); // initial + 2 retries
   });
@@ -340,9 +319,9 @@ describe("withRetry", () => {
   it("does not retry non-TelegramApiError", async () => {
     const fn = vi.fn().mockRejectedValueOnce(new Error("Network error"));
 
-    await expect(
-      withRetry(fn, { maxRetries: 3, baseDelayMs: 10 }),
-    ).rejects.toThrow("Network error");
+    await expect(withRetry(fn, { maxRetries: 3, baseDelayMs: 10 })).rejects.toThrow(
+      "Network error",
+    );
 
     expect(fn).toHaveBeenCalledTimes(1);
   });

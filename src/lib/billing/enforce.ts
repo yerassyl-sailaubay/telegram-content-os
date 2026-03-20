@@ -28,9 +28,7 @@ export class QuotaExceededError extends Error {
   readonly upgradeUrl: string;
 
   constructor(used: number, limit: number) {
-    super(
-      `Monthly cross-post quota exceeded: ${used}/${limit}. Upgrade at /dashboard/billing`,
-    );
+    super(`Monthly cross-post quota exceeded: ${used}/${limit}. Upgrade at /dashboard/billing`);
     this.name = "QuotaExceededError";
     this.used = used;
     this.limit = limit;
@@ -68,10 +66,7 @@ export async function enforceQuota(userId: string): Promise<QuotaCheckResult> {
  * Execute `action` only when the user is within their monthly quota.
  * Throws `QuotaExceededError` if the quota is exceeded.
  */
-export async function withQuotaCheck<T>(
-  userId: string,
-  action: () => Promise<T>,
-): Promise<T> {
+export async function withQuotaCheck<T>(userId: string, action: () => Promise<T>): Promise<T> {
   const result = await enforceQuota(userId);
 
   if (!result.allowed) {

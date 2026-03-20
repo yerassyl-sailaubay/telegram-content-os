@@ -21,13 +21,9 @@ export const collectTwitterAnalytics = inngest.createFunction(
     // Step 1: Fetch all Twitter cross-posts that are posted but lack analytics
     const result = await step.run("collect-twitter-metadata", async () => {
       const { db } = await import("@/server/db");
-      const { crossPosts, postAnalytics } = await import(
-        "@/server/db/schema"
-      );
+      const { crossPosts, postAnalytics } = await import("@/server/db/schema");
       const { eq, and } = await import("drizzle-orm");
-      const { collectTwitterMetadata } = await import(
-        "@/lib/analytics/collector"
-      );
+      const { collectTwitterMetadata } = await import("@/lib/analytics/collector");
 
       // Get posted Twitter cross-posts that don't have analytics yet
       const posts = await db
@@ -37,12 +33,7 @@ export const collectTwitterAnalytics = inngest.createFunction(
           engagementData: crossPosts.engagementData,
         })
         .from(crossPosts)
-        .where(
-          and(
-            eq(crossPosts.platform, "twitter"),
-            eq(crossPosts.status, "posted"),
-          ),
-        );
+        .where(and(eq(crossPosts.platform, "twitter"), eq(crossPosts.status, "posted")));
 
       if (posts.length === 0) {
         return { postsProcessed: 0 };
@@ -54,9 +45,7 @@ export const collectTwitterAnalytics = inngest.createFunction(
         .from(postAnalytics)
         .where(eq(postAnalytics.platform, "twitter"));
 
-      const existingIds = new Set(
-        existingAnalytics.map((a) => a.crossPostId),
-      );
+      const existingIds = new Set(existingAnalytics.map((a) => a.crossPostId));
       const newPosts = posts.filter((p) => !existingIds.has(p.id));
 
       if (newPosts.length === 0) {

@@ -1,13 +1,4 @@
-import {
-  pgTable,
-  pgEnum,
-  uuid,
-  varchar,
-  text,
-  jsonb,
-  timestamp,
-  index,
-} from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, varchar, text, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
 import { telegramPosts } from "./telegram-posts";
@@ -28,8 +19,9 @@ export const crossPosts = pgTable(
     userId: uuid("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
-    sourcePostId: uuid("source_post_id")
-      .references(() => telegramPosts.id, { onDelete: "set null" }),
+    sourcePostId: uuid("source_post_id").references(() => telegramPosts.id, {
+      onDelete: "set null",
+    }),
     platform: platformEnum().notNull(),
     adaptedContent: text("adapted_content"),
     originalLanguage: varchar("original_language", { length: 10 }).default("ru"),
@@ -51,17 +43,14 @@ export const crossPosts = pgTable(
   ],
 );
 
-export const crossPostsRelations = relations(
-  crossPosts,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [crossPosts.userId],
-      references: [users.id],
-    }),
-    sourcePost: one(telegramPosts, {
-      fields: [crossPosts.sourcePostId],
-      references: [telegramPosts.id],
-    }),
-    schedules: many(schedules),
+export const crossPostsRelations = relations(crossPosts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [crossPosts.userId],
+    references: [users.id],
   }),
-);
+  sourcePost: one(telegramPosts, {
+    fields: [crossPosts.sourcePostId],
+    references: [telegramPosts.id],
+  }),
+  schedules: many(schedules),
+}));

@@ -62,12 +62,10 @@ export function PricingCard({
       <CardHeader>
         <CardTitle className="text-lg">{name}</CardTitle>
         <CardDescription>
-          <span className="text-3xl font-bold text-foreground">
+          <span className="text-foreground text-3xl font-bold">
             {priceMonthly === 0 ? freeLabel : `$${priceMonthly}`}
           </span>
-          {priceMonthly > 0 && (
-            <span className="text-muted-foreground"> {perMonthLabel}</span>
-          )}
+          {priceMonthly > 0 && <span className="text-muted-foreground"> {perMonthLabel}</span>}
         </CardDescription>
       </CardHeader>
 
@@ -75,7 +73,7 @@ export function PricingCard({
         <ul className="space-y-2">
           {features.map((feature) => (
             <li key={feature} className="flex items-start gap-2 text-sm">
-              <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+              <Check className="text-primary mt-0.5 size-4 shrink-0" />
               <span>{feature}</span>
             </li>
           ))}

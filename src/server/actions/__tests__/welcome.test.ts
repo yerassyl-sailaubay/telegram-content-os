@@ -115,11 +115,7 @@ vi.mock("@/server/db/schema", () => ({
 
 // ─── Import under test (after mocks) ────────────────────────────────────────
 
-import {
-  getWelcomeTemplate,
-  saveWelcomeTemplate,
-  testWelcomeMessage,
-} from "../welcome";
+import { getWelcomeTemplate, saveWelcomeTemplate, testWelcomeMessage } from "../welcome";
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 

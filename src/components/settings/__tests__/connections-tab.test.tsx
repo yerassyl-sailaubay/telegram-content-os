@@ -2,11 +2,13 @@ import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-const { mockRefresh, mockCreateTelegramBotLink, mockDisconnectPlatform } = vi.hoisted(() => ({
-  mockRefresh: vi.fn(),
-  mockCreateTelegramBotLink: vi.fn(),
-  mockDisconnectPlatform: vi.fn(),
-}));
+const { mockRefresh, mockCreateTelegramBotLink, mockDisconnectPlatform, mockClipboardWriteText } =
+  vi.hoisted(() => ({
+    mockRefresh: vi.fn(),
+    mockCreateTelegramBotLink: vi.fn(),
+    mockDisconnectPlatform: vi.fn(),
+    mockClipboardWriteText: vi.fn(),
+  }));
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, string | number>) => {
@@ -75,6 +77,11 @@ function renderTab(initialTelegramBot: TelegramBotStatus) {
 describe("ConnectionsTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: mockClipboardWriteText },
+      configurable: true,
+    });
+    mockClipboardWriteText.mockResolvedValue(undefined);
     mockCreateTelegramBotLink.mockResolvedValue({
       success: true,
       data: {
@@ -124,6 +131,23 @@ describe("ConnectionsTab", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Linked to Telegram user 777")).toBeTruthy();
+    });
+  });
+
+  it("copies the /start command after generating a bot link", async () => {
+    renderTab({
+      linked: false,
+      telegramUserId: null,
+      linkedAt: null,
+    });
+
+    fireEvent.click(screen.getByTestId("connect-telegram-bot-button"));
+
+    await screen.findByTestId("copy-telegram-bot-start-command-button");
+    fireEvent.click(screen.getByTestId("copy-telegram-bot-start-command-button"));
+
+    await waitFor(() => {
+      expect(mockClipboardWriteText).toHaveBeenCalledWith("/start token-123");
     });
   });
 });

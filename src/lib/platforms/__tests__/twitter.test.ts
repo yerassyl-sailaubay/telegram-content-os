@@ -93,7 +93,9 @@ vi.mock("@/server/db", () => ({
               return {
                 returning: (...rArgs: unknown[]) => {
                   mockReturning(...rArgs);
-                  return mockReturning.mock.results[mockReturning.mock.calls.length - 1]?.value ?? [];
+                  return (
+                    mockReturning.mock.results[mockReturning.mock.calls.length - 1]?.value ?? []
+                  );
                 },
               };
             },
@@ -394,16 +396,17 @@ describe("Twitter Integration", () => {
       expect(user.username).toBe("testuser");
 
       // Verify auth header
-      const headers = (mockFetch.mock.calls[0] as [string, RequestInit])[1].headers as Record<string, string>;
+      const headers = (mockFetch.mock.calls[0] as [string, RequestInit])[1].headers as Record<
+        string,
+        string
+      >;
       expect(headers.Authorization).toBe("Bearer test-access-token");
     });
 
     it("throws on failure", async () => {
       mockFetchError('{"error":"unauthorized"}', 401);
 
-      await expect(getTwitterUserInfo("bad-token")).rejects.toThrow(
-        TwitterApiError,
-      );
+      await expect(getTwitterUserInfo("bad-token")).rejects.toThrow(TwitterApiError);
     });
   });
 
@@ -469,9 +472,7 @@ describe("Twitter Integration", () => {
     it("throws TwitterApiError on 403", async () => {
       mockFetchError('{"detail":"Forbidden"}', 403);
 
-      await expect(
-        createTweet("access-token", "test"),
-      ).rejects.toThrow(TwitterApiError);
+      await expect(createTweet("access-token", "test")).rejects.toThrow(TwitterApiError);
     });
 
     it("retries on 429 rate limit", async () => {
@@ -599,18 +600,14 @@ describe("Twitter Integration", () => {
 
       // Verify the upload URL
       const [fetchUrl] = mockFetch.mock.calls[0] as [string, RequestInit];
-      expect(fetchUrl).toBe(
-        "https://upload.twitter.com/1.1/media/upload.json",
-      );
+      expect(fetchUrl).toBe("https://upload.twitter.com/1.1/media/upload.json");
     });
 
     it("throws on upload failure", async () => {
       mockFetchError('{"error":"media_upload_failed"}', 400);
 
       const buffer = Buffer.from("fake-image-data");
-      await expect(
-        uploadMedia("access-token", buffer),
-      ).rejects.toThrow(TwitterApiError);
+      await expect(uploadMedia("access-token", buffer)).rejects.toThrow(TwitterApiError);
     });
   });
 
@@ -639,9 +636,7 @@ describe("Twitter Integration", () => {
       });
 
       it("returns allowed=false when at limit", async () => {
-        mockLimit.mockReturnValueOnce([
-          { crossPostsCount: TWITTER_MONTHLY_POST_LIMIT },
-        ]);
+        mockLimit.mockReturnValueOnce([{ crossPostsCount: TWITTER_MONTHLY_POST_LIMIT }]);
 
         const result = await checkRateLimit("user-123");
 
@@ -696,9 +691,7 @@ describe("Twitter Integration", () => {
     it("retries on TwitterApiError with retryable=true", async () => {
       const fn = vi
         .fn()
-        .mockRejectedValueOnce(
-          new TwitterApiError("Rate limited", 429, "rate_limit", true),
-        )
+        .mockRejectedValueOnce(new TwitterApiError("Rate limited", 429, "rate_limit", true))
         .mockResolvedValueOnce("recovered");
 
       const result = await withRetry(fn, { maxRetries: 3, baseDelayMs: 1 });
@@ -707,13 +700,11 @@ describe("Twitter Integration", () => {
     });
 
     it("throws immediately on non-retryable error", async () => {
-      const fn = vi.fn().mockRejectedValueOnce(
-        new TwitterApiError("Forbidden", 403, "forbidden", false),
-      );
+      const fn = vi
+        .fn()
+        .mockRejectedValueOnce(new TwitterApiError("Forbidden", 403, "forbidden", false));
 
-      await expect(
-        withRetry(fn, { maxRetries: 3, baseDelayMs: 1 }),
-      ).rejects.toThrow("Forbidden");
+      await expect(withRetry(fn, { maxRetries: 3, baseDelayMs: 1 })).rejects.toThrow("Forbidden");
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
@@ -721,18 +712,18 @@ describe("Twitter Integration", () => {
       const error = new TwitterApiError("Server Error", 500, "server_error", true);
       const fn = vi.fn().mockRejectedValue(error);
 
-      await expect(
-        withRetry(fn, { maxRetries: 2, baseDelayMs: 1 }),
-      ).rejects.toThrow("Server Error");
+      await expect(withRetry(fn, { maxRetries: 2, baseDelayMs: 1 })).rejects.toThrow(
+        "Server Error",
+      );
       expect(fn).toHaveBeenCalledTimes(3); // initial + 2 retries
     });
 
     it("throws immediately on non-TwitterApiError", async () => {
       const fn = vi.fn().mockRejectedValueOnce(new Error("generic error"));
 
-      await expect(
-        withRetry(fn, { maxRetries: 3, baseDelayMs: 1 }),
-      ).rejects.toThrow("generic error");
+      await expect(withRetry(fn, { maxRetries: 3, baseDelayMs: 1 })).rejects.toThrow(
+        "generic error",
+      );
       expect(fn).toHaveBeenCalledTimes(1);
     });
   });
@@ -763,8 +754,7 @@ describe("Twitter Integration", () => {
   // -----------------------------------------------------------------------
 
   describe("Encryption", () => {
-    const MOCK_KEY =
-      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    const MOCK_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
     beforeEach(() => {
       process.env.ENCRYPTION_KEY = MOCK_KEY;

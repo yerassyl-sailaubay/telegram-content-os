@@ -152,9 +152,7 @@ describe("getWaitTime", () => {
 
 describe("collectTwitterMetadata", () => {
   it("computes character count from adapted content", () => {
-    const posts = [
-      { id: "post-1", adaptedContent: "Hello world!", engagementData: {} },
-    ];
+    const posts = [{ id: "post-1", adaptedContent: "Hello world!", engagementData: {} }];
 
     const result = collectTwitterMetadata(posts);
 
@@ -164,9 +162,7 @@ describe("collectTwitterMetadata", () => {
   });
 
   it("returns null character count for empty content", () => {
-    const posts = [
-      { id: "post-1", adaptedContent: "", engagementData: {} },
-    ];
+    const posts = [{ id: "post-1", adaptedContent: "", engagementData: {} }];
 
     const result = collectTwitterMetadata(posts);
 
@@ -174,9 +170,7 @@ describe("collectTwitterMetadata", () => {
   });
 
   it("returns null character count for null content", () => {
-    const posts = [
-      { id: "post-1", adaptedContent: null, engagementData: {} },
-    ];
+    const posts = [{ id: "post-1", adaptedContent: null, engagementData: {} }];
 
     const result = collectTwitterMetadata(posts);
 
@@ -212,9 +206,7 @@ describe("collectTwitterMetadata", () => {
   });
 
   it("returns null hasMedia when engagementData has no mediaIds", () => {
-    const posts = [
-      { id: "post-1", adaptedContent: "Simple tweet", engagementData: {} },
-    ];
+    const posts = [{ id: "post-1", adaptedContent: "Simple tweet", engagementData: {} }];
 
     const result = collectTwitterMetadata(posts);
 
@@ -390,11 +382,7 @@ describe("RATE_LIMITS", () => {
 
 describe("AnalyticsCollectionError", () => {
   it("creates error with platform and retryable flag", () => {
-    const error = new AnalyticsCollectionError(
-      "Rate limited",
-      "linkedin",
-      true,
-    );
+    const error = new AnalyticsCollectionError("Rate limited", "linkedin", true);
 
     expect(error.message).toBe("Rate limited");
     expect(error.platform).toBe("linkedin");
@@ -610,12 +598,7 @@ describe("fetchTelegramReactions", () => {
       timestamps: [],
     };
 
-    const result = await fetchTelegramReactions(
-      "bot-token",
-      "-1001234",
-      [1, 2, 3, 4, 5],
-      limiter,
-    );
+    const result = await fetchTelegramReactions("bot-token", "-1001234", [1, 2, 3, 4, 5], limiter);
 
     // Only 2 should be processed
     expect(result.size).toBe(2);
@@ -630,12 +613,7 @@ describe("fetchTelegramReactions", () => {
     });
 
     const rateLimiter = createRateLimiter("telegram");
-    const _result = await fetchTelegramReactions(
-      "bot-token",
-      "-1001234",
-      [1],
-      rateLimiter,
-    );
+    const _result = await fetchTelegramReactions("bot-token", "-1001234", [1], rateLimiter);
 
     // Should still have the entry (from catch block)
     // Error was caught and logged
@@ -646,12 +624,7 @@ describe("fetchTelegramReactions", () => {
 
   it("returns empty map for empty message IDs", async () => {
     const rateLimiter = createRateLimiter("telegram");
-    const result = await fetchTelegramReactions(
-      "bot-token",
-      "-1001234",
-      [],
-      rateLimiter,
-    );
+    const result = await fetchTelegramReactions("bot-token", "-1001234", [], rateLimiter);
 
     expect(result.size).toBe(0);
     expect(mockFetch).not.toHaveBeenCalled();

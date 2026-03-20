@@ -21,7 +21,7 @@ export function UsageMeter({ label, used, limit }: UsageMeterProps) {
         <span
           className={
             isExceeded
-              ? "font-medium text-destructive"
+              ? "text-destructive font-medium"
               : isWarning
                 ? "font-medium text-orange-500"
                 : "text-foreground"
@@ -30,9 +30,7 @@ export function UsageMeter({ label, used, limit }: UsageMeterProps) {
           {isUnlimited ? `${used} / Unlimited` : `${used} / ${limit}`}
         </span>
       </div>
-      {!isUnlimited && (
-        <Progress value={percentage} />
-      )}
+      {!isUnlimited && <Progress value={percentage} />}
     </div>
   );
 }

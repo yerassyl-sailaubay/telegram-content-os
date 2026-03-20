@@ -12,5 +12,5 @@ export const helloWorld = inngest.createFunction(
       message: "Hello World",
       timestamp: new Date().toISOString(),
     };
-  }
+  },
 );

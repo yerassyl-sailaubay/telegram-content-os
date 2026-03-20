@@ -16,9 +16,7 @@ interface LinkedInAdaptInput {
  * Builds the message array for LinkedIn content adaptation.
  * Enforces: professional tone, insight question, 1-2 hashtags, <3000 chars.
  */
-export function buildLinkedInAdaptPrompt(
-  input: LinkedInAdaptInput,
-): OpenRouterMessage[] {
+export function buildLinkedInAdaptPrompt(input: LinkedInAdaptInput): OpenRouterMessage[] {
   let channelContext = "";
   if (input.channelProfile) {
     const { niche, tone, topTopics } = input.channelProfile;

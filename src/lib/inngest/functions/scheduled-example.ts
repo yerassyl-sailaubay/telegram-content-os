@@ -13,5 +13,5 @@ export const scheduledExample = inngest.createFunction(
     return {
       executedAt,
     };
-  }
+  },
 );

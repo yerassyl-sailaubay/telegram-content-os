@@ -136,13 +136,7 @@ export interface TelegramMessage {
 // ─── Parsed Output Types ─────────────────────────────────────────────────────
 
 /** Formatting marks that can be applied to text */
-export type FormattingType =
-  | "bold"
-  | "italic"
-  | "underline"
-  | "strikethrough"
-  | "code"
-  | "spoiler";
+export type FormattingType = "bold" | "italic" | "underline" | "strikethrough" | "code" | "spoiler";
 
 /** A single formatting range within a text block */
 export interface FormattingMark {

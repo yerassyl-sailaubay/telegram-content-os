@@ -68,8 +68,7 @@ export const postToLinkedIn = inngest.createFunction(
   },
   { event: "platform/linkedin.post" },
   async ({ event, step }) => {
-    const { crossPostId, userId, content, imageUrl } =
-      (event as LinkedInPostEvent).data;
+    const { crossPostId, userId, content, imageUrl } = (event as LinkedInPostEvent).data;
 
     // Step 1: Mark cross_post as processing
     await step.run("mark-processing", async () => {
@@ -94,10 +93,7 @@ export const postToLinkedIn = inngest.createFunction(
         .select()
         .from(platformConnections)
         .where(
-          and(
-            eq(platformConnections.userId, userId),
-            eq(platformConnections.platform, "linkedin"),
-          ),
+          and(eq(platformConnections.userId, userId), eq(platformConnections.platform, "linkedin")),
         )
         .limit(1);
 
@@ -135,9 +131,7 @@ export const postToLinkedIn = inngest.createFunction(
     const tokens = await step.run("decrypt-tokens", async () => {
       const { decrypt } = await getEncryption();
 
-      const accessToken = decrypt(
-        connection.accessTokenEncrypted!,
-      );
+      const accessToken = decrypt(connection.accessTokenEncrypted!);
       const refreshToken = connection.refreshTokenEncrypted
         ? decrypt(connection.refreshTokenEncrypted)
         : null;
@@ -180,8 +174,7 @@ export const postToLinkedIn = inngest.createFunction(
 
       // If post failed with what looks like auth error, try refreshing token
       if (!result.success && result.error && tokens.refreshToken) {
-        const isAuthError =
-          result.error.includes("401") || result.error.includes("Unauthorized");
+        const isAuthError = result.error.includes("401") || result.error.includes("Unauthorized");
 
         if (isAuthError) {
           const clientId = process.env.LINKEDIN_CLIENT_ID;
@@ -205,12 +198,8 @@ export const postToLinkedIn = inngest.createFunction(
               await db
                 .update(platformConnections)
                 .set({
-                  accessTokenEncrypted: encrypt(
-                    newTokens.accessToken,
-                  ),
-                  refreshTokenEncrypted: encrypt(
-                    newTokens.refreshToken,
-                  ),
+                  accessTokenEncrypted: encrypt(newTokens.accessToken),
+                  refreshTokenEncrypted: encrypt(newTokens.refreshToken),
                   tokenExpiresAt: newTokens.expiresAt,
                   updatedAt: new Date(),
                 })

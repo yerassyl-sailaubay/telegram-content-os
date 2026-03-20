@@ -11,9 +11,7 @@ export const analyticsSyncLog = pgTable(
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     platform: platformEnum().notNull(),
-    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }).defaultNow().notNull(),
     syncWindowStart: timestamp("sync_window_start", {
       withTimezone: true,
     }).notNull(),
@@ -31,12 +29,9 @@ export const analyticsSyncLog = pgTable(
   ],
 );
 
-export const analyticsSyncLogRelations = relations(
-  analyticsSyncLog,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [analyticsSyncLog.userId],
-      references: [users.id],
-    }),
+export const analyticsSyncLogRelations = relations(analyticsSyncLog, ({ one }) => ({
+  user: one(users, {
+    fields: [analyticsSyncLog.userId],
+    references: [users.id],
   }),
-);
+}));

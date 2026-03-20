@@ -62,9 +62,7 @@ describe("PKCE helpers", () => {
   });
 
   it("generateCodeChallenge creates S256 hash of verifier", async () => {
-    const { generateCodeVerifier, generateCodeChallenge } = await import(
-      "../linkedin"
-    );
+    const { generateCodeVerifier, generateCodeChallenge } = await import("../linkedin");
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
 
@@ -207,10 +205,7 @@ describe("exchangeCodeForTokens", () => {
     const { exchangeCodeForTokens } = await import("../linkedin");
 
     mockFetch.mockResolvedValueOnce(
-      mockResponse(
-        { error: "invalid_grant", error_description: "Bad code" },
-        400,
-      ),
+      mockResponse({ error: "invalid_grant", error_description: "Bad code" }, 400),
     );
 
     await expect(
@@ -261,9 +256,7 @@ describe("refreshAccessToken", () => {
   it("throws on refresh failure", async () => {
     const { refreshAccessToken } = await import("../linkedin");
 
-    mockFetch.mockResolvedValueOnce(
-      mockResponse({ error: "invalid_grant" }, 400),
-    );
+    mockFetch.mockResolvedValueOnce(mockResponse({ error: "invalid_grant" }, 400));
 
     await expect(
       refreshAccessToken({
@@ -309,9 +302,7 @@ describe("getUserInfo", () => {
   it("throws on 401", async () => {
     const { getUserInfo } = await import("../linkedin");
 
-    mockFetch.mockResolvedValueOnce(
-      mockResponse({ message: "Unauthorized" }, 401),
-    );
+    mockFetch.mockResolvedValueOnce(mockResponse({ message: "Unauthorized" }, 401));
 
     await expect(getUserInfo("bad-token")).rejects.toThrow(LinkedInApiError);
   });
@@ -394,9 +385,7 @@ describe("createPost", () => {
   it("returns failure result on API error", async () => {
     const { createPost } = await import("../linkedin");
 
-    mockFetch.mockResolvedValueOnce(
-      mockResponse({ message: "Forbidden", status: 403 }, 403),
-    );
+    mockFetch.mockResolvedValueOnce(mockResponse({ message: "Forbidden", status: 403 }, 403));
 
     const result = await createPost({
       accessToken: "bad-token",
@@ -443,28 +432,20 @@ describe("uploadImage", () => {
     // Verify init request
     expect(mockFetch).toHaveBeenCalledTimes(2);
     const initCallArgs = mockFetch.mock.calls[0] as [string, RequestInit];
-    expect(initCallArgs[0]).toBe(
-      "https://api.linkedin.com/rest/images?action=initializeUpload",
-    );
+    expect(initCallArgs[0]).toBe("https://api.linkedin.com/rest/images?action=initializeUpload");
     const initBody = JSON.parse(initCallArgs[1].body as string);
-    expect(initBody.initializeUploadRequest.owner).toBe(
-      "urn:li:person:abc123",
-    );
+    expect(initBody.initializeUploadRequest.owner).toBe("urn:li:person:abc123");
 
     // Verify binary upload
     const uploadCallArgs = mockFetch.mock.calls[1] as [string, RequestInit];
-    expect(uploadCallArgs[0]).toBe(
-      "https://api.linkedin.com/mediaUpload/xxx",
-    );
+    expect(uploadCallArgs[0]).toBe("https://api.linkedin.com/mediaUpload/xxx");
     expect(uploadCallArgs[1].method).toBe("PUT");
   });
 
   it("throws on init failure", async () => {
     const { uploadImage } = await import("../linkedin");
 
-    mockFetch.mockResolvedValueOnce(
-      mockResponse({ message: "Unauthorized" }, 401),
-    );
+    mockFetch.mockResolvedValueOnce(mockResponse({ message: "Unauthorized" }, 401));
 
     await expect(
       uploadImage({
@@ -550,13 +531,11 @@ describe("withLinkedInRetry", () => {
   it("does not retry non-retryable errors (400)", async () => {
     const { withLinkedInRetry } = await import("../linkedin");
 
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce(new LinkedInApiError("Bad Request", 400));
+    const fn = vi.fn().mockRejectedValueOnce(new LinkedInApiError("Bad Request", 400));
 
-    await expect(
-      withLinkedInRetry(fn, { maxRetries: 3, baseDelayMs: 10 }),
-    ).rejects.toThrow("Bad Request");
+    await expect(withLinkedInRetry(fn, { maxRetries: 3, baseDelayMs: 10 })).rejects.toThrow(
+      "Bad Request",
+    );
 
     expect(fn).toHaveBeenCalledTimes(1);
   });
@@ -564,13 +543,11 @@ describe("withLinkedInRetry", () => {
   it("throws after exhausting retries", async () => {
     const { withLinkedInRetry } = await import("../linkedin");
 
-    const fn = vi
-      .fn()
-      .mockRejectedValue(new LinkedInApiError("Rate limited", 429));
+    const fn = vi.fn().mockRejectedValue(new LinkedInApiError("Rate limited", 429));
 
-    await expect(
-      withLinkedInRetry(fn, { maxRetries: 2, baseDelayMs: 1 }),
-    ).rejects.toThrow("Rate limited");
+    await expect(withLinkedInRetry(fn, { maxRetries: 2, baseDelayMs: 1 })).rejects.toThrow(
+      "Rate limited",
+    );
 
     expect(fn).toHaveBeenCalledTimes(3); // initial + 2 retries
   });

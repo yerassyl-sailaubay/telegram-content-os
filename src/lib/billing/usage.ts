@@ -56,9 +56,7 @@ export async function getCurrentUsage(userId: string): Promise<number> {
   const rows = await db
     .select({ crossPostsCount: usageTracking.crossPostsCount })
     .from(usageTracking)
-    .where(
-      and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)),
-    )
+    .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, month)))
     .limit(1);
 
   if (rows.length === 0) {

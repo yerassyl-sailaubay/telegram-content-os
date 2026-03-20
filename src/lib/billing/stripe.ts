@@ -17,9 +17,7 @@ export function getStripe(): Stripe {
   if (!stripeInstance) {
     const secretKey = process.env.STRIPE_SECRET_KEY;
     if (!secretKey) {
-      throw new Error(
-        "STRIPE_SECRET_KEY is not set. Please set it in your environment variables.",
-      );
+      throw new Error("STRIPE_SECRET_KEY is not set. Please set it in your environment variables.");
     }
     stripeInstance = new Stripe(secretKey, {
       apiVersion: "2026-02-25.clover",

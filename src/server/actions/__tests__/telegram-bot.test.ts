@@ -82,7 +82,7 @@ describe("createTelegramBotLink", () => {
     expect(mockInsert).toHaveBeenCalled();
   });
 
-  it("stores the generated token with a 15 minute expiry", async () => {
+  it("stores the generated token with a 7 day expiry", async () => {
     const now = new Date("2026-03-09T12:00:00.000Z");
     vi.useFakeTimers();
     vi.setSystemTime(now);
@@ -95,7 +95,7 @@ describe("createTelegramBotLink", () => {
       expect.objectContaining({
         userId: "user-123",
         token: expect.stringMatching(/^[A-Za-z0-9_-]+$/),
-        expiresAt: new Date("2026-03-09T12:15:00.000Z"),
+        expiresAt: new Date("2026-03-16T12:00:00.000Z"),
       }),
     );
 

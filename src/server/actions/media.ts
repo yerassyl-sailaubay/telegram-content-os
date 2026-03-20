@@ -34,9 +34,7 @@ async function getAuthenticatedUser() {
   return { supabase, user };
 }
 
-export async function uploadMedia(
-  formData: FormData,
-): Promise<MediaActionResult<MediaFile>> {
+export async function uploadMedia(formData: FormData): Promise<MediaActionResult<MediaFile>> {
   try {
     const { supabase, user } = await getAuthenticatedUser();
 
@@ -76,15 +74,12 @@ export async function uploadMedia(
 
     return { success: true, data: record };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Upload failed";
+    const message = error instanceof Error ? error.message : "Upload failed";
     return { success: false, error: message };
   }
 }
 
-export async function deleteMedia(
-  mediaId: string,
-): Promise<MediaActionResult> {
+export async function deleteMedia(mediaId: string): Promise<MediaActionResult> {
   try {
     const { supabase, user } = await getAuthenticatedUser();
 
@@ -106,8 +101,7 @@ export async function deleteMedia(
 
     return { success: true, data: undefined };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Delete failed";
+    const message = error instanceof Error ? error.message : "Delete failed";
     return { success: false, error: message };
   }
 }
@@ -129,12 +123,7 @@ export async function listMedia(
       query = db
         .select()
         .from(mediaFiles)
-        .where(
-          and(
-            eq(mediaFiles.userId, user.id),
-            inArray(mediaFiles.mimeType, allowedTypes),
-          ),
-        )
+        .where(and(eq(mediaFiles.userId, user.id), inArray(mediaFiles.mimeType, allowedTypes)))
         .orderBy(desc(mediaFiles.createdAt));
     }
 
@@ -142,15 +131,12 @@ export async function listMedia(
 
     return { success: true, data: records };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to list media";
+    const message = error instanceof Error ? error.message : "Failed to list media";
     return { success: false, error: message };
   }
 }
 
-export async function getMediaUrl(
-  mediaId: string,
-): Promise<MediaActionResult<string>> {
+export async function getMediaUrl(mediaId: string): Promise<MediaActionResult<string>> {
   try {
     const { supabase, user } = await getAuthenticatedUser();
 
@@ -168,8 +154,7 @@ export async function getMediaUrl(
 
     return { success: true, data: url };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get URL";
+    const message = error instanceof Error ? error.message : "Failed to get URL";
     return { success: false, error: message };
   }
 }

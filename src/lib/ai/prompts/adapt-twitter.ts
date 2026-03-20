@@ -16,9 +16,7 @@ interface TwitterAdaptInput {
  * Builds the message array for Twitter/X content adaptation.
  * Enforces: conversational tone, 2-5 hashtags, emoji, 280 chars/tweet, thread for long content.
  */
-export function buildTwitterAdaptPrompt(
-  input: TwitterAdaptInput,
-): OpenRouterMessage[] {
+export function buildTwitterAdaptPrompt(input: TwitterAdaptInput): OpenRouterMessage[] {
   let channelContext = "";
   if (input.channelProfile) {
     const { niche, tone, topTopics } = input.channelProfile;

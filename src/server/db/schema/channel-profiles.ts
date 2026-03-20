@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  jsonb,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { telegramChannels } from "./telegram-channels";
 
@@ -23,12 +17,9 @@ export const channelProfiles = pgTable("channel_profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-export const channelProfilesRelations = relations(
-  channelProfiles,
-  ({ one }) => ({
-    channel: one(telegramChannels, {
-      fields: [channelProfiles.channelId],
-      references: [telegramChannels.id],
-    }),
+export const channelProfilesRelations = relations(channelProfiles, ({ one }) => ({
+  channel: one(telegramChannels, {
+    fields: [channelProfiles.channelId],
+    references: [telegramChannels.id],
   }),
-);
+}));

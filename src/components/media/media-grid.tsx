@@ -34,15 +34,13 @@ export function MediaGrid({
   if (files.length === 0) {
     return (
       <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8">
-        <ImageIcon className="size-12 text-muted-foreground" />
+        <ImageIcon className="text-muted-foreground size-12" />
         <div className="text-center">
           <p className="text-sm font-medium">
             {activeFilter === "all" ? t("noMedia") : t("noFilterResults")}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {activeFilter === "all"
-              ? t("noMediaDescription")
-              : t("noFilterResultsDescription")}
+          <p className="text-muted-foreground text-xs">
+            {activeFilter === "all" ? t("noMediaDescription") : t("noFilterResultsDescription")}
           </p>
         </div>
       </div>

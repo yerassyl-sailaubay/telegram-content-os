@@ -1,10 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  boolean,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, boolean, timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { telegramChannels } from "./telegram-channels";
 import { users } from "./users";
@@ -23,16 +17,13 @@ export const welcomeTemplates = pgTable("welcome_templates", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-export const welcomeTemplatesRelations = relations(
-  welcomeTemplates,
-  ({ one }) => ({
-    channel: one(telegramChannels, {
-      fields: [welcomeTemplates.channelId],
-      references: [telegramChannels.id],
-    }),
-    user: one(users, {
-      fields: [welcomeTemplates.userId],
-      references: [users.id],
-    }),
+export const welcomeTemplatesRelations = relations(welcomeTemplates, ({ one }) => ({
+  channel: one(telegramChannels, {
+    fields: [welcomeTemplates.channelId],
+    references: [telegramChannels.id],
   }),
-);
+  user: one(users, {
+    fields: [welcomeTemplates.userId],
+    references: [users.id],
+  }),
+}));

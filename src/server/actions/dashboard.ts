@@ -1,7 +1,15 @@
 "use server";
 
 import { db } from "@/server/db";
-import { crossPosts, schedules, postAnalytics, platformConnections } from "@/server/db/schema";
+import {
+  contentLibrary,
+  crossPosts,
+  schedules,
+  postAnalytics,
+  platformConnections,
+  telegramPosts,
+  telegramChannels,
+} from "@/server/db/schema";
 import { createClient } from "@/lib/supabase/server";
 import { eq, and, desc, gte } from "drizzle-orm";
 import { getRemainingQuota } from "@/lib/billing/usage";
@@ -9,7 +17,7 @@ import type { ActionResult } from "@/server/actions/analytics";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ActivityEventType = "adapted" | "scheduled" | "published" | "failed";
+export type ActivityEventType = "created" | "scheduled" | "published" | "failed";
 
 export type ActivityEvent = {
   id: string;
@@ -91,7 +99,13 @@ export async function getDashboardHomeData(): Promise<ActionResult<DashboardHome
     const scheduledRows = await db
       .select({ id: schedules.id })
       .from(schedules)
-      .where(and(eq(schedules.userId, userId), eq(schedules.status, "pending")));
+      .where(
+        and(
+          eq(schedules.userId, userId),
+          eq(schedules.status, "pending"),
+          eq(schedules.targetType, "telegram_publish"),
+        ),
+      );
 
     const scheduledCount = scheduledRows.length;
 
@@ -124,40 +138,110 @@ export async function getDashboardHomeData(): Promise<ActionResult<DashboardHome
       connectedPlatforms,
     };
 
-    // ── Recent activity (last 10 cross-posts) ─────────────────────────────
-    const recentCrossPosts = await db
+    // ── Recent activity (content + telegram posts + failed schedules) ─────
+    const recentContent = await db
       .select({
-        id: crossPosts.id,
-        status: crossPosts.status,
-        platform: crossPosts.platform,
-        adaptedContent: crossPosts.adaptedContent,
-        createdAt: crossPosts.createdAt,
-        postedAt: crossPosts.postedAt,
-        scheduledFor: crossPosts.scheduledFor,
+        id: contentLibrary.id,
+        status: contentLibrary.status,
+        title: contentLibrary.title,
+        content: contentLibrary.content,
+        createdAt: contentLibrary.createdAt,
+        updatedAt: contentLibrary.updatedAt,
       })
-      .from(crossPosts)
-      .where(eq(crossPosts.userId, userId))
-      .orderBy(desc(crossPosts.createdAt))
-      .limit(10);
+      .from(contentLibrary)
+      .where(eq(contentLibrary.userId, userId))
+      .orderBy(desc(contentLibrary.updatedAt), desc(contentLibrary.createdAt))
+      .limit(25);
 
-    const recentActivity: ActivityEvent[] = recentCrossPosts.map((row) => {
-      let type: ActivityEventType = "adapted";
-      if (row.status === "posted") type = "published";
-      else if (row.status === "failed") type = "failed";
-      else if (row.status === "scheduled") type = "scheduled";
+    const contentActivity: ActivityEvent[] = recentContent
+      .filter((row) => row.status !== "archived")
+      .map((row) => {
+        let type: ActivityEventType = "created";
+        if (row.status === "published") type = "published";
+        else if (row.status === "scheduled") type = "scheduled";
 
-      const snippet = row.adaptedContent
-        ? row.adaptedContent.slice(0, 80) + (row.adaptedContent.length > 80 ? "…" : "")
+        const snippetSource = row.content?.trim() || row.title?.trim() || null;
+        const snippet = snippetSource
+          ? snippetSource.slice(0, 80) + (snippetSource.length > 80 ? "…" : "")
+          : null;
+
+        return {
+          id: `content-${row.id}`,
+          type,
+          platform: "telegram",
+          contentSnippet: snippet,
+          timestamp: row.updatedAt ?? row.createdAt ?? new Date(),
+        };
+      });
+
+    const recentTelegramPosts = await db
+      .select({
+        id: telegramPosts.id,
+        contentRaw: telegramPosts.contentRaw,
+        postedAt: telegramPosts.postedAt,
+        createdAt: telegramPosts.createdAt,
+      })
+      .from(telegramPosts)
+      .innerJoin(telegramChannels, eq(telegramChannels.id, telegramPosts.channelId))
+      .where(eq(telegramChannels.userId, userId))
+      .orderBy(desc(telegramPosts.postedAt), desc(telegramPosts.createdAt))
+      .limit(25);
+
+    const telegramActivity: ActivityEvent[] = recentTelegramPosts.map((row) => {
+      const snippet = row.contentRaw
+        ? row.contentRaw.slice(0, 80) + (row.contentRaw.length > 80 ? "…" : "")
         : null;
-
       return {
-        id: row.id,
-        type,
-        platform: row.platform,
+        id: `telegram-${row.id}`,
+        type: "published",
+        platform: "telegram",
         contentSnippet: snippet,
         timestamp: row.postedAt ?? row.createdAt ?? new Date(),
       };
     });
+
+    const failedSchedules = await db
+      .select({
+        id: schedules.id,
+        scheduledAt: schedules.scheduledAt,
+        processedAt: schedules.processedAt,
+        updatedAt: schedules.updatedAt,
+        content: contentLibrary.content,
+        title: contentLibrary.title,
+      })
+      .from(schedules)
+      .leftJoin(contentLibrary, eq(contentLibrary.id, schedules.contentLibraryId))
+      .where(
+        and(
+          eq(schedules.userId, userId),
+          eq(schedules.targetType, "telegram_publish"),
+          eq(schedules.status, "failed"),
+        ),
+      )
+      .orderBy(desc(schedules.updatedAt))
+      .limit(25);
+
+    const failedScheduleActivity: ActivityEvent[] = failedSchedules.map((row) => {
+      const snippetSource = row.content?.trim() || row.title?.trim() || null;
+      const snippet = snippetSource
+        ? snippetSource.slice(0, 80) + (snippetSource.length > 80 ? "…" : "")
+        : null;
+      return {
+        id: `schedule-${row.id}`,
+        type: "failed",
+        platform: "telegram",
+        contentSnippet: snippet,
+        timestamp: row.updatedAt ?? row.processedAt ?? row.scheduledAt ?? new Date(),
+      };
+    });
+
+    const recentActivity: ActivityEvent[] = [
+      ...contentActivity,
+      ...telegramActivity,
+      ...failedScheduleActivity,
+    ]
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 10);
 
     // ── Upcoming posts (next 5 scheduled) ────────────────────────────────
     const now = new Date();
@@ -166,15 +250,16 @@ export async function getDashboardHomeData(): Promise<ActionResult<DashboardHome
       .select({
         id: schedules.id,
         scheduledAt: schedules.scheduledAt,
-        platform: crossPosts.platform,
-        adaptedContent: crossPosts.adaptedContent,
+        content: contentLibrary.content,
+        title: contentLibrary.title,
       })
       .from(schedules)
-      .leftJoin(crossPosts, eq(crossPosts.id, schedules.crossPostId))
+      .leftJoin(contentLibrary, eq(contentLibrary.id, schedules.contentLibraryId))
       .where(
         and(
           eq(schedules.userId, userId),
           eq(schedules.status, "pending"),
+          eq(schedules.targetType, "telegram_publish"),
           gte(schedules.scheduledAt, now),
         ),
       )
@@ -182,13 +267,14 @@ export async function getDashboardHomeData(): Promise<ActionResult<DashboardHome
       .limit(5);
 
     const upcomingPosts: UpcomingPost[] = upcomingSchedules.map((sched) => {
-      const snippet = sched.adaptedContent
-        ? sched.adaptedContent.slice(0, 60) + (sched.adaptedContent.length > 60 ? "…" : "")
+      const snippetSource = sched.content?.trim() || sched.title?.trim() || null;
+      const snippet = snippetSource
+        ? snippetSource.slice(0, 60) + (snippetSource.length > 60 ? "…" : "")
         : null;
 
       return {
         id: sched.id,
-        platform: sched.platform ?? "linkedin",
+        platform: "telegram",
         contentSnippet: snippet,
         scheduledAt: sched.scheduledAt,
       };

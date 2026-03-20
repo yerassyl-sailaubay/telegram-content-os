@@ -8,16 +8,11 @@ import {
   sliceByUtf16,
   utf16OffsetToJsIndex,
 } from "../parser";
-import type {
-  TelegramMessage,
-  TelegramEntity,
-} from "../parser.types";
+import type { TelegramMessage, TelegramEntity } from "../parser.types";
 
 // ─── Helper: create a minimal TelegramMessage ───────────────────────────────
 
-function makeMessage(
-  overrides: Partial<TelegramMessage> = {},
-): TelegramMessage {
+function makeMessage(overrides: Partial<TelegramMessage> = {}): TelegramMessage {
   return {
     message_id: 1,
     date: 1700000000,
@@ -112,71 +107,47 @@ describe("parseEntities", () => {
 
   describe("bold entity", () => {
     it("parses bold text", () => {
-      const blocks = parseEntities("Hello bold World", [
-        makeEntity("bold", 6, 4),
-      ]);
+      const blocks = parseEntities("Hello bold World", [makeEntity("bold", 6, 4)]);
       // Bold is a formatting mark on a text block
       expect(blocks).toHaveLength(1);
       expect(blocks[0].type).toBe("text");
       expect(blocks[0].text).toBe("Hello bold World");
-      expect(blocks[0].formatting).toEqual([
-        { type: "bold", start: 6, end: 10 },
-      ]);
+      expect(blocks[0].formatting).toEqual([{ type: "bold", start: 6, end: 10 }]);
     });
   });
 
   describe("italic entity", () => {
     it("parses italic text", () => {
-      const blocks = parseEntities("Say hello", [
-        makeEntity("italic", 4, 5),
-      ]);
-      expect(blocks[0].formatting).toEqual([
-        { type: "italic", start: 4, end: 9 },
-      ]);
+      const blocks = parseEntities("Say hello", [makeEntity("italic", 4, 5)]);
+      expect(blocks[0].formatting).toEqual([{ type: "italic", start: 4, end: 9 }]);
     });
   });
 
   describe("underline entity", () => {
     it("parses underline text", () => {
-      const blocks = parseEntities("Important text", [
-        makeEntity("underline", 0, 9),
-      ]);
-      expect(blocks[0].formatting).toEqual([
-        { type: "underline", start: 0, end: 9 },
-      ]);
+      const blocks = parseEntities("Important text", [makeEntity("underline", 0, 9)]);
+      expect(blocks[0].formatting).toEqual([{ type: "underline", start: 0, end: 9 }]);
     });
   });
 
   describe("strikethrough entity", () => {
     it("parses strikethrough text", () => {
-      const blocks = parseEntities("Old new", [
-        makeEntity("strikethrough", 0, 3),
-      ]);
-      expect(blocks[0].formatting).toEqual([
-        { type: "strikethrough", start: 0, end: 3 },
-      ]);
+      const blocks = parseEntities("Old new", [makeEntity("strikethrough", 0, 3)]);
+      expect(blocks[0].formatting).toEqual([{ type: "strikethrough", start: 0, end: 3 }]);
     });
   });
 
   describe("code entity", () => {
     it("parses inline code", () => {
-      const blocks = parseEntities("Use const x = 1 here", [
-        makeEntity("code", 4, 11),
-      ]);
-      expect(blocks[0].formatting).toEqual([
-        { type: "code", start: 4, end: 15 },
-      ]);
+      const blocks = parseEntities("Use const x = 1 here", [makeEntity("code", 4, 11)]);
+      expect(blocks[0].formatting).toEqual([{ type: "code", start: 4, end: 15 }]);
     });
   });
 
   describe("spoiler entity", () => {
     it("parses spoiler text", () => {
-      const blocks = parseEntities("The answer is 42", [
-        makeEntity("spoiler", 14, 2),
-      ]);
-      expect(blocks[0].formatting).toEqual([
-        { type: "spoiler", start: 14, end: 16 },
-      ]);
+      const blocks = parseEntities("The answer is 42", [makeEntity("spoiler", 14, 2)]);
+      expect(blocks[0].formatting).toEqual([{ type: "spoiler", start: 14, end: 16 }]);
     });
   });
 
@@ -193,9 +164,7 @@ describe("parseEntities", () => {
 
     it("parses code block with language", () => {
       const text = "const x = 1;";
-      const blocks = parseEntities(text, [
-        makeEntity("pre", 0, 13, { language: "javascript" }),
-      ]);
+      const blocks = parseEntities(text, [makeEntity("pre", 0, 13, { language: "javascript" })]);
       expect(blocks).toEqual([
         { type: "code_block", text: "const x = 1;", language: "javascript" },
       ]);
@@ -288,9 +257,7 @@ describe("parseEntities", () => {
 
     it("parses expandable blockquote", () => {
       const text = "Expandable quote here";
-      const blocks = parseEntities(text, [
-        makeEntity("expandable_blockquote", 0, 21),
-      ]);
+      const blocks = parseEntities(text, [makeEntity("expandable_blockquote", 0, 21)]);
       expect(blocks[0]).toEqual({
         type: "blockquote",
         text: "Expandable quote here",
@@ -318,10 +285,7 @@ describe("parseEntities", () => {
   describe("multiple entities", () => {
     it("parses multiple non-overlapping entities", () => {
       const text = "Bold and italic text";
-      const blocks = parseEntities(text, [
-        makeEntity("bold", 0, 4),
-        makeEntity("italic", 9, 6),
-      ]);
+      const blocks = parseEntities(text, [makeEntity("bold", 0, 4), makeEntity("italic", 9, 6)]);
       expect(blocks).toHaveLength(1);
       expect(blocks[0].formatting).toEqual([
         { type: "bold", start: 0, end: 4 },
@@ -331,10 +295,7 @@ describe("parseEntities", () => {
 
     it("parses nested formatting (bold inside italic)", () => {
       const text = "Hello world";
-      const blocks = parseEntities(text, [
-        makeEntity("italic", 0, 11),
-        makeEntity("bold", 6, 5),
-      ]);
+      const blocks = parseEntities(text, [makeEntity("italic", 0, 11), makeEntity("bold", 6, 5)]);
       expect(blocks[0].formatting).toContainEqual({
         type: "italic",
         start: 0,
@@ -349,10 +310,7 @@ describe("parseEntities", () => {
 
     it("handles mixed structural and formatting entities", () => {
       const text = "Hello bold @user world";
-      const blocks = parseEntities(text, [
-        makeEntity("bold", 6, 4),
-        makeEntity("mention", 11, 5),
-      ]);
+      const blocks = parseEntities(text, [makeEntity("bold", 6, 4), makeEntity("mention", 11, 5)]);
       // "Hello " = text with no formatting
       // "bold " = text with bold formatting
       // "@user" = mention
@@ -385,17 +343,13 @@ describe("parseEntities", () => {
         makeEntity("bold", 3, 4), // starts after "🔥 " (2+1=3 UTF-16 units)
       ]);
       expect(blocks).toHaveLength(1);
-      expect(blocks[0].formatting).toEqual([
-        { type: "bold", start: 3, end: 7 },
-      ]);
+      expect(blocks[0].formatting).toEqual([{ type: "bold", start: 3, end: 7 }]);
     });
 
     it("correctly handles mention after multiple emoji", () => {
       const text = "🔥💰 @user";
       // 🔥=2, 💰=2, " "=1, "@user"=5 — mention starts at offset 5
-      const blocks = parseEntities(text, [
-        makeEntity("mention", 5, 5),
-      ]);
+      const blocks = parseEntities(text, [makeEntity("mention", 5, 5)]);
       const mentionBlock = blocks.find((b) => b.type === "mention");
       expect(mentionBlock).toBeDefined();
       expect(mentionBlock?.text).toBe("@user");
@@ -555,9 +509,7 @@ describe("extractMedia", () => {
 
   it("extracts multiple media types from single message", () => {
     const msg = makeMessage({
-      photo: [
-        { file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 },
-      ],
+      photo: [{ file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 }],
       document: {
         file_id: "doc1",
         file_unique_id: "d1",
@@ -671,18 +623,14 @@ describe("parseTelegramMessage", () => {
       entities: [makeEntity("bold", 6, 4)],
     });
     const result = parseTelegramMessage(msg);
-    expect(result.blocks[0].formatting).toEqual([
-      { type: "bold", start: 6, end: 10 },
-    ]);
+    expect(result.blocks[0].formatting).toEqual([{ type: "bold", start: 6, end: 10 }]);
   });
 
   it("parses a media message with caption", () => {
     const msg = makeMessage({
       caption: "Photo caption with bold",
       caption_entities: [makeEntity("bold", 20, 4)],
-      photo: [
-        { file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 },
-      ],
+      photo: [{ file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 }],
     });
     const result = parseTelegramMessage(msg);
     expect(result.rawText).toBe("Photo caption with bold");
@@ -693,9 +641,7 @@ describe("parseTelegramMessage", () => {
 
   it("parses a media-only message", () => {
     const msg = makeMessage({
-      photo: [
-        { file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 },
-      ],
+      photo: [{ file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 }],
     });
     const result = parseTelegramMessage(msg);
     expect(result.rawText).toBe("");
@@ -723,9 +669,7 @@ describe("parseTelegramMessage", () => {
     const msg = makeMessage({
       caption: "Album caption",
       media_group_id: "12345",
-      photo: [
-        { file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 },
-      ],
+      photo: [{ file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 }],
     });
     const result = parseTelegramMessage(msg);
     expect(result.mediaGroupId).toBe("12345");
@@ -785,23 +729,17 @@ describe("parseMediaGroup", () => {
         message_id: 1,
         caption: "Album description",
         media_group_id: "group1",
-        photo: [
-          { file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 },
-        ],
+        photo: [{ file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 }],
       }),
       makeMessage({
         message_id: 2,
         media_group_id: "group1",
-        photo: [
-          { file_id: "ph2", file_unique_id: "p2", width: 800, height: 600 },
-        ],
+        photo: [{ file_id: "ph2", file_unique_id: "p2", width: 800, height: 600 }],
       }),
       makeMessage({
         message_id: 3,
         media_group_id: "group1",
-        photo: [
-          { file_id: "ph3", file_unique_id: "p3", width: 800, height: 600 },
-        ],
+        photo: [{ file_id: "ph3", file_unique_id: "p3", width: 800, height: 600 }],
       }),
     ];
 
@@ -818,17 +756,13 @@ describe("parseMediaGroup", () => {
       makeMessage({
         message_id: 1,
         media_group_id: "group1",
-        photo: [
-          { file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 },
-        ],
+        photo: [{ file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 }],
       }),
       makeMessage({
         message_id: 2,
         caption: "Caption on second photo",
         media_group_id: "group1",
-        photo: [
-          { file_id: "ph2", file_unique_id: "p2", width: 800, height: 600 },
-        ],
+        photo: [{ file_id: "ph2", file_unique_id: "p2", width: 800, height: 600 }],
       }),
     ];
 
@@ -841,24 +775,18 @@ describe("parseMediaGroup", () => {
       makeMessage({
         message_id: 3,
         media_group_id: "g1",
-        photo: [
-          { file_id: "ph3", file_unique_id: "p3", width: 100, height: 100 },
-        ],
+        photo: [{ file_id: "ph3", file_unique_id: "p3", width: 100, height: 100 }],
       }),
       makeMessage({
         message_id: 1,
         media_group_id: "g1",
         caption: "First",
-        photo: [
-          { file_id: "ph1", file_unique_id: "p1", width: 100, height: 100 },
-        ],
+        photo: [{ file_id: "ph1", file_unique_id: "p1", width: 100, height: 100 }],
       }),
       makeMessage({
         message_id: 2,
         media_group_id: "g1",
-        photo: [
-          { file_id: "ph2", file_unique_id: "p2", width: 100, height: 100 },
-        ],
+        photo: [{ file_id: "ph2", file_unique_id: "p2", width: 100, height: 100 }],
       }),
     ];
 
@@ -876,16 +804,12 @@ describe("parseMediaGroup", () => {
         message_id: 1,
         media_group_id: "g1",
         forward_sender_name: "Original Author",
-        photo: [
-          { file_id: "ph1", file_unique_id: "p1", width: 100, height: 100 },
-        ],
+        photo: [{ file_id: "ph1", file_unique_id: "p1", width: 100, height: 100 }],
       }),
       makeMessage({
         message_id: 2,
         media_group_id: "g1",
-        photo: [
-          { file_id: "ph2", file_unique_id: "p2", width: 100, height: 100 },
-        ],
+        photo: [{ file_id: "ph2", file_unique_id: "p2", width: 100, height: 100 }],
       }),
     ];
 
@@ -899,9 +823,7 @@ describe("parseMediaGroup", () => {
         message_id: 1,
         caption: "Mixed media",
         media_group_id: "g1",
-        photo: [
-          { file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 },
-        ],
+        photo: [{ file_id: "ph1", file_unique_id: "p1", width: 800, height: 600 }],
       }),
       makeMessage({
         message_id: 2,
@@ -927,16 +849,12 @@ describe("parseMediaGroup", () => {
       makeMessage({
         message_id: 1,
         media_group_id: "g1",
-        photo: [
-          { file_id: "ph1", file_unique_id: "p1", width: 100, height: 100 },
-        ],
+        photo: [{ file_id: "ph1", file_unique_id: "p1", width: 100, height: 100 }],
       }),
       makeMessage({
         message_id: 2,
         media_group_id: "g1",
-        photo: [
-          { file_id: "ph2", file_unique_id: "p2", width: 100, height: 100 },
-        ],
+        photo: [{ file_id: "ph2", file_unique_id: "p2", width: 100, height: 100 }],
       }),
     ];
 

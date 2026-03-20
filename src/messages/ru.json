@@ -63,13 +63,15 @@
     "statScheduledDescription": "Посты в очереди на публикацию.",
     "statWeeklyEngagement": "Вовлечённость",
     "statWeeklyEngagementDescription": "Реакции, клики и репосты за 7 дней.",
+    "statEngagementGrowth": "Динамика вовлечённости",
+    "statEngagementDescription": "Тенденции изменения вовлечённости вашего канала со временем.",
     "actionNewPost": "Новый пост",
     "actionCreateFromUrl": "Создать из URL",
     "actionViewSchedule": "Расписание",
     "activityFeedTitle": "Последние действия",
     "activityEmpty": "Действий пока нет",
     "activityEmptyDescription": "Здесь появится история ваших публикаций.",
-    "activityType_adapted": "адаптирован",
+    "activityType_created": "создан",
     "activityType_scheduled": "запланирован",
     "activityType_published": "опубликован",
     "activityType_failed": "ошибка",
@@ -560,6 +562,9 @@
         "linkReady": "Ссылка для Telegram-бота готова.",
         "linkCopied": "Ссылка для Telegram-бота скопирована.",
         "linkCopyFailed": "Не удалось скопировать ссылку для Telegram-бота.",
+        "copyStartCommand": "Скопировать команду /start",
+        "startCommandCopied": "Команда /start скопирована.",
+        "startCommandCopyFailed": "Не удалось скопировать команду /start.",
         "refreshStatus": "Обновить статус бота"
       }
     },
@@ -1147,7 +1152,7 @@
           "cta": "Начать бесплатно",
           "features": {
             "telegram": "Приём через Telegram-бота",
-            "quota": "50 ИИ-генераций в месяц",
+            "quota": "15 ИИ-генераций в месяц",
             "capture": "Без банковской карты"
           }
         },
@@ -1159,7 +1164,7 @@
           "description": "Для тех, кто публикуется регулярно и хочет держать тексты, календарь и внешние адаптации в одном продукте.",
           "cta": "Выбрать Plus",
           "features": {
-            "quota": "500 ИИ-генераций в месяц",
+            "quota": "150 ИИ-генераций в месяц",
             "adaptation": "Генерация и адаптация контента",
             "crosspost": "Адаптация контента для других каналов",
             "analytics": "Аналитика по каналам"
@@ -1172,7 +1177,7 @@
           "description": "Несколько каналов, большой объём публикаций, плотный редакционный ритм — всё это в одном аккаунте.",
           "cta": "Выбрать Pro",
           "features": {
-            "unlimited": "Безлимитные ИИ-генерации",
+            "unlimited": "1000 ИИ-генераций в месяц",
             "calendar": "Расширенный календарь и повторяющиеся сценарии",
             "channels": "Работа с несколькими каналами",
             "priority": "Приоритетный доступ к новым функциям"

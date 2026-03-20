@@ -33,9 +33,7 @@ export function CategoryManager({
   const t = useTranslations("content");
 
   const [newCategoryName, setNewCategoryName] = React.useState("");
-  const [editingCategory, setEditingCategory] = React.useState<string | null>(
-    null,
-  );
+  const [editingCategory, setEditingCategory] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -105,7 +103,7 @@ export function CategoryManager({
               onClick={handleCreate}
               disabled={isLoading || !newCategoryName.trim()}
             >
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className="mr-1 h-4 w-4" />
               {t("newCategory")}
             </Button>
           </div>
@@ -113,14 +111,14 @@ export function CategoryManager({
           {/* Category list */}
           <div className="space-y-1">
             {categories.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">
+              <p className="text-muted-foreground py-4 text-center text-sm">
                 {t("noCategoriesYet")}
               </p>
             ) : (
               categories.map((category) => (
                 <div
                   key={category}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/50"
+                  className="hover:bg-muted/50 flex items-center gap-2 rounded-md px-2 py-1.5"
                 >
                   {editingCategory === category ? (
                     <form
@@ -153,7 +151,7 @@ export function CategoryManager({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        className="text-destructive hover:text-destructive h-7 w-7"
                         onClick={() => handleDelete(category)}
                         disabled={isLoading}
                       >

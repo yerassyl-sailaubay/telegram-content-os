@@ -41,12 +41,7 @@ vi.mock("drizzle-orm", () => ({
 // Now import the modules under test
 // ---------------------------------------------------------------------------
 
-import {
-  PLANS,
-  resolveTierFromPriceId,
-  getPlan,
-  getAllPlans,
-} from "../plans";
+import { PLANS, resolveTierFromPriceId, getPlan, getAllPlans } from "../plans";
 import { getStripe, resetStripeClient } from "../stripe";
 import { createCheckoutSession } from "../checkout";
 import { createPortalSession } from "../portal";

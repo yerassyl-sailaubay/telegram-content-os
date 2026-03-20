@@ -59,21 +59,15 @@ export function MediaUpload({
       <div className="flex flex-col items-center gap-3">
         {isUploading ? (
           <>
-            <Loader2 className="size-8 animate-spin text-primary" />
+            <Loader2 className="text-primary size-8 animate-spin" />
             <p className="text-sm font-medium">{t("uploading")}</p>
-            {uploadProgress > 0 && (
-              <Progress value={uploadProgress} className="mx-auto w-48" />
-            )}
+            {uploadProgress > 0 && <Progress value={uploadProgress} className="mx-auto w-48" />}
           </>
         ) : (
           <>
-            <Upload className="size-8 text-muted-foreground" />
-            <p className="text-sm font-medium">
-              {isDragActive ? t("dragActive") : t("dragDrop")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t("supportedFormats")}
-            </p>
+            <Upload className="text-muted-foreground size-8" />
+            <p className="text-sm font-medium">{isDragActive ? t("dragActive") : t("dragDrop")}</p>
+            <p className="text-muted-foreground text-xs">{t("supportedFormats")}</p>
           </>
         )}
       </div>

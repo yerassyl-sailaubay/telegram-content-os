@@ -9,10 +9,7 @@
  * Sync dedup: checks analytics_sync_log before fetching.
  */
 
-import type {
-  RateLimiter,
-  PlatformEngagement,
-} from "./types";
+import type { RateLimiter, PlatformEngagement } from "./types";
 import { RATE_LIMITS, AnalyticsCollectionError } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -22,9 +19,7 @@ import { RATE_LIMITS, AnalyticsCollectionError } from "./types";
 /**
  * Creates a new rate limiter for a given platform.
  */
-export function createRateLimiter(
-  platform: "linkedin" | "telegram",
-): RateLimiter {
+export function createRateLimiter(platform: "linkedin" | "telegram"): RateLimiter {
   const config = RATE_LIMITS[platform];
   return {
     maxRequests: config.maxRequests,
@@ -132,15 +127,13 @@ export async function recordSyncWindow(
     };
   };
 
-  await typedDb
-    .insert(analyticsSyncLog)
-    .values({
-      userId,
-      platform,
-      syncWindowStart: windowStart,
-      syncWindowEnd: windowEnd,
-      lastSyncedAt: new Date(),
-    });
+  await typedDb.insert(analyticsSyncLog).values({
+    userId,
+    platform,
+    syncWindowStart: windowStart,
+    syncWindowEnd: windowEnd,
+    lastSyncedAt: new Date(),
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -165,9 +158,7 @@ export async function fetchLinkedInPostAnalytics(
   personUrn: string,
   platformPostIds: string[],
   rateLimiter: RateLimiter,
-): Promise<
-  Map<string, PlatformEngagement>
-> {
+): Promise<Map<string, PlatformEngagement>> {
   const results = new Map<string, PlatformEngagement>();
 
   for (const postId of platformPostIds) {
@@ -177,19 +168,12 @@ export async function fetchLinkedInPostAnalytics(
     }
 
     try {
-      const engagement = await fetchSingleLinkedInPostStats(
-        accessToken,
-        personUrn,
-        postId,
-      );
+      const engagement = await fetchSingleLinkedInPostStats(accessToken, personUrn, postId);
       results.set(postId, engagement);
     } catch (error) {
       // Log but continue — partial data is better than none
-      const message =
-        error instanceof Error ? error.message : "Unknown error";
-      console.error(
-        `[analytics] LinkedIn post ${postId} fetch failed: ${message}`,
-      );
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.error(`[analytics] LinkedIn post ${postId} fetch failed: ${message}`);
     }
   }
 
@@ -373,11 +357,8 @@ export async function fetchTelegramReactions(
         forwards: null,
       });
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown error";
-      console.error(
-        `[analytics] Telegram message ${messageId} fetch failed: ${message}`,
-      );
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.error(`[analytics] Telegram message ${messageId} fetch failed: ${message}`);
     }
   }
 
@@ -392,9 +373,7 @@ export async function fetchTelegramReactions(
  * Computes total engagement from individual metrics.
  * Sums likes + comments + shares + clicks (ignoring null values).
  */
-export function computeTotalEngagement(
-  engagement: PlatformEngagement,
-): number {
+export function computeTotalEngagement(engagement: PlatformEngagement): number {
   let total = 0;
   if (engagement.likes !== null) total += engagement.likes;
   if (engagement.comments !== null) total += engagement.comments;

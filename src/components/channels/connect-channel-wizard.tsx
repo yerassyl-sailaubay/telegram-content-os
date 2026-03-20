@@ -79,22 +79,16 @@ export function ConnectChannelWizard({ botUsername }: ConnectWizardProps) {
           <>
             <DialogHeader>
               <DialogTitle>{t("wizardStep1Title")}</DialogTitle>
-              <DialogDescription>
-                {t("wizardStep1Description")}
-              </DialogDescription>
+              <DialogDescription>{t("wizardStep1Description")}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
-              <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground">
-                  {t("wizardStep1Instructions")}
-                </p>
+              <div className="bg-muted/40 text-muted-foreground rounded-lg border p-4 text-sm">
+                <p className="text-foreground font-medium">{t("wizardStep1Instructions")}</p>
               </div>
 
-              <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2">
-                <code className="flex-1 text-sm font-mono font-semibold">
-                  @{botUsername}
-                </code>
+              <div className="bg-muted flex items-center gap-2 rounded-md border px-3 py-2">
+                <code className="flex-1 font-mono text-sm font-semibold">@{botUsername}</code>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -111,9 +105,7 @@ export function ConnectChannelWizard({ botUsername }: ConnectWizardProps) {
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
                 {tCommon("cancel")}
               </Button>
-              <Button onClick={() => setStep("enter-username")}>
-                {tCommon("next")}
-              </Button>
+              <Button onClick={() => setStep("enter-username")}>{tCommon("next")}</Button>
             </div>
           </>
         )}
@@ -122,16 +114,12 @@ export function ConnectChannelWizard({ botUsername }: ConnectWizardProps) {
           <>
             <DialogHeader>
               <DialogTitle>{t("wizardStep2Title")}</DialogTitle>
-              <DialogDescription>
-                {t("wizardStep2Description")}
-              </DialogDescription>
+              <DialogDescription>{t("wizardStep2Description")}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <Label htmlFor="channel-username">
-                  {t("wizardUsernameLabel")}
-                </Label>
+                <Label htmlFor="channel-username">{t("wizardUsernameLabel")}</Label>
                 <Input
                   id="channel-username"
                   placeholder={t("wizardUsernamePlaceholder")}
@@ -151,7 +139,7 @@ export function ConnectChannelWizard({ botUsername }: ConnectWizardProps) {
               </div>
 
               {error && (
-                <div className="flex items-start gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-destructive">
+                <div className="border-destructive/50 bg-destructive/10 text-destructive flex items-start gap-2 rounded-md border px-3 py-2">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <p className="text-sm">{error}</p>
                 </div>
@@ -169,10 +157,7 @@ export function ConnectChannelWizard({ botUsername }: ConnectWizardProps) {
               >
                 {tCommon("back")}
               </Button>
-              <Button
-                onClick={handleConnect}
-                disabled={!username.trim() || isPending}
-              >
+              <Button onClick={handleConnect} disabled={!username.trim() || isPending}>
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -193,9 +178,7 @@ export function ConnectChannelWizard({ botUsername }: ConnectWizardProps) {
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 {t("wizardSuccessTitle")}
               </DialogTitle>
-              <DialogDescription>
-                {t("wizardSuccessDescription")}
-              </DialogDescription>
+              <DialogDescription>{t("wizardSuccessDescription")}</DialogDescription>
             </DialogHeader>
 
             {connectedTitle && (

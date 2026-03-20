@@ -50,9 +50,7 @@ export const TIMEZONE_GROUPS = [
 ] as const;
 
 /** Flat list of all available timezone values */
-export const ALL_TIMEZONES = TIMEZONE_GROUPS.flatMap((g) =>
-  g.timezones.map((tz) => tz.value),
-);
+export const ALL_TIMEZONES = TIMEZONE_GROUPS.flatMap((g) => g.timezones.map((tz) => tz.value));
 
 /**
  * Convert a local datetime in a given timezone to a UTC Date object.
@@ -74,11 +72,7 @@ export function utcToLocal(date: Date, timezone: string): Date {
  * Format a UTC date in the user's timezone with a given format string.
  * Wraps date-fns-tz's `formatInTimeZone`.
  */
-export function formatInTz(
-  date: Date,
-  timezone: string,
-  formatStr: string,
-): string {
+export function formatInTz(date: Date, timezone: string, formatStr: string): string {
   return formatInTimeZone(date, timezone, formatStr);
 }
 
@@ -93,10 +87,7 @@ export function getUtcOffset(timezone: string, date?: Date): string {
 /**
  * Format a timezone for display: "Asia/Almaty (UTC+06:00)"
  */
-export function formatTimezoneDisplay(
-  timezone: string,
-  date?: Date,
-): string {
+export function formatTimezoneDisplay(timezone: string, date?: Date): string {
   const offset = getUtcOffset(timezone, date);
   return `${timezone.replace(/_/g, " ")} (UTC${offset})`;
 }

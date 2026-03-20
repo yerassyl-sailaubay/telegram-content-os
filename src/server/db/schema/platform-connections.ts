@@ -36,12 +36,9 @@ export const platformConnections = pgTable(
   ],
 );
 
-export const platformConnectionsRelations = relations(
-  platformConnections,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [platformConnections.userId],
-      references: [users.id],
-    }),
+export const platformConnectionsRelations = relations(platformConnections, ({ one }) => ({
+  user: one(users, {
+    fields: [platformConnections.userId],
+    references: [users.id],
   }),
-);
+}));

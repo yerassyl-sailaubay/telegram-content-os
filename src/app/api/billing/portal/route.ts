@@ -50,10 +50,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const subscription = rows[0];
 
     if (!subscription?.stripeCustomerId) {
-      return NextResponse.json(
-        { error: "No active subscription found" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "No active subscription found" }, { status: 400 });
     }
 
     const { createPortalSession } = await portalSessionPromise;

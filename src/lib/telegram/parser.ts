@@ -49,10 +49,7 @@ import type {
  * This function validates that the offset is within bounds and returns
  * the JS string index (which equals the UTF-16 offset for .slice()).
  */
-export function utf16OffsetToJsIndex(
-  text: string,
-  utf16Offset: number,
-): number {
+export function utf16OffsetToJsIndex(text: string, utf16Offset: number): number {
   // JS string length IS the UTF-16 code unit count, so they match directly
   if (utf16Offset < 0) return 0;
   if (utf16Offset > text.length) return text.length;
@@ -63,11 +60,7 @@ export function utf16OffsetToJsIndex(
  * Extract a substring using UTF-16 offsets (as Telegram uses them).
  * Since JS .slice() operates on UTF-16 code units, this is direct.
  */
-export function sliceByUtf16(
-  text: string,
-  offset: number,
-  length: number,
-): string {
+export function sliceByUtf16(text: string, offset: number, length: number): string {
   const start = utf16OffsetToJsIndex(text, offset);
   const end = utf16OffsetToJsIndex(text, offset + length);
   return text.slice(start, end);
@@ -141,10 +134,7 @@ function sortEntities(entities: TelegramEntity[], text: string): EntityRange[] {
  *    and attaching formatting marks to the appropriate blocks.
  * 3. Plain text between structural entities becomes "text" blocks.
  */
-export function parseEntities(
-  text: string,
-  entities: TelegramEntity[],
-): ContentBlock[] {
+export function parseEntities(text: string, entities: TelegramEntity[]): ContentBlock[] {
   if (!text) return [];
   if (!entities || entities.length === 0) {
     return [{ type: "text", text }];
@@ -191,23 +181,13 @@ export function parseEntities(
     if (structural.start > cursor) {
       const plainText = text.slice(cursor, structural.start);
       if (plainText) {
-        const block = createTextBlock(
-          plainText,
-          cursor,
-          structural.start,
-          formattingRanges,
-        );
+        const block = createTextBlock(plainText, cursor, structural.start, formattingRanges);
         blocks.push(block);
       }
     }
 
     // Emit the structural block
-    const block = createStructuralBlock(
-      text,
-      structural,
-      formattingRanges,
-      structuralRanges,
-    );
+    const block = createStructuralBlock(text, structural, formattingRanges, structuralRanges);
     blocks.push(block);
     cursor = structural.end;
   }
@@ -216,12 +196,7 @@ export function parseEntities(
   if (cursor < text.length) {
     const plainText = text.slice(cursor);
     if (plainText) {
-      const block = createTextBlock(
-        plainText,
-        cursor,
-        text.length,
-        formattingRanges,
-      );
+      const block = createTextBlock(plainText, cursor, text.length, formattingRanges);
       blocks.push(block);
     }
   }
@@ -244,8 +219,7 @@ function filterTopLevelStructural(ranges: EntityRange[]): EntityRange[] {
         other.start <= range.start &&
         other.end >= range.end &&
         // blockquotes and expandable_blockquotes can contain other structural entities
-        (other.entity.type === "blockquote" ||
-          other.entity.type === "expandable_blockquote"),
+        (other.entity.type === "blockquote" || other.entity.type === "expandable_blockquote"),
     );
     if (!isContained) {
       topLevel.push(range);
@@ -313,8 +287,7 @@ function createStructuralBlock(
 ): ContentBlock {
   const entityType = structural.entity.type;
   const blockText = fullText.slice(structural.start, structural.end);
-  const blockType =
-    BLOCK_ENTITY_TYPES[entityType] ?? ("text" as ContentBlockType);
+  const blockType = BLOCK_ENTITY_TYPES[entityType] ?? ("text" as ContentBlockType);
 
   const block: ContentBlock = {
     type: blockType,
@@ -360,11 +333,7 @@ function createStructuralBlock(
         block.formatting = nestedFormatting;
       }
     } else {
-      const formatting = getFormattingMarks(
-        structural.start,
-        structural.end,
-        formattingRanges,
-      );
+      const formatting = getFormattingMarks(structural.start, structural.end, formattingRanges);
       if (formatting.length > 0) {
         block.formatting = formatting;
       }
@@ -454,14 +423,8 @@ export function extractMedia(message: TelegramMessage): ParsedMedia[] {
 /**
  * Extract forward attribution information from a message.
  */
-export function extractForwardInfo(
-  message: TelegramMessage,
-): ForwardInfo | undefined {
-  if (
-    !message.forward_from &&
-    !message.forward_from_chat &&
-    !message.forward_sender_name
-  ) {
+export function extractForwardInfo(message: TelegramMessage): ForwardInfo | undefined {
+  if (!message.forward_from && !message.forward_from_chat && !message.forward_sender_name) {
     return undefined;
   }
 
@@ -511,9 +474,7 @@ export function extractForwardInfo(
  */
 export function parseTelegramMessage(message: TelegramMessage): ParsedContent {
   const rawText = message.text ?? message.caption ?? "";
-  const entities = message.text
-    ? (message.entities ?? [])
-    : (message.caption_entities ?? []);
+  const entities = message.text ? (message.entities ?? []) : (message.caption_entities ?? []);
 
   const blocks = parseEntities(rawText, entities);
   const media = extractMedia(message);
@@ -546,15 +507,11 @@ export function parseMediaGroup(messages: TelegramMessage[]): ParsedMediaGroup {
   }
 
   // Sort by message_id to ensure consistent ordering
-  const sorted = [...messages].sort(
-    (a, b) => a.message_id - b.message_id,
-  );
+  const sorted = [...messages].sort((a, b) => a.message_id - b.message_id);
 
   // Find the first message with text content
   const textMessage = sorted.find((m) => m.text ?? m.caption);
-  const rawText = textMessage
-    ? (textMessage.text ?? textMessage.caption ?? "")
-    : "";
+  const rawText = textMessage ? (textMessage.text ?? textMessage.caption ?? "") : "";
   const entities = textMessage
     ? textMessage.text
       ? (textMessage.entities ?? [])
@@ -573,8 +530,7 @@ export function parseMediaGroup(messages: TelegramMessage[]): ParsedMediaGroup {
   const forward = extractForwardInfo(sorted[0]);
 
   // Get the common media_group_id
-  const mediaGroupId =
-    sorted[0].media_group_id ?? `group_${sorted[0].message_id}`;
+  const mediaGroupId = sorted[0].media_group_id ?? `group_${sorted[0].message_id}`;
 
   return {
     blocks,

@@ -15,7 +15,7 @@ export type TelegramBotLinkData = {
   expiresAt: string;
 };
 
-const TELEGRAM_BOT_LINK_TTL_MS = 15 * 60 * 1000;
+const TELEGRAM_BOT_LINK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 async function getCurrentUser() {
   const supabase = await createClient();

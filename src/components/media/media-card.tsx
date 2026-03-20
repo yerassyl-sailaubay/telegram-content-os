@@ -64,14 +64,14 @@ export function MediaCard({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-lg border bg-card transition-all hover:shadow-md",
-        selectable && "cursor-pointer hover:ring-2 hover:ring-primary",
+        "group bg-card relative overflow-hidden rounded-lg border transition-all hover:shadow-md",
+        selectable && "hover:ring-primary cursor-pointer hover:ring-2",
         className,
       )}
       onClick={selectable && onSelect ? () => onSelect(file) : undefined}
     >
       {/* Thumbnail preview */}
-      <div className="relative aspect-square overflow-hidden bg-muted">
+      <div className="bg-muted relative aspect-square overflow-hidden">
         {signedUrl && isImageMimeType(file.mimeType) ? (
           <Image
             src={signedUrl}
@@ -82,11 +82,11 @@ export function MediaCard({
           />
         ) : signedUrl && isVideoMimeType(file.mimeType) ? (
           <div className="flex h-full items-center justify-center">
-            <FileVideo className="size-12 text-muted-foreground" />
+            <FileVideo className="text-muted-foreground size-12" />
           </div>
         ) : (
           <div className="flex h-full items-center justify-center">
-            <ImageIcon className="size-12 text-muted-foreground" />
+            <ImageIcon className="text-muted-foreground size-12" />
           </div>
         )}
       </div>
@@ -94,14 +94,12 @@ export function MediaCard({
       {/* File info */}
       <div className="p-3">
         <p className="truncate text-sm font-medium">{file.filename}</p>
-        <p className="text-xs text-muted-foreground">
-          {formatFileSize(file.sizeBytes)}
-        </p>
+        <p className="text-muted-foreground text-xs">{formatFileSize(file.sizeBytes)}</p>
       </div>
 
       {/* Actions overlay */}
       {onDelete && (
-        <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -115,12 +113,8 @@ export function MediaCard({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {t("deleteConfirmTitle")}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t("deleteConfirmDescription")}
-                </AlertDialogDescription>
+                <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>{t("deleteConfirmDescription")}</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>

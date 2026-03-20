@@ -24,10 +24,7 @@ export interface AIProvider {
    * @param options - Model tier, timeout, retry config
    * @returns Adapted content with token usage
    */
-  adaptContent(
-    request: AdaptationRequest,
-    options?: AdaptationOptions,
-  ): Promise<AdaptedContent>;
+  adaptContent(request: AdaptationRequest, options?: AdaptationOptions): Promise<AdaptedContent>;
 
   /**
    * Analyzes a channel's posts to extract profile information

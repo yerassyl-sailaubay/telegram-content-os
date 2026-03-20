@@ -12,9 +12,7 @@ import { revalidatePath } from "next/cache";
 
 export type WelcomeTemplate = typeof welcomeTemplates.$inferSelect;
 
-export type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+export type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -41,12 +39,7 @@ async function verifyChannelOwnership(
   const [channel] = await db
     .select()
     .from(telegramChannels)
-    .where(
-      and(
-        eq(telegramChannels.id, channelId),
-        eq(telegramChannels.userId, userId),
-      ),
-    )
+    .where(and(eq(telegramChannels.id, channelId), eq(telegramChannels.userId, userId)))
     .limit(1);
 
   return channel ?? null;
@@ -81,8 +74,7 @@ export async function getWelcomeTemplate(
 
     return { success: true, data: template ?? null };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to get welcome template";
+    const message = error instanceof Error ? error.message : "Failed to get welcome template";
     return { success: false, error: message };
   }
 }
@@ -151,10 +143,7 @@ export async function saveWelcomeTemplate(
 
     return { success: true, data: template };
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to save welcome template";
+    const message = error instanceof Error ? error.message : "Failed to save welcome template";
     return { success: false, error: message };
   }
 }
@@ -209,10 +198,7 @@ export async function testWelcomeMessage(
 
     return { success: true, data: { preview } };
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to test welcome message";
+    const message = error instanceof Error ? error.message : "Failed to test welcome message";
     return { success: false, error: message };
   }
 }
