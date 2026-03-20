@@ -52,6 +52,7 @@ Last updated: 2026-03-08 (Asia/Almaty)
 - [ ] `/api/inngest` reachable in production.
 - [ ] Alerting configured for failed schedules/webhooks.
 - [ ] Simple rollback plan documented (previous deployment or hotfix path).
+- [ ] Deployment trigger is documented and understood (`git push origin main` does not deploy unless GitHub auto-deploy is enabled; standard path is `git push heroku HEAD:main`).
 - [ ] Daily backup/snapshot strategy verified for Supabase data.
 
 ## 8) Launch-day smoke script (15-20 min)

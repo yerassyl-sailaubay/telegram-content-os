@@ -2,6 +2,14 @@
 
 This project is Bun-first in local development, but the Heroku deploy path below uses the official `heroku/nodejs` buildpack.
 
+## Deployment Trigger Model (Important)
+
+- Current production app: `morning-plains-48170`.
+- Deploys are triggered by pushing code to the Heroku git remote.
+- `git push origin main` does **not** redeploy Heroku by itself.
+- Heroku redeploy happens when you push to `heroku/main` (for example: `git push heroku HEAD:main`).
+- GitHub branch auto-deploy is optional and only works if Heroku Deploy -> GitHub integration + Automatic Deploys is enabled for the target branch.
+
 ## 1. Install and log in to Heroku CLI
 
 ```bash
@@ -58,11 +66,18 @@ heroku config:set -a <your-app-name> \
   SUPPORT_EMAIL=...
 ```
 
-## 4. Deploy current branch
+## 4. Deploy current branch to Heroku
 
 ```bash
 heroku git:remote -a <your-app-name>
 git push heroku HEAD:main
+```
+
+Typical flow when you also use GitHub:
+
+```bash
+git push origin main    # updates GitHub only
+git push heroku main    # triggers Heroku build/release
 ```
 
 ## 5. Smoke check

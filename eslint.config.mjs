@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Test artifacts and local auth state:
+    "test-results/**",
+    "playwright-report/**",
+    "playwright-report-agent/**",
+    "e2e/.auth/**",
     // Local agent skills and tooling are not part of the production app.
     ".agents/**",
   ]),

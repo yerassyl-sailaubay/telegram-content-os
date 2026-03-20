@@ -115,6 +115,14 @@ bun test:smoke       # Smoke test script
 bunx tsc --noEmit    # CI typecheck command
 ```
 
+## DEPLOYMENT (HEROKU)
+
+- Heroku app: `morning-plains-48170`.
+- Deploys are currently triggered by pushing to the Heroku git remote (`heroku/main`), not by GitHub pushes alone.
+- `git push origin main` updates GitHub only.
+- To redeploy on Heroku, run `git push heroku main` (or `git push heroku HEAD:main`).
+- GitHub `main` can auto-deploy only if Heroku Deploy -> GitHub integration with Automatic Deploys is explicitly enabled.
+
 ## NOTES
 
 - Current database migrations include `drizzle/0000` through `drizzle/0005`.

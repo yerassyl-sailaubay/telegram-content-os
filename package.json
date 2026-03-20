@@ -15,6 +15,8 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:agent": "playwright test --config=playwright.agent.config.ts",
+    "test:e2e:agent:script": "bash scripts/run-agent-smoke.sh",
     "inngest-dev": "bunx inngest-cli@latest dev",
     "prepare": "husky",
     "test:smoke": "bash scripts/smoke-test.sh"

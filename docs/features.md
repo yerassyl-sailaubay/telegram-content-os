@@ -1,166 +1,141 @@
-# Telegram Content OS — Product Features
+# Telegram Content OS - Feature Status Source of Truth
 
-Telegram Content OS is a Telegram-first content workflow product. It helps creators connect Telegram channels, collect and organize content, generate or adapt drafts with AI, schedule publication, publish to Telegram, and review Telegram performance from one place.
+Last updated: 2026-03-17 (Asia/Almaty)
+Owner: Product + Engineering
 
-Where a capability is still partial, limited, or mainly backend-facing, that is called out directly.
+## Purpose
 
----
+This document is the canonical product-truth snapshot for marketing, sales, QA, and launch readiness.
 
-## Implemented Now
+Use it to answer three questions:
 
-### Telegram Channel Connection
+1. What is clearly shipped and user-facing right now?
+2. What exists but is partial or mostly backend?
+3. What should not be claimed publicly yet?
 
-Connect Telegram channels through the built-in bot setup flow. Once connected, new posts can be ingested into the app automatically. Imported content includes text and common Telegram media types, including media groups.
+## Current Status Snapshot
 
-Each channel also has its own settings area, including welcome-message configuration for greeting new subscribers with template variables such as the subscriber name or channel name.
+| Area                         | Status                   | Notes                                                                       |
+| ---------------------------- | ------------------------ | --------------------------------------------------------------------------- |
+| Auth and account access      | Shipped                  | Email/password + OAuth routes are present; dashboard routes are auth-gated. |
+| Localization                 | Shipped                  | RU/EN supported, RU default locale.                                         |
+| Telegram channel connection  | Shipped                  | Bot setup + webhook ingestion flow is active.                               |
+| Telegram post ingestion      | Shipped                  | Channel posts and media groups are persisted and processed.                 |
+| Content library              | Shipped                  | Draft/scheduled/published workflows, filtering/search, idea storage.        |
+| Web quick capture (ideas)    | Shipped                  | Text-first idea capture on dashboard.                                       |
+| AI idea development          | Shipped                  | Idea to draft flow available.                                               |
+| AI repurposing               | Shipped                  | Repurpose existing content into alternative formats.                        |
+| AI generation from sources   | Shipped                  | YouTube + web article URL ingestion and generation.                         |
+| AI channel profiling         | Shipped                  | Prompt guidance from channel profile is implemented.                        |
+| AI adaptation for LinkedIn/X | Partial                  | Adaptation logic exists; broader UX maturity is still limited.              |
+| Calendar scheduling          | Shipped with limitations | Month/week/day views + recurring schedules; no drag-and-drop UX.            |
+| Telegram publishing          | Shipped                  | Publish now and scheduled publish are available.                            |
+| Telegram analytics           | Shipped                  | Growth/timing/top-content focused user-facing analytics.                    |
+| LinkedIn/X posting pipeline  | Partial                  | Backend actions/orchestration exist; UI surface is not fully productized.   |
+| LinkedIn/X analytics surface | Partial                  | Collection plumbing exists; dashboard remains Telegram-first.               |
+| Media management             | Partial                  | Backend + route exist, but UX depth is still limited.                       |
+| Billing and quotas (Stripe)  | Shipped                  | Enforced plan limits, checkout, portal, webhook handling.                   |
+| Inngest background jobs      | Shipped                  | Endpoint active and functions registered/invokable.                         |
+| Admin/internal tools         | Internal                 | Useful for ops/debug, not a marketing headline.                             |
 
----
+## Clearly Shipped User-Facing Features
 
-### Content Library
+### Telegram-first workflow
 
-All imported and generated content is stored in a searchable library. You can filter by channel and content status, review drafts, and manage categories and tags.
+- Connect Telegram channels
+- Ingest channel posts through webhook
+- Store and manage drafts/content in one library
+- Publish to Telegram now or on schedule
+- Review Telegram analytics
 
-The library is designed for working with Telegram-originated content over time, not just one-off AI generation.
+### AI-assisted creation workflow
 
----
+- Develop idea to draft
+- Repurpose existing content
+- Generate from supported source URLs (YouTube/articles)
+- Adapt drafts for LinkedIn/X (with current maturity caveats)
 
-### AI Drafting and Repurposing
+### Scheduling and operations
 
-The product currently supports several AI-assisted creation workflows:
+- Calendar views: month/week/day
+- Recurring schedules
+- Timezone-aware scheduling
+- Inngest-backed background execution
 
-- **Develop Ideas** — turn a rough idea into a draft
-- **Repurpose Content** — reshape an existing post into a different version, including shorter, thread, or poll-oriented variants
-- **Generate from Sources** — create drafts from supported source URLs
+### Account, billing, and settings
 
-Supported source ingestion today is focused on **YouTube videos** and **web articles**.
+- Stripe checkout and billing portal
+- Enforced plan limits and usage tracking
+- Profile/settings/preferences
+- RU/EN localization
 
-The app also builds a channel profile and stores user preferences so prompts can be guided by channel context and tone preferences. This should be understood as AI assistance informed by your channel, not model fine-tuning.
+## Partial or Limited Surfaces
 
----
+### Cross-platform operations
 
-### AI Adaptation for Other Platforms
+- LinkedIn/X adaptation and posting logic exist
+- Product UX for cross-post review, broadcast, and lifecycle visibility is not fully polished
 
-Telegram content can be adapted for **LinkedIn** and **X / Twitter** with platform-specific prompt flows and previews.
+### Analytics breadth
 
-This is best described as optional expansion from a Telegram-first workflow. The strongest and most complete product experience is still Telegram itself.
+- Telegram analytics is the strongest shipped surface
+- LinkedIn/X analytics data paths exist but are not yet a fully unified analytics experience
 
----
+### Media UX depth
 
-### Scheduling and Calendar
+- Media backend capabilities are present
+- Standalone media workflow remains lighter than core post/schedule flows
 
-The app includes a visual calendar with **month, week, and day views**. You can create schedules from calendar slots, cancel scheduled posts, and use a limited reschedule flow.
+### Scheduling UX depth
 
-Scheduling is timezone-aware and also supports recurring schedules.
+- Functional scheduling and recurring support are live
+- Rescheduling and interaction UX are still less mature than ideal
 
-Important limitation: the current experience is **not drag-and-drop scheduling**.
+## Not Shipped as Public Claims
 
----
+Do not market these as available now:
 
-### Telegram Publishing
+- Telegram bot private-DM idea inbox as a core user feature
+- Voice-note to draft transcription workflow
+- Podcast URL ingestion
+- Custom AI fine-tuning
+- Fully unified cross-platform analytics dashboard
+- Drag-and-drop scheduling as a polished workflow
 
-Drafts can be published to Telegram immediately or scheduled for later. The publishing flow supports typical Telegram post shapes, including text posts, single-image posts, media groups, and poll-like content handling.
+## Marketing-Safe Positioning
 
-Telegram publishing is the core distribution workflow in the product today.
+### Safe claim set (now)
 
----
+- Telegram-first content operating system
+- AI-assisted drafting and repurposing
+- Source-to-draft workflows for YouTube and articles
+- Scheduling, Telegram publishing, and Telegram analytics
+- Optional LinkedIn/X extensions where available
 
-### Telegram Analytics
+### Claims to avoid until productized
 
-Analytics currently centers on Telegram channels. The shipped experience focuses on:
+- "Telegram is your full capture layer"
+- "Voice memos become drafts"
+- "AI continuously learns your voice"
+- "Closed-loop automated analytics to planning"
+- "Fully mature multi-platform suite"
 
-- channel growth
-- best posting times
-- top-performing content
+## Pricing Truth (Must Match Product)
 
-This is a real user-facing analytics surface and should be described as Telegram analytics first.
+Current enforced plan model:
 
----
+| Plan | Price     | AI Calls / Month | Cross-posts / Month | Telegram Channels |
+| ---- | --------- | ---------------- | ------------------- | ----------------- |
+| Free | $0        | 10               | 5                   | 1                 |
+| Plus | $19/month | 100              | 50                  | 5                 |
+| Pro  | $49/month | Unlimited        | Unlimited           | Unlimited         |
 
-### Billing and Limits
+## Launch Testing Plan
 
-Billing uses Stripe and includes live plan enforcement inside the app.
+A comprehensive, execution-ready test plan is maintained in [docs/testing-plan.md](./testing-plan.md).
 
-Current plans:
+Use that plan as the gate before broad marketing push. Recommended release rule:
 
-- **Free** — `$0`, `10` AI calls/month, `5` cross-posts/month, `1` Telegram channel
-- **Plus** — `$19/month`, `100` AI calls/month, `50` cross-posts/month, `5` Telegram channels
-- **Pro** — `$49/month`, unlimited AI calls, unlimited cross-posts, unlimited channels
-
-Usage is tracked in-product, and paid plans use Stripe checkout and customer portal flows.
-
----
-
-### Settings and Localization
-
-The settings area covers profile information, timezone, language, AI preferences, billing snapshot, and connected-platform status.
-
-The interface is localized in **Russian** and **English**, with **Russian as the default locale**.
-
----
-
-## Implemented with Limited or Partial Surface
-
-### LinkedIn and X Integrations
-
-The codebase includes LinkedIn and X connection flows, adaptation logic, publishing/background orchestration, and some analytics plumbing. That said, the product should not yet be described as a fully mature multi-platform publishing suite.
-
-Use careful wording such as:
-
-- optional LinkedIn and X support
-- platform-specific workflows where available
-- features subject to platform API limitations
-
----
-
-### Broader Analytics Plumbing
-
-There is backend work for LinkedIn and X analytics collection, but the main dashboard experience is still Telegram-focused.
-
-Do not describe the current product as having a complete unified analytics dashboard across all connected platforms.
-
----
-
-### Media Management
-
-The backend includes media upload, storage, deletion, and signed URL support. The dedicated media page is still thin, so this is better described as an available backend capability rather than a polished media library experience.
-
----
-
-### Rescheduling UX
-
-Rescheduling exists, but it is not yet a full drag-and-drop calendar workflow.
-
----
-
-## Not Shipped as User-Facing Features
-
-These should not be presented as current product capabilities:
-
-- AI image generation
-- podcast ingestion
-- comment analysis
-- viral prediction
-- team collaboration workspaces
-- native mobile apps
-- non-Stripe payment methods
-- a fully unified cross-platform analytics experience
-
----
-
-## Roadmap Direction
-
-Near-term improvements that fit the current codebase direction:
-
-- stronger LinkedIn and X publishing UX
-- broader analytics UI on top of existing collectors
-- better rescheduling interactions
-- fuller media library UI
-
-Longer-term ideas:
-
-- competitor tracking
-- comment and sentiment workflows
-- prediction/scoring features
-- collaboration features
-- additional publishing platforms
-- mobile apps
+- All P0 tests pass
+- No unresolved P0/P1 bugs affecting core user value proposition
+- Public-facing copy is aligned with this document
