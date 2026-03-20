@@ -33,6 +33,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
+    "driver.js": "^1.4.0",
     "drizzle-orm": "^0.45.1",
     "inngest": "^3.52.4",
     "lucide-react": "^0.575.0",

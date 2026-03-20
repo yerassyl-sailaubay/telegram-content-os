@@ -42,6 +42,7 @@ export {
   userPreferencesRelations,
   aiModelEnum,
   adaptationToneEnum,
+  type OnboardingProgress,
 } from "./user-preferences";
 export {
   recurringSchedules,
