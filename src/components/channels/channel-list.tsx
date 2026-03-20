@@ -66,7 +66,7 @@ export function ChannelList({ channels: initialChannels }: ChannelListProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="channel-list">
       {error && <p className="text-destructive text-sm">{error}</p>}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {channels.map((channel) => (

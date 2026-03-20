@@ -4,15 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
+import { getTranslations } from "next-intl/server";
 
 export default async function SignupPage(props: { searchParams: Promise<{ error?: string }> }) {
-  const searchParams = await props.searchParams;
+  const [searchParams, t] = await Promise.all([props.searchParams, getTranslations("auth")]);
 
   return (
     <Card>
       <CardHeader>
-        <h1 className="text-2xl font-semibold">Create an account</h1>
-        <CardDescription>Enter your details below to create your account</CardDescription>
+        <h1 className="text-2xl font-semibold">{t("signupTitle")}</h1>
+        <CardDescription>{t("signupDescription")}</CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-6">
@@ -24,36 +25,42 @@ export default async function SignupPage(props: { searchParams: Promise<{ error?
 
         <form className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+            <Label htmlFor="email">{t("email")}</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder={t("emailPlaceholder")}
+              required
+            />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("password")}</Label>
             <Input
               id="password"
               name="password"
               type="password"
-              placeholder="Create a password"
+              placeholder={t("signupPasswordPlaceholder")}
               required
               minLength={6}
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Label htmlFor="confirm-password">{t("confirmPassword")}</Label>
             <Input
               id="confirm-password"
               name="confirm-password"
               type="password"
-              placeholder="Confirm your password"
+              placeholder={t("confirmPasswordPlaceholder")}
               required
               minLength={6}
             />
           </div>
 
           <Button formAction={signup} className="w-full">
-            Sign up
+            {t("signup")}
           </Button>
         </form>
 
@@ -62,7 +69,7 @@ export default async function SignupPage(props: { searchParams: Promise<{ error?
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card text-muted-foreground px-2">Or continue with</span>
+            <span className="bg-card text-muted-foreground px-2">{t("orContinueWith")}</span>
           </div>
         </div>
 
@@ -77,7 +84,7 @@ export default async function SignupPage(props: { searchParams: Promise<{ error?
               className="w-full"
             >
               <GoogleIcon />
-              Continue with Google
+              {t("continueWithGoogle")}
             </Button>
           </form>
 
@@ -91,7 +98,7 @@ export default async function SignupPage(props: { searchParams: Promise<{ error?
               className="w-full"
             >
               <GitHubIcon />
-              Continue with GitHub
+              {t("continueWithGitHub")}
             </Button>
           </form>
         </div>
@@ -99,12 +106,12 @@ export default async function SignupPage(props: { searchParams: Promise<{ error?
 
       <CardFooter className="justify-center">
         <p className="text-muted-foreground text-sm">
-          Already have an account?{" "}
+          {t("haveAccount")}{" "}
           <Link
             href="/login"
             className="text-primary font-medium underline-offset-4 hover:underline"
           >
-            Log in
+            {t("loginTitle")}
           </Link>
         </p>
       </CardFooter>

@@ -4,17 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card";
+import { getTranslations } from "next-intl/server";
 
 export default async function LoginPage(props: {
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
-  const searchParams = await props.searchParams;
+  const [searchParams, t] = await Promise.all([props.searchParams, getTranslations("auth")]);
 
   return (
     <Card>
       <CardHeader>
-        <h1 className="text-2xl font-semibold">Log in</h1>
-        <CardDescription>Enter your email and password to access your account</CardDescription>
+        <h1 className="text-2xl font-semibold">{t("loginTitle")}</h1>
+        <CardDescription>{t("loginDescription")}</CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-6">
@@ -32,23 +33,29 @@ export default async function LoginPage(props: {
 
         <form className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+            <Label htmlFor="email">{t("email")}</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder={t("emailPlaceholder")}
+              required
+            />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("password")}</Label>
             <Input
               id="password"
               name="password"
               type="password"
-              placeholder="Your password"
+              placeholder={t("loginPasswordPlaceholder")}
               required
             />
           </div>
 
           <Button formAction={login} className="w-full">
-            Log in
+            {t("loginTitle")}
           </Button>
         </form>
 
@@ -57,7 +64,7 @@ export default async function LoginPage(props: {
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card text-muted-foreground px-2">Or continue with</span>
+            <span className="bg-card text-muted-foreground px-2">{t("orContinueWith")}</span>
           </div>
         </div>
 
@@ -73,7 +80,7 @@ export default async function LoginPage(props: {
               className="w-full"
             >
               <GoogleIcon />
-              Continue with Google
+              {t("continueWithGoogle")}
             </Button>
           </form>
 
@@ -88,7 +95,7 @@ export default async function LoginPage(props: {
               className="w-full"
             >
               <GitHubIcon />
-              Continue with GitHub
+              {t("continueWithGitHub")}
             </Button>
           </form>
         </div>
@@ -96,12 +103,12 @@ export default async function LoginPage(props: {
 
       <CardFooter className="justify-center">
         <p className="text-muted-foreground text-sm">
-          Don&apos;t have an account?{" "}
+          {t("noAccount")}{" "}
           <Link
             href="/signup"
             className="text-primary font-medium underline-offset-4 hover:underline"
           >
-            Sign up
+            {t("signup")}
           </Link>
         </p>
       </CardFooter>

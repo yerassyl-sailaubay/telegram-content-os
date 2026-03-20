@@ -9,14 +9,8 @@ import { QuickCapture } from "@/components/content/quick-capture";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { MetricsCard } from "@/components/analytics/metrics-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  AlertTriangle,
-  CalendarDays,
-  FileText,
-  Lightbulb,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { AlertTriangle, CalendarDays, Sparkles } from "lucide-react";
+import { EngagementChart } from "@/components/dashboard/engagement-chart";
 
 function formatDashboardDate(locale: string) {
   return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-US", {
@@ -28,7 +22,7 @@ function formatDashboardDate(locale: string) {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-3xl border border-white/12 bg-white/[0.06] px-4 py-3">
+    <div className="flex h-full flex-col justify-between rounded-3xl border border-white/12 bg-white/[0.06] px-4 py-3">
       <p className="text-xs font-semibold tracking-[0.16em] text-white/55 uppercase">{label}</p>
       <p className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</p>
     </div>
@@ -93,12 +87,48 @@ export default async function DashboardPage() {
                   </div>
 
                   {calendarGaps > 0 && (
-                    <div className="hidden min-w-[220px] rounded-[1.75rem] border border-white/12 bg-white/[0.05] p-5 lg:block">
-                      <p className="text-xs font-semibold tracking-[0.16em] text-cyan-100/62 uppercase">
-                        {t("heroCalloutLabel")}
-                      </p>
+                    <div
+                      className={
+                        "hidden min-w-[220px] rounded-[1.75rem] border p-5 transition-all duration-500 lg:block " +
+                        (calendarGaps >= 5
+                          ? "border-red-500/40 bg-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.2)]"
+                          : calendarGaps >= 3
+                            ? "border-amber-500/40 bg-amber-500/20 shadow-[0_0_30px_rgba(245,158,11,0.15)]"
+                            : "border-white/12 bg-white/[0.05]")
+                      }
+                    >
+                      <div className="flex items-center gap-2">
+                        {calendarGaps >= 3 && (
+                          <AlertTriangle
+                            className={
+                              "h-4 w-4 " + (calendarGaps >= 5 ? "text-red-400" : "text-amber-400")
+                            }
+                          />
+                        )}
+                        <p
+                          className={
+                            "text-xs font-semibold tracking-[0.16em] uppercase transition-colors " +
+                            (calendarGaps >= 5
+                              ? "text-red-300/80"
+                              : calendarGaps >= 3
+                                ? "text-amber-300/80"
+                                : "text-cyan-100/62")
+                          }
+                        >
+                          {t("heroCalloutLabel")}
+                        </p>
+                      </div>
                       <p className="mt-3 text-4xl font-semibold text-white">{calendarGaps}</p>
-                      <p className="mt-2 text-sm leading-6 text-cyan-50/72">
+                      <p
+                        className={
+                          "mt-2 text-sm leading-6 transition-colors " +
+                          (calendarGaps >= 5
+                            ? "text-red-200/90"
+                            : calendarGaps >= 3
+                              ? "text-amber-200/90"
+                              : "text-cyan-50/72")
+                        }
+                      >
                         {t("heroCalloutDescription")}
                       </p>
                     </div>
@@ -123,74 +153,50 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/70 bg-card/95 overflow-hidden shadow-sm">
+          <Card className="border-border/70 bg-card/95 flex flex-col overflow-hidden shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle>{t("captureCardTitle")}</CardTitle>
               <CardDescription>{t("captureCardDescription")}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-1 flex-col justify-between">
               <QuickCapture />
-            </CardContent>
-          </Card>
-        </div>
-
-        {calendarGaps > 0 && (
-          <Card className="border-amber-200/70 bg-[linear-gradient(135deg,rgba(251,191,36,0.14),rgba(255,255,255,0.85))] shadow-sm dark:border-amber-800/50 dark:bg-[linear-gradient(135deg,rgba(245,158,11,0.18),rgba(12,10,9,0.92))]">
-            <CardContent className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 rounded-full bg-amber-500/15 p-2 text-amber-600 dark:text-amber-300">
-                  <AlertTriangle className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-                    {t("calendarGapsAlert", { count: calendarGaps })}
-                  </p>
-                  <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-300/78">
-                    {t("calendarGapsDetail")}
+              <div className="border-border/50 mt-8 border-t pt-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-purple-500" />
+                    <p className="text-foreground text-xs font-semibold tracking-wide uppercase">
+                      {t("statAiGenerations")}
+                    </p>
+                  </div>
+                  <p className="text-foreground text-xs font-bold">
+                    {aiUsed} / {aiLimitDisplay}
                   </p>
                 </div>
+                <div className="bg-muted mt-3 h-2 w-full overflow-hidden rounded-full">
+                  <div
+                    className="h-full rounded-full bg-purple-500 transition-all"
+                    style={{
+                      width: `${aiLimit > 0 ? Math.min((aiUsed / aiLimit) * 100, 100) : 100}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-muted-foreground mt-3 text-[11px]">{t("statAiDescription")}</p>
               </div>
-              <Link
-                href="/dashboard/schedule"
-                className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-white/70 px-4 py-2 text-sm font-medium text-amber-800 transition-colors hover:bg-white dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60"
-              >
-                <CalendarDays className="h-4 w-4" />
-                {t("calendarGapsCta")}
-              </Link>
             </CardContent>
           </Card>
-        )}
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricsCard
-            title={t("statIdeas")}
-            value={ideasCount}
-            icon={<Lightbulb className="h-5 w-5" />}
-            description={t("statIdeasDescription")}
-          />
-          <MetricsCard
-            title={t("statDrafts")}
-            value={draftsCount}
-            icon={<FileText className="h-5 w-5" />}
-            description={t("statDraftsDescription")}
-          />
-          <MetricsCard
-            title={t("statPublishedThisWeek")}
-            value={publishedThisWeek}
-            icon={<TrendingUp className="h-5 w-5" />}
-            description={t("statPublishedDescription")}
-          />
-          <MetricsCard
-            title={t("statAiGenerations")}
-            value={`${aiUsed} / ${aiLimitDisplay}`}
-            icon={<Sparkles className="h-5 w-5" />}
-            description={t("statAiDescription")}
-          />
         </div>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.1fr)]">
           <UpcomingPosts posts={upcomingPosts.slice(0, 4)} />
           <ActivityFeed events={(data?.recentActivity ?? []).slice(0, 6)} />
+        </div>
+
+        <div className="mt-4">
+          <EngagementChart
+            data={data?.engagementSparkline ?? []}
+            locale={locale}
+            total={data?.quickStats.weeklyEngagement ?? 0}
+          />
         </div>
       </div>
     </>
