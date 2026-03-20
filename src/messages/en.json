@@ -806,7 +806,8 @@
     "statusExtracted": "Extracted",
     "statusGenerating": "Generating",
     "statusCompleted": "Completed",
-    "statusFailed": "Failed"
+    "statusFailed": "Failed",
+    "failedImportMessage": "AI processing failed. Please try again."
   },
   "repurpose": {
     "title": "Repurpose Content",

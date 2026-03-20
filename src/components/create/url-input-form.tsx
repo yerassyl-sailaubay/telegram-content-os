@@ -293,8 +293,8 @@ export function UrlInputForm() {
                         )}
                       </span>
                     </div>
-                    {job.processingStatus === "failed" && job.errorMessage && (
-                      <p className="text-destructive mt-2 text-xs">{job.errorMessage}</p>
+                    {job.processingStatus === "failed" && (
+                      <p className="text-destructive mt-2 text-xs">{t("failedImportMessage")}</p>
                     )}
                   </div>
                 ))}

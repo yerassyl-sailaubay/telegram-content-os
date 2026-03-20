@@ -806,7 +806,8 @@
     "statusExtracted": "Извлечено",
     "statusGenerating": "Генерация",
     "statusCompleted": "Готово",
-    "statusFailed": "Ошибка"
+    "statusFailed": "Ошибка",
+    "failedImportMessage": "Ошибка генерации ИИ. Попробуйте ещё раз."
   },
   "repurpose": {
     "title": "Переработать контент",
