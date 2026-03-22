@@ -647,91 +647,6 @@
       }
     }
   },
-  "onboarding": {
-    "emptyStates": {
-      "content": {
-        "all": {
-          "title": "Your content library is empty",
-          "description": "This is where all your ideas, drafts, and published posts live.",
-          "action": "Create First Content",
-          "onboardingTitle": "Build your content library",
-          "onboardingDescription": "Your content library is the heart of your workflow. Store ideas, develop drafts, and track everything you publish—all in one place."
-        },
-        "idea": {
-          "title": "No ideas captured yet",
-          "description": "Capture sparks of inspiration before they fade away.",
-          "action": "Capture an Idea",
-          "onboardingTitle": "Start with an idea",
-          "onboardingDescription": "The best content starts as a quick thought. Use our Telegram bot to voice message, forward posts, or paste links—everything lands here."
-        },
-        "draft": {
-          "title": "No drafts in progress",
-          "description": "Start writing drafts and develop your ideas into polished content.",
-          "action": "Start Writing",
-          "onboardingTitle": "Develop your ideas",
-          "onboardingDescription": "Turn rough ideas into polished drafts. Use AI to help structure and refine your content while keeping your unique voice."
-        },
-        "published": {
-          "title": "Nothing published yet",
-          "description": "Published content will appear here with performance metrics.",
-          "action": "Publish Content",
-          "onboardingTitle": "Ready to publish?",
-          "onboardingDescription": "Once you publish, your content history lives here. Track what resonated and build on your successes."
-        },
-        "tips": {
-          "title": "Why your content library matters",
-          "item1": "Never lose a good idea—capture anything, anytime via Telegram bot",
-          "item2": "Organize by status: ideas → drafts → scheduled → published",
-          "item3": "Repurpose your best content into new formats with one click",
-          "takeTour": "Take the tour"
-        }
-      },
-      "schedule": {
-        "title": "Nothing scheduled",
-        "description": "Schedule posts to publish automatically at the best times.",
-        "action": "Schedule a Post",
-        "onboardingTitle": "Plan your publishing calendar",
-        "onboardingDescription": "Consistency builds audiences. Schedule posts in advance so your channel stays active—even when you're busy.",
-        "onboardingNoChannelTitle": "Connect a channel first",
-        "onboardingNoChannelDescription": "You need to connect a Telegram channel before you can schedule posts.",
-        "connectChannelAction": "Connect Channel",
-        "tips": {
-          "title": "Why scheduling changes everything",
-          "whyTitle": "Consistency compounds",
-          "whyDescription": "Channels that publish regularly grow 3x faster than sporadic ones. Scheduling removes the daily 'what should I post?' stress.",
-          "item1": "Set up recurring slots for weekly series or regular features",
-          "item2": "Find your optimal posting times based on audience activity",
-          "item3": "Batch-create content and let the system handle publishing",
-          "takeTour": "See how scheduling works"
-        }
-      },
-      "analytics": {
-        "title": "Analytics ready",
-        "description": "Your analytics dashboard will show insights once you have published content.",
-        "onboardingTitle": "Data-driven growth starts here",
-        "onboardingDescription": "Once you publish, analytics reveal what works. Learn which content resonates, when your audience is most active, and how to grow faster.",
-        "noDataTitle": "Analytics will appear here",
-        "noDataDescription": "Publish your first post to start tracking engagement and growth metrics.",
-        "noChannelsTitle": "Connect a channel to see analytics",
-        "noChannelsDescription": "Analytics are tied to your Telegram channels. Connect one to start tracking performance.",
-        "publishFirstAction": "Publish First Post",
-        "connectChannelAction": "Connect Channel",
-        "refreshAction": "Refresh Data",
-        "tips": {
-          "title": "Turn data into better content",
-          "whyTitle": "Stop guessing, start knowing",
-          "whyDescription": "Analytics aren't just numbers—they're feedback from your audience. Use them to create content that resonates.",
-          "growthTitle": "Track subscriber growth",
-          "growthDescription": "See which content drives the most follows and understand your channel's momentum.",
-          "engagementTitle": "Learn what resonates",
-          "engagementDescription": "Views, reactions, and shares tell you what your audience loves most.",
-          "timingTitle": "Post at the right time",
-          "timingDescription": "Our heatmap shows when your audience is most active—so you can schedule for maximum impact.",
-          "takeTour": "Explore analytics features"
-        }
-      }
-    }
-  },
   "telegramPost": {
     "pageTitle": "Post to Telegram",
     "pageDescription": "Create and publish posts directly to your Telegram channels",
@@ -1402,6 +1317,89 @@
     }
   },
   "onboarding": {
+    "emptyStates": {
+      "content": {
+        "all": {
+          "title": "Your content library is empty",
+          "description": "This is where all your ideas, drafts, and published posts live.",
+          "action": "Create First Content",
+          "onboardingTitle": "Build your content library",
+          "onboardingDescription": "Your content library is the heart of your workflow. Store ideas, develop drafts, and track everything you publish—all in one place."
+        },
+        "idea": {
+          "title": "No ideas captured yet",
+          "description": "Capture sparks of inspiration before they fade away.",
+          "action": "Capture an Idea",
+          "onboardingTitle": "Start with an idea",
+          "onboardingDescription": "The best content starts as a quick thought. Use our Telegram bot to voice message, forward posts, or paste links—everything lands here."
+        },
+        "draft": {
+          "title": "No drafts in progress",
+          "description": "Start writing drafts and develop your ideas into polished content.",
+          "action": "Start Writing",
+          "onboardingTitle": "Develop your ideas",
+          "onboardingDescription": "Turn rough ideas into polished drafts. Use AI to help structure and refine your content while keeping your unique voice."
+        },
+        "published": {
+          "title": "Nothing published yet",
+          "description": "Published content will appear here with performance metrics.",
+          "action": "Publish Content",
+          "onboardingTitle": "Ready to publish?",
+          "onboardingDescription": "Once you publish, your content history lives here. Track what resonated and build on your successes."
+        },
+        "tips": {
+          "title": "Why your content library matters",
+          "item1": "Never lose a good idea—capture anything, anytime via Telegram bot",
+          "item2": "Organize by status: ideas → drafts → scheduled → published",
+          "item3": "Repurpose your best content into new formats with one click",
+          "takeTour": "Take the tour"
+        }
+      },
+      "schedule": {
+        "title": "Nothing scheduled",
+        "description": "Schedule posts to publish automatically at the best times.",
+        "action": "Schedule a Post",
+        "onboardingTitle": "Plan your publishing calendar",
+        "onboardingDescription": "Consistency builds audiences. Schedule posts in advance so your channel stays active—even when you're busy.",
+        "onboardingNoChannelTitle": "Connect a channel first",
+        "onboardingNoChannelDescription": "You need to connect a Telegram channel before you can schedule posts.",
+        "connectChannelAction": "Connect Channel",
+        "tips": {
+          "title": "Why scheduling changes everything",
+          "whyTitle": "Consistency compounds",
+          "whyDescription": "Channels that publish regularly grow 3x faster than sporadic ones. Scheduling removes the daily 'what should I post?' stress.",
+          "item1": "Set up recurring slots for weekly series or regular features",
+          "item2": "Find your optimal posting times based on audience activity",
+          "item3": "Batch-create content and let the system handle publishing",
+          "takeTour": "See how scheduling works"
+        }
+      },
+      "analytics": {
+        "title": "Analytics ready",
+        "description": "Your analytics dashboard will show insights once you have published content.",
+        "onboardingTitle": "Data-driven growth starts here",
+        "onboardingDescription": "Once you publish, analytics reveal what works. Learn which content resonates, when your audience is most active, and how to grow faster.",
+        "noDataTitle": "Analytics will appear here",
+        "noDataDescription": "Publish your first post to start tracking engagement and growth metrics.",
+        "noChannelsTitle": "Connect a channel to see analytics",
+        "noChannelsDescription": "Analytics are tied to your Telegram channels. Connect one to start tracking performance.",
+        "publishFirstAction": "Publish First Post",
+        "connectChannelAction": "Connect Channel",
+        "refreshAction": "Refresh Data",
+        "tips": {
+          "title": "Turn data into better content",
+          "whyTitle": "Stop guessing, start knowing",
+          "whyDescription": "Analytics aren't just numbers—they're feedback from your audience. Use them to create content that resonates.",
+          "growthTitle": "Track subscriber growth",
+          "growthDescription": "See which content drives the most follows and understand your channel's momentum.",
+          "engagementTitle": "Learn what resonates",
+          "engagementDescription": "Views, reactions, and shares tell you what your audience loves most.",
+          "timingTitle": "Post at the right time",
+          "timingDescription": "Our heatmap shows when your audience is most active—so you can schedule for maximum impact.",
+          "takeTour": "Explore analytics features"
+        }
+      }
+    },
     "wizardTitle": "Welcome to Teleflow",
     "wizardSubtitle": "Let's get you set up in just a few steps",
     "stepOf": "Step {step} of {total}",
