@@ -274,8 +274,11 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
   }
 
   return (
-    <div data-testid="telegram-analytics" className="space-y-6">
-      <div className="border-border/70 bg-card/95 flex flex-wrap items-center justify-between gap-3 rounded-3xl border px-4 py-3 shadow-sm">
+    <div data-testid="telegram-analytics" data-tour="analytics-container" className="space-y-6">
+      <div
+        className="border-border/70 bg-card/95 flex flex-wrap items-center justify-between gap-3 rounded-3xl border px-4 py-3 shadow-sm"
+        data-tour="analytics-filters"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <Select value={channelId} onValueChange={handleChannelChange}>
             <SelectTrigger className="h-9 w-[200px] text-sm">
@@ -333,8 +336,11 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+      <div className="grid gap-4 lg:grid-cols-3" data-tour="analytics-kpi-cards">
+        <div
+          className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm"
+          data-tour="kpi-growth"
+        >
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
               <SignalHigh className="h-5 w-5" />
@@ -355,7 +361,10 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
           </p>
         </div>
 
-        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+        <div
+          className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm"
+          data-tour="kpi-best-time"
+        >
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
               <Clock3 className="h-5 w-5" />
@@ -378,7 +387,10 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
           </p>
         </div>
 
-        <div className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm">
+        <div
+          className="border-border/70 bg-card/95 rounded-3xl border p-5 shadow-sm"
+          data-tour="kpi-top-post"
+        >
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-2xl">
               <Trophy className="h-5 w-5" />
@@ -400,7 +412,7 @@ export function TelegramAnalytics({ channels }: TelegramAnalyticsProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2" data-tour="analytics-charts">
         <GrowthChart
           dataPoints={growthData?.dataPoints ?? []}
           rate={growthData?.rate ?? 0}

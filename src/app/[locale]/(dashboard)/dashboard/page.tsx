@@ -1,16 +1,15 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { getDashboardHomeData } from "@/server/actions/dashboard";
-import { getDraftsAndIdeas, getContentByStatus } from "@/server/actions/content";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
 import { UpcomingPosts } from "@/components/dashboard/upcoming-posts";
 import { QuickCapture } from "@/components/content/quick-capture";
 import { QuickActions } from "@/components/dashboard/quick-actions";
-import { MetricsCard } from "@/components/analytics/metrics-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, CalendarDays, Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { EngagementChart } from "@/components/dashboard/engagement-chart";
+import { elapsedMs, logHotRoutePerf } from "@/lib/perf/hot-routes";
+import { TourTriggerWrapper } from "@/components/onboarding/tour-trigger-wrapper";
 
 function formatDashboardDate(locale: string) {
   return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-US", {
@@ -34,24 +33,14 @@ function HeroStat({ label, value }: { label: string; value: string }) {
 }
 
 export default async function DashboardPage() {
+  const startedAt = performance.now();
   const locale = await getLocale();
-  const [t, dashboardResult, draftsIdeasResult, publishedResult] = await Promise.all([
+  const [t, dashboardResult] = await Promise.all([
     getTranslations("dashboard"),
     getDashboardHomeData(),
-    getDraftsAndIdeas(),
-    getContentByStatus("published", { limit: 100 }),
   ]);
 
   const data = dashboardResult.success ? dashboardResult.data : null;
-  const draftsIdeas = draftsIdeasResult.success ? draftsIdeasResult.data : null;
-  const publishedItems = publishedResult.success ? publishedResult.data : [];
-
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
-  const publishedThisWeek = publishedItems.filter(
-    (item) => item.createdAt && new Date(item.createdAt) >= sevenDaysAgo,
-  ).length;
 
   const upcomingPosts = data?.upcomingPosts ?? [];
   const scheduledDays = new Set(
@@ -63,20 +52,30 @@ export default async function DashboardPage() {
     return d.toISOString().split("T")[0]!;
   }).filter((day) => !scheduledDays.has(day)).length;
 
-  const ideasCount = draftsIdeas?.ideas.length ?? 0;
-  const draftsCount = draftsIdeas?.drafts.length ?? 0;
+  const ideasCount = data?.contentSummary.ideasCount ?? 0;
+  const draftsCount = data?.contentSummary.draftsCount ?? 0;
+  const publishedThisWeek = data?.contentSummary.publishedThisWeek ?? 0;
   const aiUsed = data?.quickStats.crossPostsUsed ?? 0;
   const aiLimit = data?.quickStats.crossPostsLimit ?? 0;
   const aiLimitDisplay = aiLimit === -1 ? "∞" : String(aiLimit);
   const displayName = data?.userName ?? data?.userEmail ?? t("welcomeFallbackName");
   const today = formatDashboardDate(locale);
 
+  logHotRoutePerf("route:/dashboard", {
+    totalMs: elapsedMs(startedAt),
+    hasData: Boolean(data),
+    upcomingPosts: upcomingPosts.length,
+  });
+
   return (
-    <>
+    <TourTriggerWrapper tourId="dashboard-intro">
       <PageHeader title={t("title")} description={t("pageDescription")} />
 
-      <div className="space-y-8 pb-10">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+      <div className="space-y-8 pb-10" data-tour="dashboard-container">
+        <div
+          className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]"
+          data-tour="quick-stats"
+        >
           <Card className="border-border/50 bg-card text-foreground relative overflow-hidden shadow-lg dark:border-0 dark:bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.22),transparent_32%),linear-gradient(135deg,#0f172a,#10243a_48%,#0f172a)] dark:text-white dark:shadow-[0_28px_80px_rgba(15,23,42,0.45)]">
             <CardContent className="p-6 sm:p-8">
               <div className="flex flex-col gap-6">
@@ -162,7 +161,10 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/70 bg-card/95 flex flex-col overflow-hidden shadow-sm">
+          <Card
+            className="border-border/70 bg-card/95 flex flex-col overflow-hidden shadow-sm"
+            data-tour="create-from-url"
+          >
             <CardHeader className="pb-4">
               <CardTitle>{t("captureCardTitle")}</CardTitle>
               <CardDescription>{t("captureCardDescription")}</CardDescription>
@@ -208,6 +210,6 @@ export default async function DashboardPage() {
           />
         </div>
       </div>
-    </>
+    </TourTriggerWrapper>
   );
 }

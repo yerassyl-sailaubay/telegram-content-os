@@ -118,11 +118,14 @@ export function SchedulePageClient() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-tour="schedule-container">
       {/* Toolbar with timezone + new schedule */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        className="flex flex-wrap items-center justify-between gap-3"
+        data-tour="schedule-toolbar"
+      >
         <TimezoneSelect value={timezone} onValueChange={setTimezone} className="w-[280px]" />
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button onClick={() => setDialogOpen(true)} data-tour="add-schedule-btn">
           <CalendarPlus className="mr-2 h-4 w-4" />
           {t("newSchedule")}
         </Button>
@@ -130,17 +133,22 @@ export function SchedulePageClient() {
 
       {/* Calendar */}
       {loading ? (
-        <div className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed">
+        <div
+          className="flex min-h-[400px] items-center justify-center rounded-lg border border-dashed"
+          data-tour="schedule-calendar"
+        >
           <p className="text-muted-foreground text-sm">{tCommon("loading")}</p>
         </div>
       ) : (
-        <ScheduleCalendar
-          schedules={schedules}
-          timezone={timezone}
-          onSlotClick={handleSlotClick}
-          onCancelSchedule={(id) => setCancelId(id)}
-          onRescheduleClick={handleRescheduleClick}
-        />
+        <div data-tour="schedule-calendar">
+          <ScheduleCalendar
+            schedules={schedules}
+            timezone={timezone}
+            onSlotClick={handleSlotClick}
+            onCancelSchedule={(id) => setCancelId(id)}
+            onRescheduleClick={handleRescheduleClick}
+          />
+        </div>
       )}
 
       {/* Schedule Dialog */}

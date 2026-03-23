@@ -32,37 +32,50 @@ function getEventIcon(type: ActivityEvent["type"]) {
   }
 }
 
-function formatRelativeTime(date: Date): string {
+function formatRelativeTime(
+  date: Date,
+  t: (key: string, values?: Record<string, string | number>) => string,
+): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
 
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHr < 24) return `${diffHr}h ago`;
-  return `${diffDay}d ago`;
+  if (diffMin < 1) return t("common.time.justNow");
+  if (diffMin < 60) return t("common.time.minutesAgo", { count: diffMin });
+  if (diffHr < 24) return t("common.time.hoursAgo", { count: diffHr });
+  return t("common.time.daysAgo", { count: diffDay });
 }
 
 export function ActivityFeed({ events }: ActivityFeedProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations();
 
   if (events.length === 0) {
     return (
-      <Card data-testid="activity-feed" className="border-border/70 bg-card/95 shadow-sm">
+      <Card
+        data-testid="activity-feed"
+        data-tour="recent-activity"
+        className="border-border/70 bg-card/95 shadow-sm"
+      >
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">{t("activityFeedTitle")}</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            {t("dashboard.activityFeedTitle")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed py-10 text-center">
             <Wand2 className="text-muted-foreground/40 h-8 w-8" />
-            <p className="text-muted-foreground text-sm font-medium">{t("activityEmpty")}</p>
-            <p className="text-muted-foreground text-xs">{t("activityEmptyDescription")}</p>
+            <p className="text-muted-foreground text-sm font-medium">
+              {t("dashboard.activityEmpty")}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {t("dashboard.activityEmptyDescription")}
+            </p>
             <Button size="sm" asChild>
               <Link href="/dashboard/telegram-post">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                {t("actionNewPost")}
+                {t("dashboard.actionNewPost")}
               </Link>
             </Button>
           </div>
@@ -72,9 +85,15 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
   }
 
   return (
-    <Card data-testid="activity-feed" className="border-border/70 bg-card/95 shadow-sm">
+    <Card
+      data-testid="activity-feed"
+      data-tour="recent-activity"
+      className="border-border/70 bg-card/95 shadow-sm"
+    >
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">{t("activityFeedTitle")}</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          {t("dashboard.activityFeedTitle")}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <ul className="divide-y">
@@ -89,7 +108,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
                     {getPlatformLabel(event.platform)}
                   </Badge>
                   <span className="text-muted-foreground text-xs capitalize">
-                    {t(`activityType_${event.type}`)}
+                    {t(`dashboard.activityType_${event.type}`)}
                   </span>
                 </div>
                 {event.contentSnippet && (
@@ -99,7 +118,7 @@ export function ActivityFeed({ events }: ActivityFeedProps) {
                 )}
               </div>
               <span className="text-muted-foreground flex-shrink-0 text-xs">
-                {formatRelativeTime(event.timestamp)}
+                {formatRelativeTime(event.timestamp, t)}
               </span>
             </li>
           ))}

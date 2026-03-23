@@ -131,7 +131,7 @@ export function AppSidebar({ userEmail, isAdmin = false }: AppSidebarProps) {
   const initials = userEmail ? userEmail.slice(0, 2).toUpperCase() : "U";
 
   return (
-    <Sidebar>
+    <Sidebar data-tour="sidebar-nav">
       <SidebarHeader className="border-sidebar-border border-b px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-lg">

@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ContentLibraryClient } from "@/components/content/content-library-client";
 import { listContent } from "@/server/actions/content";
 import { listChannels } from "@/server/actions/channels";
+import { TourTriggerWrapper } from "@/components/onboarding/tour-trigger-wrapper";
 
 export default async function PostsPage() {
   const [t, contentResult, channelsResult] = await Promise.all([
@@ -20,9 +21,9 @@ export default async function PostsPage() {
     : [];
 
   return (
-    <>
+    <TourTriggerWrapper tourId="content-library-intro">
       <PageHeader title={t("title")} description={t("description")} />
       <ContentLibraryClient initialItems={initialItems} channels={channels} />
-    </>
+    </TourTriggerWrapper>
   );
 }
