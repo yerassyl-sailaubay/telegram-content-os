@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
-import { ContentCard } from "@/components/content/content-card";
+import { ContentTable } from "@/components/content/content-table";
 import { ContentFilters, type ContentStatusTab } from "@/components/content/content-filters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -128,14 +128,16 @@ export function ContentLibraryClient({ initialItems, channels }: ContentLibraryC
   const emptyConfig = EMPTY_STATE_CONFIG[activeTab];
 
   return (
-    <div className="space-y-6" data-testid="content-library">
-      <ContentFilters
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        channels={channels}
-        selectedChannelId={selectedChannelId}
-        onChannelChange={handleChannelChange}
-      />
+    <div className="space-y-6" data-testid="content-library" data-tour="content-container">
+      <div data-tour="content-filters">
+        <ContentFilters
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          channels={channels}
+          selectedChannelId={selectedChannelId}
+          onChannelChange={handleChannelChange}
+        />
+      </div>
 
       {error && <p className="text-destructive text-sm">{error}</p>}
 
@@ -153,11 +155,7 @@ export function ContentLibraryClient({ initialItems, channels }: ContentLibraryC
           data-testid={`empty-state-${activeTab}`}
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="content-grid">
-          {items.map((item) => (
-            <ContentCard key={item.id} item={item} onArchived={handleItemArchived} />
-          ))}
-        </div>
+        <ContentTable data={items} onArchived={handleItemArchived} />
       )}
     </div>
   );

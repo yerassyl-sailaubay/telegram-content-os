@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,18 +18,22 @@ function getPlatformLabel(platform: string): string {
   return platform;
 }
 
-function formatScheduledTime(date: Date): string {
+function formatScheduledTime(
+  date: Date,
+  t: (key: string, values?: Record<string, string | number>) => string,
+  locale: string,
+): string {
   const now = new Date();
   const diffMs = date.getTime() - now.getTime();
   const diffMin = Math.ceil(diffMs / 60000);
   const diffHr = Math.ceil(diffMin / 60);
   const diffDay = Math.ceil(diffHr / 24);
 
-  if (diffMin <= 60) return `in ${diffMin}m`;
-  if (diffHr <= 24) return `in ${diffHr}h`;
-  if (diffDay <= 7) return `in ${diffDay}d`;
+  if (diffMin <= 60) return t("common.time.inMinutes", { count: diffMin });
+  if (diffHr <= 24) return t("common.time.inHours", { count: diffHr });
+  if (diffDay <= 7) return t("common.time.inDays", { count: diffDay });
 
-  return date.toLocaleDateString("en", {
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -38,30 +42,41 @@ function formatScheduledTime(date: Date): string {
 }
 
 export function UpcomingPosts({ posts }: UpcomingPostsProps) {
-  const t = useTranslations("dashboard");
+  const t = useTranslations();
+  const locale = useLocale();
 
   if (posts.length === 0) {
     return (
-      <Card data-testid="upcoming-posts" className="border-border/70 bg-card/95 shadow-sm">
+      <Card
+        data-testid="upcoming-posts"
+        data-tour="upcoming-posts"
+        className="border-border/70 bg-card/95 shadow-sm"
+      >
         <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-base font-semibold">{t("upcomingPostsTitle")}</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            {t("dashboard.upcomingPostsTitle")}
+          </CardTitle>
           <Link
             href="/dashboard/schedule"
             className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs underline-offset-2 transition-colors hover:underline"
           >
-            {t("viewCalendar")}
+            {t("dashboard.viewCalendar")}
             <ArrowRight className="h-3 w-3" />
           </Link>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-dashed py-10 text-center">
             <CalendarDays className="text-muted-foreground/40 h-8 w-8" />
-            <p className="text-muted-foreground text-sm font-medium">{t("upcomingEmpty")}</p>
-            <p className="text-muted-foreground text-xs">{t("upcomingEmptyDescription")}</p>
+            <p className="text-muted-foreground text-sm font-medium">
+              {t("dashboard.upcomingEmpty")}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {t("dashboard.upcomingEmptyDescription")}
+            </p>
             <Button size="sm" asChild>
               <Link href="/dashboard/schedule">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                {t("actionViewSchedule")}
+                {t("dashboard.actionViewSchedule")}
               </Link>
             </Button>
           </div>
@@ -71,9 +86,15 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
   }
 
   return (
-    <Card data-testid="upcoming-posts" className="border-border/70 bg-card/95 shadow-sm">
+    <Card
+      data-testid="upcoming-posts"
+      data-tour="upcoming-posts"
+      className="border-border/70 bg-card/95 shadow-sm"
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-base font-semibold">{t("upcomingPostsTitle")}</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          {t("dashboard.upcomingPostsTitle")}
+        </CardTitle>
         <Link
           href="/dashboard/schedule"
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs underline-offset-2 transition-colors hover:underline"
@@ -100,7 +121,7 @@ export function UpcomingPosts({ posts }: UpcomingPostsProps) {
                 )}
               </div>
               <span className="flex-shrink-0 text-xs font-medium text-blue-600 dark:text-blue-400">
-                {formatScheduledTime(post.scheduledAt)}
+                {formatScheduledTime(post.scheduledAt, t, locale)}
               </span>
             </li>
           ))}

@@ -7,6 +7,7 @@ export { aiGenerationIntroTour } from "./definitions/ai-generation-intro";
 export { baseDriverConfig, driverStyles } from "./config";
 export type { TourId, TourMetadata, TourConfig, TourState, TourContextValue } from "./types";
 export { defaultTourState } from "./types";
+export { mobileTourSteps, tourNames } from "./mobile-steps";
 
 import type { TourConfig, TourId } from "./types";
 import { dashboardIntroTour } from "./definitions/dashboard-intro";

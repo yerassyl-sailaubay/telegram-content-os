@@ -137,8 +137,8 @@ export function UrlInputForm() {
     : null;
 
   return (
-    <Card className="max-w-2xl">
-      <CardHeader>
+    <Card className="max-w-2xl" data-tour="ai-generation-container">
+      <CardHeader data-tour="ai-header">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Link2 className="text-primary size-5" />
           {t("title")}
@@ -148,7 +148,7 @@ export function UrlInputForm() {
 
       <CardContent>
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="ai-prompt-input">
             <Label htmlFor="url-input">{t("urlLabel")}</Label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
@@ -190,7 +190,7 @@ export function UrlInputForm() {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2" data-tour="ai-tone-selector">
             <Label htmlFor="channel-select">{t("channelLabel")}</Label>
             {isLoadingChannels ? (
               <div className="border-input bg-background flex h-9 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm opacity-70">
@@ -241,6 +241,7 @@ export function UrlInputForm() {
           <Button
             type="submit"
             data-testid="submit-url"
+            data-tour="ai-generate-btn"
             disabled={isPending || channels.length === 0}
             className="w-full sm:w-auto"
           >
