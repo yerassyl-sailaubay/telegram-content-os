@@ -105,7 +105,10 @@ export function ScheduleCalendar({
   return (
     <div className="flex flex-col gap-4">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        className="flex flex-wrap items-center justify-between gap-3"
+        data-tour="schedule-view-controls"
+      >
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={goToToday}>
             {t("today")}

@@ -6,7 +6,7 @@ export const scheduleIntroTour: TourConfig = {
   metadata: {
     id: "schedule-intro",
     name: "Schedule Introduction",
-    description: "Learn how to schedule and manage your content calendar",
+    description: "Learn how to manage your publishing calendar",
     maxSteps: 4,
     allowSkip: true,
     showProgress: true,
@@ -14,42 +14,42 @@ export const scheduleIntroTour: TourConfig = {
   },
   steps: [
     {
-      element: "[data-tour='schedule-calendar']",
+      element: "[data-tour='schedule-view-controls']",
       popover: {
-        title: "Content Calendar",
+        title: "Calendar Navigation",
         description:
-          "View your publishing schedule in a calendar or list format. See what's coming up at a glance.",
+          "Move between dates, jump back to today, and switch between month, week, and day views as you plan.",
         side: "bottom",
         align: "start",
       },
     },
     {
-      element: "[data-tour='schedule-timeline']",
+      element: "[data-tour='schedule-timezone']",
       popover: {
-        title: "Timeline View",
+        title: "Timezone",
         description:
-          "Switch to timeline view to see your scheduled posts in chronological order with precise timing.",
-        side: "right",
+          "Set the timezone you want the calendar to use so scheduled posts line up with your audience timing.",
+        side: "bottom",
         align: "start",
       },
     },
     {
-      element: "[data-tour='schedule-drag-drop']",
+      element: "[data-tour='add-schedule-btn']",
       popover: {
-        title: "Drag & Drop",
+        title: "Create a Schedule",
         description:
-          "Easily reschedule posts by dragging them to a new time slot. Changes are saved automatically.",
-        side: "top",
+          "Start a new scheduled post from here and continue into the composer with the chosen date and time.",
+        side: "left",
         align: "center",
       },
     },
     {
-      element: "[data-tour='schedule-optimize']",
+      element: "[data-tour='schedule-calendar']",
       popover: {
-        title: "Smart Scheduling",
+        title: "Publishing Calendar",
         description:
-          "Let AI suggest the best posting times based on your audience engagement patterns.",
-        side: "left",
+          "See your scheduled posts on the calendar, open busy days, and adjust plans directly from the timeline.",
+        side: "top",
         align: "center",
       },
     },

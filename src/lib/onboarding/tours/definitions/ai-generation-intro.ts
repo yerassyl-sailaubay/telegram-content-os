@@ -5,8 +5,8 @@ export const aiGenerationIntroTour: TourConfig = {
   ...baseDriverConfig,
   metadata: {
     id: "ai-generation-intro",
-    name: "AI Generation Introduction",
-    description: "Learn how to use AI to generate and optimize content",
+    name: "Create from URL Introduction",
+    description: "Learn how URL import turns source material into channel-ready drafts",
     maxSteps: 5,
     allowSkip: true,
     showProgress: true,
@@ -14,52 +14,52 @@ export const aiGenerationIntroTour: TourConfig = {
   },
   steps: [
     {
-      element: "[data-tour='ai-prompt-input']",
+      element: "[data-tour='ai-header']",
       popover: {
-        title: "AI Content Generator",
+        title: "Create from URL",
         description:
-          "Describe what you want to create. The AI will generate Telegram-ready content based on your input.",
+          "This workflow imports a source article or video and turns it into content you can adapt for a Telegram channel.",
         side: "bottom",
         align: "start",
       },
     },
     {
-      element: "[data-tour='ai-templates']",
+      element: "[data-tour='ai-prompt-input']",
       popover: {
-        title: "Content Templates",
+        title: "Paste a Source URL",
         description:
-          "Choose from pre-built templates for common content types: announcements, tips, stories, and more.",
-        side: "right",
+          "Drop in an article or YouTube link here. The importer will extract the source material before creating a draft.",
+        side: "bottom",
         align: "start",
       },
     },
     {
       element: "[data-tour='ai-tone-selector']",
       popover: {
-        title: "Tone & Style",
+        title: "Choose the Destination Channel",
         description:
-          "Select the writing style that matches your brand: professional, casual, humorous, or educational.",
-        side: "left",
+          "Pick which Telegram channel the draft is for so the imported content is created in the right workspace.",
+        side: "bottom",
         align: "center",
       },
     },
     {
       element: "[data-tour='ai-generate-btn']",
       popover: {
-        title: "Generate Content",
+        title: "Start the Import",
         description:
-          "Click to generate your content. The AI will create multiple variations for you to choose from.",
+          "Launch the import once the URL and channel are set. The job will move through extraction and generation in the background.",
         side: "top",
         align: "center",
       },
     },
     {
-      element: "[data-tour='ai-variations']",
+      element: "[data-tour='ai-recent-imports']",
       popover: {
-        title: "Choose & Edit",
+        title: "Recent Import Jobs",
         description:
-          "Review AI-generated variations, pick your favorite, and edit it to perfection before publishing.",
-        side: "top",
+          "Check recent imports here to see whether a job is pending, generating, completed, or needs another try.",
+        side: "bottom",
         align: "start",
       },
     },

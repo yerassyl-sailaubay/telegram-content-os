@@ -124,7 +124,9 @@ export function SchedulePageClient() {
         className="flex flex-wrap items-center justify-between gap-3"
         data-tour="schedule-toolbar"
       >
-        <TimezoneSelect value={timezone} onValueChange={setTimezone} className="w-[280px]" />
+        <div data-tour="schedule-timezone">
+          <TimezoneSelect value={timezone} onValueChange={setTimezone} className="w-[280px]" />
+        </div>
         <Button onClick={() => setDialogOpen(true)} data-tour="add-schedule-btn">
           <CalendarPlus className="mr-2 h-4 w-4" />
           {t("newSchedule")}

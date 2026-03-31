@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -32,9 +32,9 @@ function SortIcon({
   return <ChevronDown className="text-foreground h-3.5 w-3.5" />;
 }
 
-function formatDate(date: Date | null): string {
+function formatDate(date: Date | null, locale: string): string {
   if (!date) return "—";
-  return new Date(date).toLocaleDateString("en", {
+  return new Date(date).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -49,6 +49,7 @@ function truncateContent(content: string | null, maxLen = 80): string {
 
 export function ContentPerformanceTable({ posts }: ContentPerformanceTableProps) {
   const t = useTranslations("analytics");
+  const locale = useLocale();
   const [sortKey, setSortKey] = React.useState<SortKey>("views");
   const [sortDir, setSortDir] = React.useState<SortDir>("desc");
 
@@ -90,7 +91,11 @@ export function ContentPerformanceTable({ posts }: ContentPerformanceTableProps)
   ];
 
   return (
-    <Card data-testid="content-performance-table" className="border-border/70 bg-card/95 shadow-sm">
+    <Card
+      data-testid="content-performance-table"
+      data-tour="analytics-top-posts"
+      className="border-border/70 bg-card/95 shadow-sm"
+    >
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">{t("contentPerformance")}</CardTitle>
       </CardHeader>
@@ -156,7 +161,7 @@ export function ContentPerformanceTable({ posts }: ContentPerformanceTableProps)
                       {post.forwards.toLocaleString()}
                     </td>
                     <td className="text-muted-foreground px-4 py-3 text-right text-xs">
-                      {formatDate(post.postedAt)}
+                      {formatDate(post.postedAt, locale)}
                     </td>
                   </tr>
                 ))}

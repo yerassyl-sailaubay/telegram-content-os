@@ -255,7 +255,7 @@ export function UrlInputForm() {
             )}
           </Button>
 
-          <div className="border-t pt-4">
+          <div className="border-t pt-4" data-tour="ai-recent-imports">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-medium">{t("recentImports")}</p>
               <Button

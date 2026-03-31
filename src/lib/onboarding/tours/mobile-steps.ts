@@ -8,29 +8,29 @@ interface MobileTourStep {
 export const mobileTourSteps: Record<TourId, MobileTourStep[]> = {
   "dashboard-intro": [
     {
-      title: "Welcome to Your Dashboard",
+      title: "Dashboard Snapshot",
       description:
-        "This is your content command center. Access all your posts, analytics, and AI tools from here.",
+        "This hero section gives you a quick read on ideas, drafts, scheduled posts, and publishing gaps.",
     },
     {
-      title: "Create from URL",
+      title: "Quick Actions",
       description:
-        "Quickly import and adapt content from any URL. Our AI will analyze and optimize it for your Telegram channel.",
+        "Jump straight into the most common workflows: writing a post, importing from a URL, or opening your schedule.",
     },
     {
-      title: "Quick Stats",
+      title: "Capture Ideas Fast",
       description:
-        "Track your content performance at a glance. View scheduled posts, published content, and engagement metrics.",
+        "Use this card to save raw ideas quickly and keep an eye on your current AI-assisted creation usage.",
     },
     {
-      title: "Recent Activity",
+      title: "Upcoming Queue",
       description:
-        "Access your recently created and edited posts. Click any item to continue working on it.",
+        "This panel shows what is scheduled next so you can spot empty days before your calendar goes quiet.",
     },
     {
       title: "Navigation",
       description:
-        "Use the sidebar to explore all features: Content Library, Schedule, Analytics, and AI Generation tools.",
+        "Use the sidebar to move between posts, scheduling, analytics, channels, and settings from any dashboard page.",
     },
   ],
 
@@ -38,100 +38,101 @@ export const mobileTourSteps: Record<TourId, MobileTourStep[]> = {
     {
       title: "Content Filters",
       description:
-        "Filter your content by status, type, or date. Find exactly what you need in seconds.",
-    },
-    {
-      title: "Your Content",
-      description:
-        "All your posts are displayed here. Each card shows the status, scheduled time, and quick actions.",
+        "Switch between ideas, drafts, scheduled posts, published items, and channel-specific views from here.",
     },
     {
       title: "Search",
-      description: "Search through all your content by keywords, tags, or content type.",
+      description:
+        "Search through saved titles and body text to find the exact draft or published post you want to reopen.",
     },
     {
-      title: "Bulk Actions",
+      title: "Content Table",
       description:
-        "Select multiple items to perform bulk operations like schedule, publish, or delete.",
+        "When content is available, this table becomes the fastest way to review status, source, and row-level actions.",
+    },
+    {
+      title: "Visible Columns",
+      description:
+        "Customize which columns stay visible in the table so the library matches the way you like to review content.",
     },
   ],
 
   "schedule-intro": [
     {
-      title: "Content Calendar",
+      title: "Calendar Navigation",
       description:
-        "View your publishing schedule in a calendar or list format. See what's coming up at a glance.",
+        "Move between dates, jump back to today, and switch between month, week, and day views as you plan.",
     },
     {
-      title: "Add Schedule",
+      title: "Timezone",
       description:
-        "Click the 'New Schedule' button to schedule posts for optimal engagement times.",
+        "Set the timezone you want the calendar to use so scheduled posts line up with your audience timing.",
     },
     {
-      title: "Drag & Drop",
+      title: "Create a Schedule",
       description:
-        "Easily reschedule posts by dragging them to a new time slot. Changes are saved automatically.",
+        "Start a new scheduled post from here and continue into the composer with the chosen date and time.",
     },
     {
-      title: "Timezone Support",
+      title: "Publishing Calendar",
       description:
-        "Set your timezone to ensure posts are published at the right time for your audience.",
+        "See your scheduled posts on the calendar, open busy days, and adjust plans directly from the timeline.",
     },
   ],
 
   "analytics-intro": [
     {
-      title: "Performance Overview",
+      title: "Channel and Date Range",
       description:
-        "Track your key metrics: total views, engagement rate, subscriber growth, and content reach.",
+        "Pick the Telegram channel you want to inspect and switch the time window before reading the rest of the page.",
     },
     {
-      title: "Trend Charts",
+      title: "Headline Insights",
       description:
-        "Visualize your performance over time. Spot trends and understand what content resonates with your audience.",
+        "These cards surface the fastest read on growth, your strongest posting window, and your current top post.",
     },
     {
-      title: "Best Posting Times",
+      title: "Best Posting Time",
       description:
-        "See heatmaps of when your audience is most active. Optimize your posting schedule.",
+        "Use this insight to spot the weekday and hour that currently earn the strongest average view count.",
     },
     {
-      title: "Top Performing Content",
+      title: "Growth and Heatmap",
       description:
-        "See your best-performing posts. Learn from what works and replicate that success.",
+        "The chart and heatmap help you compare growth over time and see which publishing slots perform best.",
     },
     {
-      title: "Channel Insights",
+      title: "Top Posts Table",
       description:
-        "Understand who your audience is: demographics, active hours, and engagement patterns.",
+        "Sort your strongest posts by views, reactions, forwards, or date to learn which content patterns are working.",
     },
   ],
 
   "ai-generation-intro": [
     {
-      title: "AI Content Generator",
+      title: "Create from URL",
       description:
-        "Describe what you want to create. The AI will generate Telegram-ready content based on your input.",
+        "This workflow imports a source article or video and turns it into content you can adapt for a Telegram channel.",
     },
     {
-      title: "URL Import",
+      title: "Paste a Source URL",
       description:
-        "Paste any URL to extract and adapt content. Works with articles, YouTube videos, and more.",
+        "Drop in an article or YouTube link here. The importer will extract the source material before creating a draft.",
     },
     {
-      title: "Channel Selection",
+      title: "Choose the Destination Channel",
       description:
-        "Select which channel to create content for. The AI will adapt the tone and style accordingly.",
+        "Pick which Telegram channel the draft is for so the imported content is created in the right workspace.",
     },
     {
-      title: "Generate Content",
+      title: "Start the Import",
       description:
-        "Click to generate your content. The AI will create optimized content for your channel.",
+        "Launch the import once the URL and channel are set. The job will move through extraction and generation in the background.",
     },
     {
-      title: "Edit & Publish",
+      title: "Recent Import Jobs",
       description:
-        "Review AI-generated content, make edits, and publish directly to your Telegram channel.",
+        "Check recent imports here to see whether a job is pending, generating, completed, or needs another try.",
     },
   ],
 };
@@ -141,5 +142,5 @@ export const tourNames: Record<TourId, string> = {
   "content-library-intro": "Content Library",
   "schedule-intro": "Schedule",
   "analytics-intro": "Analytics",
-  "ai-generation-intro": "AI Generation",
+  "ai-generation-intro": "Create from URL",
 };

@@ -6,7 +6,7 @@ export const analyticsIntroTour: TourConfig = {
   metadata: {
     id: "analytics-intro",
     name: "Analytics Introduction",
-    description: "Learn how to understand your content performance",
+    description: "Learn where to check growth, timing, and top-performing posts",
     maxSteps: 5,
     allowSkip: true,
     showProgress: true,
@@ -14,21 +14,41 @@ export const analyticsIntroTour: TourConfig = {
   },
   steps: [
     {
-      element: "[data-tour='analytics-overview']",
+      element: "[data-tour='analytics-filters']",
       popover: {
-        title: "Performance Overview",
+        title: "Channel and Date Range",
         description:
-          "Track your key metrics: total views, engagement rate, subscriber growth, and content reach.",
+          "Pick the Telegram channel you want to inspect and switch the time window before reading the rest of the page.",
         side: "bottom",
+        align: "start",
+      },
+    },
+    {
+      element: "[data-tour='analytics-kpi-cards']",
+      popover: {
+        title: "Headline Insights",
+        description:
+          "These cards surface the fastest read on growth, your strongest posting window, and your current top post.",
+        side: "bottom",
+        align: "start",
+      },
+    },
+    {
+      element: "[data-tour='kpi-best-time']",
+      popover: {
+        title: "Best Posting Time",
+        description:
+          "Use this insight to spot the weekday and hour that currently earn the strongest average view count.",
+        side: "left",
         align: "start",
       },
     },
     {
       element: "[data-tour='analytics-charts']",
       popover: {
-        title: "Trend Charts",
+        title: "Growth and Heatmap",
         description:
-          "Visualize your performance over time. Spot trends and understand what content resonates with your audience.",
+          "The chart and heatmap help you compare growth over time and see which publishing slots perform best.",
         side: "top",
         align: "start",
       },
@@ -36,30 +56,11 @@ export const analyticsIntroTour: TourConfig = {
     {
       element: "[data-tour='analytics-top-posts']",
       popover: {
-        title: "Top Performing Content",
+        title: "Top Posts Table",
         description:
-          "See your best-performing posts. Learn from what works and replicate that success.",
-        side: "left",
-        align: "start",
-      },
-    },
-    {
-      element: "[data-tour='analytics-audience']",
-      popover: {
-        title: "Audience Insights",
-        description:
-          "Understand who your audience is: demographics, active hours, and engagement patterns.",
-        side: "right",
-        align: "start",
-      },
-    },
-    {
-      element: "[data-tour='analytics-export']",
-      popover: {
-        title: "Export Reports",
-        description: "Download detailed reports to share with your team or for further analysis.",
+          "Sort your strongest posts by views, reactions, forwards, or date to learn which content patterns are working.",
         side: "bottom",
-        align: "end",
+        align: "start",
       },
     },
   ],
