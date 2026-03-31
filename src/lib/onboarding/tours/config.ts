@@ -2,7 +2,8 @@ import type { Config } from "driver.js";
 
 export const baseDriverConfig: Partial<Config> = {
   animate: true,
-  overlayOpacity: 0.5,
+  overlayColor: "#0f172a",
+  overlayOpacity: 0.55,
   popoverClass: "driver-popover",
   allowClose: true,
   allowKeyboardControl: true,
@@ -15,10 +16,14 @@ export const baseDriverConfig: Partial<Config> = {
 };
 
 export const driverStyles = `
-  /* Overlay - matches shadcn/ui backdrop */
+  /* Keep Driver.js spotlight clear; the SVG path already creates the cutout */
   .driver-overlay {
-    background-color: hsl(var(--background) / 0.8) !important;
-    backdrop-filter: blur(4px);
+    backdrop-filter: none !important;
+  }
+
+  .driver-overlay path {
+    fill: #0f172a !important;
+    opacity: 0.55 !important;
   }
   
   /* Popover container - matches shadcn/ui popover/card styling */
@@ -53,7 +58,7 @@ export const driverStyles = `
   }
   
   /* Progress indicator */
-  .driver-popover-progress {
+  .driver-popover-progress-text {
     font-size: 0.75rem !important;
     color: hsl(var(--muted-foreground)) !important;
     font-weight: 500 !important;
@@ -89,8 +94,7 @@ export const driverStyles = `
   }
   
   /* Secondary button - matches shadcn/ui secondary button */
-  .driver-popover-prev-btn,
-  .driver-popover-close-btn {
+  .driver-popover-prev-btn {
     background-color: hsl(var(--secondary)) !important;
     color: hsl(var(--secondary-foreground)) !important;
     border: none !important;
@@ -102,8 +106,7 @@ export const driverStyles = `
     transition: opacity 0.2s !important;
   }
   
-  .driver-popover-prev-btn:hover,
-  .driver-popover-close-btn:hover {
+  .driver-popover-prev-btn:hover {
     opacity: 0.9 !important;
   }
   
@@ -120,9 +123,7 @@ export const driverStyles = `
   /* Stage (highlighted element wrapper) */
   .driver-active-element {
     border-radius: var(--radius-md) !important;
-    box-shadow: 
-      0 0 0 4px hsl(var(--ring)),
-      0 0 0 9999px hsl(var(--background) / 0.5) !important;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.45) !important;
   }
   
   /* Close button (X) in corner */

@@ -6,7 +6,7 @@ export const dashboardIntroTour: TourConfig = {
   metadata: {
     id: "dashboard-intro",
     name: "Dashboard Introduction",
-    description: "Learn the basics of your content dashboard",
+    description: "Learn how to scan your dashboard and jump into the next task fast",
     maxSteps: 5,
     allowSkip: true,
     showProgress: true,
@@ -14,41 +14,41 @@ export const dashboardIntroTour: TourConfig = {
   },
   steps: [
     {
-      element: "[data-tour='dashboard-header']",
+      element: "[data-tour='quick-stats']",
       popover: {
-        title: "Welcome to Your Dashboard",
+        title: "Dashboard Snapshot",
         description:
-          "This is your content command center. Access all your posts, analytics, and AI tools from here.",
+          "This hero section gives you a quick read on ideas, drafts, scheduled posts, and publishing gaps.",
         side: "bottom",
         align: "start",
       },
     },
     {
-      element: "[data-tour='create-from-url']",
+      element: "[data-tour='quick-actions']",
       popover: {
-        title: "Create from URL",
+        title: "Quick Actions",
         description:
-          "Quickly import and adapt content from any URL. Our AI will analyze and optimize it for your Telegram channel.",
+          "Jump straight into the most common workflows: writing a post, importing from a URL, or opening your schedule.",
         side: "bottom",
         align: "center",
       },
     },
     {
-      element: "[data-tour='quick-stats']",
+      element: "[data-tour='create-from-url']",
       popover: {
-        title: "Quick Stats",
+        title: "Capture Ideas Fast",
         description:
-          "Track your content performance at a glance. View scheduled posts, published content, and engagement metrics.",
+          "Use this card to save raw ideas quickly and keep an eye on your current AI-assisted creation usage.",
         side: "bottom",
         align: "start",
       },
     },
     {
-      element: "[data-tour='recent-content']",
+      element: "[data-tour='upcoming-posts']",
       popover: {
-        title: "Recent Content",
+        title: "Upcoming Queue",
         description:
-          "Access your recently created and edited posts. Click any item to continue working on it.",
+          "This panel shows what is scheduled next so you can spot empty days before your calendar goes quiet.",
         side: "top",
         align: "start",
       },
@@ -58,7 +58,7 @@ export const dashboardIntroTour: TourConfig = {
       popover: {
         title: "Navigation",
         description:
-          "Use the sidebar to explore all features: Content Library, Schedule, Analytics, and AI Generation tools.",
+          "Use the sidebar to move between posts, scheduling, analytics, channels, and settings from any dashboard page.",
         side: "right",
         align: "start",
       },
