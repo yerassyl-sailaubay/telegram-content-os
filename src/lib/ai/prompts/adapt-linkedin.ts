@@ -6,6 +6,11 @@
  */
 
 import type { OpenRouterMessage, ChannelProfile } from "../types";
+import {
+  PROMPT_INJECTION_GUARDRAILS,
+  formatUntrustedPromptSection,
+  sanitizeUntrustedPromptInput,
+} from "../prompt-security";
 
 interface LinkedInAdaptInput {
   translatedContent: string;
@@ -20,11 +25,14 @@ export function buildLinkedInAdaptPrompt(input: LinkedInAdaptInput): OpenRouterM
   let channelContext = "";
   if (input.channelProfile) {
     const { niche, tone, topTopics } = input.channelProfile;
+    const safeTopics = topTopics
+      .map((topic) => sanitizeUntrustedPromptInput(topic, 120))
+      .filter((topic) => topic.length > 0);
     channelContext = `
 Channel context:
-- Niche: ${niche ?? "general"}
-- Tone: ${tone ?? "neutral"}
-- Key topics: ${topTopics?.join(", ") ?? "various"}
+- Niche: ${sanitizeUntrustedPromptInput(niche ?? "general", 200)}
+- Tone: ${sanitizeUntrustedPromptInput(tone ?? "neutral", 200)}
+- Key topics: ${safeTopics.join(", ") || "various"}
 
 Match this channel's voice and expertise area when adapting the content.
 `;
@@ -47,6 +55,8 @@ Requirements:
 - Preserve the core message and key insights from the original
 - Do NOT use clickbait or overly promotional language
 - Do NOT add fake statistics or unsubstantiated claims
+
+${PROMPT_INJECTION_GUARDRAILS}
 ${channelContext}
 Output ONLY the adapted LinkedIn post, nothing else.`,
     },
@@ -54,7 +64,7 @@ Output ONLY the adapted LinkedIn post, nothing else.`,
       role: "user",
       content: `Adapt the following translated content into a LinkedIn post:
 
-${input.translatedContent}`,
+${formatUntrustedPromptSection("translated_content", input.translatedContent, 12_000)}`,
     },
   ];
 }

@@ -1,6 +1,6 @@
 # Telegram Content OS - Feature Status Source of Truth
 
-Last updated: 2026-03-17 (Asia/Almaty)
+Last updated: 2026-03-21 (Asia/Almaty)
 Owner: Product + Engineering
 
 ## Purpose
@@ -35,8 +35,9 @@ Use it to answer three questions:
 | LinkedIn/X analytics surface | Partial                  | Collection plumbing exists; dashboard remains Telegram-first.               |
 | Media management             | Partial                  | Backend + route exist, but UX depth is still limited.                       |
 | Billing and quotas (Stripe)  | Shipped                  | Enforced plan limits, checkout, portal, webhook handling.                   |
-| Inngest background jobs      | Shipped                  | Endpoint active and functions registered/invokable.                         |
+| Inngest background jobs      | Shipped                  | Endpoint active and functions registered/invokable (22 functions).          |
 | Admin/internal tools         | Internal                 | Useful for ops/debug, not a marketing headline.                             |
+| Landing page (marketing)     | Shipped                  | Separate Vite app with RU/EN localization.                                  |
 
 ## Clearly Shipped User-Facing Features
 
@@ -68,6 +69,11 @@ Use it to answer three questions:
 - Enforced plan limits and usage tracking
 - Profile/settings/preferences
 - RU/EN localization
+
+### Marketing and onboarding
+
+- Localized landing page (RU/EN) as separate Vite application
+- Multi-language marketing site with dashboard mockup
 
 ## Partial or Limited Surfaces
 

@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 interface HreflangTag {
   /** Language/region code */
@@ -33,10 +33,10 @@ interface HreflangIssue {
  * Sources: <link rel="alternate" hreflang="..."> or HTTP headers
  */
 export const hreflangRule = defineRule({
-  id: 'i18n-hreflang',
-  name: 'Hreflang Tags',
-  description: 'Checks for hreflang link elements for international targeting',
-  category: 'i18n',
+  id: "i18n-hreflang",
+  name: "Hreflang Tags",
+  description: "Checks for hreflang link elements for international targeting",
+  category: "i18n",
   weight: 10,
   run: (context: AuditContext) => {
     const { $, url } = context;
@@ -46,17 +46,17 @@ export const hreflangRule = defineRule({
     // Collect hreflang from link elements
     $('link[rel="alternate"][hreflang]').each((_, el) => {
       const $el = $(el);
-      const hreflang = $el.attr('hreflang') || '';
-      const href = $el.attr('href') || '';
+      const hreflang = $el.attr("hreflang") || "";
+      const href = $el.attr("href") || "";
 
       hreflangTags.push({ hreflang, href });
     });
 
     // No hreflang tags - this is fine for single-language sites
     if (hreflangTags.length === 0) {
-      return pass('i18n-hreflang', 'No hreflang tags found (single-language site)', {
+      return pass("i18n-hreflang", "No hreflang tags found (single-language site)", {
         count: 0,
-        note: 'Add hreflang tags if you have multi-language or regional versions',
+        note: "Add hreflang tags if you have multi-language or regional versions",
       });
     }
 
@@ -70,17 +70,17 @@ export const hreflangRule = defineRule({
 
       // Check for empty values
       if (!hreflang) {
-        issues.push({ issue: 'Empty hreflang attribute', href });
+        issues.push({ issue: "Empty hreflang attribute", href });
         continue;
       }
 
       if (!href) {
-        issues.push({ issue: 'Empty href attribute', hreflang });
+        issues.push({ issue: "Empty href attribute", hreflang });
         continue;
       }
 
       // Check for x-default
-      if (hreflang === 'x-default') {
+      if (hreflang === "x-default") {
         hasXDefault = true;
         continue;
       }
@@ -105,9 +105,9 @@ export const hreflangRule = defineRule({
       seenLanguages.add(hreflang);
 
       // Check for absolute URLs
-      if (href && !href.startsWith('http://') && !href.startsWith('https://')) {
+      if (href && !href.startsWith("http://") && !href.startsWith("https://")) {
         issues.push({
-          issue: 'Hreflang href should be absolute URL',
+          issue: "Hreflang href should be absolute URL",
           hreflang,
           href,
         });
@@ -128,19 +128,19 @@ export const hreflangRule = defineRule({
     // Check for missing self-reference
     if (!hasSelfReference) {
       issues.push({
-        issue: 'Missing self-referencing hreflang for current page',
+        issue: "Missing self-referencing hreflang for current page",
       });
     }
 
     // Check for missing x-default (warning, not required)
     if (!hasXDefault && hreflangTags.length > 1) {
       issues.push({
-        issue: 'Consider adding x-default for fallback language',
+        issue: "Consider adding x-default for fallback language",
       });
     }
 
     if (issues.length === 0) {
-      return pass('i18n-hreflang', `Found ${hreflangTags.length} valid hreflang tags`, {
+      return pass("i18n-hreflang", `Found ${hreflangTags.length} valid hreflang tags`, {
         count: hreflangTags.length,
         languages: Array.from(seenLanguages),
         hasXDefault,
@@ -151,20 +151,18 @@ export const hreflangRule = defineRule({
     // Determine severity based on issue types
     const hasCriticalIssues = issues.some(
       (i) =>
-        i.issue.includes('Empty') ||
-        i.issue.includes('Invalid') ||
-        i.issue.includes('Duplicate')
+        i.issue.includes("Empty") || i.issue.includes("Invalid") || i.issue.includes("Duplicate"),
     );
 
     if (hasCriticalIssues) {
-      return fail('i18n-hreflang', `Found ${issues.length} hreflang issue(s)`, {
+      return fail("i18n-hreflang", `Found ${issues.length} hreflang issue(s)`, {
         count: hreflangTags.length,
         issues: issues.slice(0, 10),
         totalIssues: issues.length,
       });
     }
 
-    return warn('i18n-hreflang', `Found ${issues.length} hreflang recommendation(s)`, {
+    return warn("i18n-hreflang", `Found ${issues.length} hreflang recommendation(s)`, {
       count: hreflangTags.length,
       issues: issues.slice(0, 10),
       totalIssues: issues.length,

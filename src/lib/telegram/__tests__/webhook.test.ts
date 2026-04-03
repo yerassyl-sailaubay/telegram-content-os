@@ -85,7 +85,6 @@ let mockDbReturningResult: Array<Record<string, unknown>> = [];
 // Import POST handler after mocks
 // ---------------------------------------------------------------------------
 
- 
 let POST: typeof import("@/app/api/telegram/webhook/route").POST;
 
 beforeEach(async () => {

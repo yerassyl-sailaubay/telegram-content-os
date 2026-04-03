@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * About page detection patterns
@@ -37,10 +37,10 @@ const ABOUT_PATTERNS = {
  * understand the authority and expertise of content creators.
  */
 export const aboutPageRule = defineRule({
-  id: 'eeat-about-page',
-  name: 'About Page',
-  description: 'Checks for an about/company page with content',
-  category: 'eeat',
+  id: "eeat-about-page",
+  name: "About Page",
+  description: "Checks for an about/company page with content",
+  category: "eeat",
   weight: 8,
 
   run(context: AuditContext): RuleResult {
@@ -48,14 +48,14 @@ export const aboutPageRule = defineRule({
     const foundLinks: Array<{ href: string; text: string; location: string }> = [];
 
     // Check all links
-    $('a[href]').each((_, el) => {
-      const href = $(el).attr('href') || '';
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href") || "";
       const text = $(el).text().trim();
 
       // Skip empty or external links
-      if (!href || href.startsWith('http') && !href.includes(context.url)) {
+      if (!href || (href.startsWith("http") && !href.includes(context.url))) {
         // Allow relative links and same-domain links
-        if (href.startsWith('http')) return;
+        if (href.startsWith("http")) return;
       }
 
       // Check link text
@@ -71,7 +71,7 @@ export const aboutPageRule = defineRule({
       for (const pattern of ABOUT_PATTERNS.urlPaths) {
         if (pattern.test(href)) {
           const location = detectLocation($, el);
-          foundLinks.push({ href, text: text.slice(0, 50) || 'About', location });
+          foundLinks.push({ href, text: text.slice(0, 50) || "About", location });
           return;
         }
       }
@@ -80,27 +80,27 @@ export const aboutPageRule = defineRule({
     // Check navigation specifically
     const navAbout = $('nav a, header a, [role="navigation"] a').filter((_, el) => {
       const text = $(el).text().trim().toLowerCase();
-      const href = $(el).attr('href') || '';
-      return text.includes('about') || /\/about/i.test(href);
+      const href = $(el).attr("href") || "";
+      return text.includes("about") || /\/about/i.test(href);
     });
 
     if (navAbout.length > 0 && foundLinks.length === 0) {
       navAbout.each((_, el) => {
-        const href = $(el).attr('href') || '';
+        const href = $(el).attr("href") || "";
         const text = $(el).text().trim();
-        foundLinks.push({ href, text, location: 'navigation' });
+        foundLinks.push({ href, text, location: "navigation" });
       });
     }
 
     if (foundLinks.length > 0) {
-      const inNav = foundLinks.some((link) =>
-        link.location === 'navigation' || link.location === 'header'
+      const inNav = foundLinks.some(
+        (link) => link.location === "navigation" || link.location === "header",
       );
 
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: `About page link found${inNav ? ' in navigation' : ''}`,
+        message: `About page link found${inNav ? " in navigation" : ""}`,
         details: {
           hasAboutPage: true,
           inNavigation: inNav,
@@ -110,12 +110,13 @@ export const aboutPageRule = defineRule({
     }
 
     return {
-      status: 'warn',
+      status: "warn",
       score: 50,
-      message: 'No about page link found - important for trust and E-E-A-T',
+      message: "No about page link found - important for trust and E-E-A-T",
       details: {
         hasAboutPage: false,
-        recommendation: 'Add an "About" or "About Us" page explaining who you are and link to it from your navigation',
+        recommendation:
+          'Add an "About" or "About Us" page explaining who you are and link to it from your navigation',
       },
     };
   },
@@ -129,23 +130,33 @@ function detectLocation($: cheerio.CheerioAPI, el: cheerio.Element): string {
 
   for (let i = 0; i < parents.length; i++) {
     const parent = parents.eq(i);
-    const tagName = parent.prop('tagName')?.toLowerCase() || '';
-    const className = parent.attr('class')?.toLowerCase() || '';
-    const id = parent.attr('id')?.toLowerCase() || '';
-    const role = parent.attr('role')?.toLowerCase() || '';
+    const tagName = parent.prop("tagName")?.toLowerCase() || "";
+    const className = parent.attr("class")?.toLowerCase() || "";
+    const id = parent.attr("id")?.toLowerCase() || "";
+    const role = parent.attr("role")?.toLowerCase() || "";
 
-    if (tagName === 'nav' || role === 'navigation' || className.includes('nav')) {
-      return 'navigation';
+    if (tagName === "nav" || role === "navigation" || className.includes("nav")) {
+      return "navigation";
     }
 
-    if (tagName === 'header' || role === 'banner' || className.includes('header') || id.includes('header')) {
-      return 'header';
+    if (
+      tagName === "header" ||
+      role === "banner" ||
+      className.includes("header") ||
+      id.includes("header")
+    ) {
+      return "header";
     }
 
-    if (tagName === 'footer' || role === 'contentinfo' || className.includes('footer') || id.includes('footer')) {
-      return 'footer';
+    if (
+      tagName === "footer" ||
+      role === "contentinfo" ||
+      className.includes("footer") ||
+      id.includes("footer")
+    ) {
+      return "footer";
     }
   }
 
-  return 'body';
+  return "body";
 }

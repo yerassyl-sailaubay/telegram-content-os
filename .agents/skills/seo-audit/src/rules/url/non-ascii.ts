@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Check for non-ASCII characters in URL path
@@ -9,11 +9,10 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * some tools and crawlers may not process them correctly.
  */
 export const nonAsciiRule = defineRule({
-  id: 'url-non-ascii',
-  name: 'Non-ASCII Characters in URL',
-  description:
-    'Checks for non-ASCII characters in the URL path that may cause encoding issues',
-  category: 'url',
+  id: "url-non-ascii",
+  name: "Non-ASCII Characters in URL",
+  description: "Checks for non-ASCII characters in the URL path that may cause encoding issues",
+  category: "url",
   weight: 4,
   run: async (context: AuditContext) => {
     const { url } = context;
@@ -28,11 +27,10 @@ export const nonAsciiRule = defineRule({
         decodedPath = decodeURIComponent(pathname);
       } catch {
         // If decoding fails, the URL has malformed encoding
-        return warn(
-          'url-non-ascii',
-          'URL contains malformed percent-encoding',
-          { url, path: pathname }
-        );
+        return warn("url-non-ascii", "URL contains malformed percent-encoding", {
+          url,
+          path: pathname,
+        });
       }
 
       // Match characters outside basic ASCII printable range (0x20-0x7E),
@@ -40,7 +38,7 @@ export const nonAsciiRule = defineRule({
       const nonAsciiChars = decodedPath.match(/[^\x20-\x7E]/g);
 
       if (!nonAsciiChars || nonAsciiChars.length === 0) {
-        return pass('url-non-ascii', 'URL path contains only ASCII characters', {
+        return pass("url-non-ascii", "URL path contains only ASCII characters", {
           url,
           path: pathname,
         });
@@ -49,19 +47,19 @@ export const nonAsciiRule = defineRule({
       const uniqueNonAscii = [...new Set(nonAsciiChars)];
 
       return warn(
-        'url-non-ascii',
-        `URL path contains ${nonAsciiChars.length} non-ASCII character(s): ${uniqueNonAscii.join(', ')}`,
+        "url-non-ascii",
+        `URL path contains ${nonAsciiChars.length} non-ASCII character(s): ${uniqueNonAscii.join(", ")}`,
         {
           url,
           path: pathname,
           decodedPath,
           nonAsciiCharacters: uniqueNonAscii,
           nonAsciiCount: nonAsciiChars.length,
-          fix: 'Replace non-ASCII characters with ASCII equivalents or transliterate',
-        }
+          fix: "Replace non-ASCII characters with ASCII equivalents or transliterate",
+        },
       );
     } catch {
-      return pass('url-non-ascii', 'Could not parse URL', { url });
+      return pass("url-non-ascii", "Could not parse URL", { url });
     }
   },
 });

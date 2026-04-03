@@ -5,8 +5,8 @@
  * The renderer never gets direct access to Node.js or Electron APIs.
  */
 
-import { contextBridge, ipcRenderer } from 'electron';
-import { IPC_CHANNELS } from '../shared/ipc-types.js';
+import { contextBridge, ipcRenderer } from "electron";
+import { IPC_CHANNELS } from "../shared/ipc-types.js";
 import type {
   AuditRunArgs,
   AuditProgressCategoryStart,
@@ -19,7 +19,7 @@ import type {
   AuditSummaryIpc,
   ScoreTrendPoint,
   AuditDetailIpc,
-} from '../shared/ipc-types.js';
+} from "../shared/ipc-types.js";
 
 export interface ElectronAPI {
   // Audit actions
@@ -71,4 +71,4 @@ const electronAPI: ElectronAPI = {
   getAuditDetail: (auditId) => ipcRenderer.invoke(IPC_CHANNELS.DB_GET_AUDIT_DETAIL, auditId),
 };
 
-contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+contextBridge.exposeInMainWorld("electronAPI", electronAPI);

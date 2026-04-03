@@ -1,5 +1,5 @@
-import { Command, InvalidArgumentError } from 'commander';
-import { getCategoryIds } from './categories/index.js';
+import { Command, InvalidArgumentError } from "commander";
+import { getCategoryIds } from "./categories/index.js";
 import {
   runAudit,
   runInit,
@@ -11,7 +11,7 @@ import {
   runDbStats,
   runDbRestore,
   runSelfDoctor,
-} from './commands/index.js';
+} from "./commands/index.js";
 
 /**
  * Validate that a string is a valid URL
@@ -19,15 +19,15 @@ import {
 function validateUrl(value: string): string {
   try {
     const url = new URL(value);
-    if (!['http:', 'https:'].includes(url.protocol)) {
-      throw new InvalidArgumentError('URL must use http or https protocol');
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new InvalidArgumentError("URL must use http or https protocol");
     }
     return value;
   } catch (error) {
     if (error instanceof InvalidArgumentError) {
       throw error;
     }
-    throw new InvalidArgumentError('Invalid URL format');
+    throw new InvalidArgumentError("Invalid URL format");
   }
 }
 
@@ -36,12 +36,12 @@ function validateUrl(value: string): string {
  */
 function parseCategories(value: string): string[] {
   const validCategories = getCategoryIds();
-  const requested = value.split(',').map((c) => c.trim().toLowerCase());
+  const requested = value.split(",").map((c) => c.trim().toLowerCase());
 
   for (const cat of requested) {
     if (!validCategories.includes(cat)) {
       throw new InvalidArgumentError(
-        `Invalid category: "${cat}". Valid: ${validCategories.join(', ')}`
+        `Invalid category: "${cat}". Valid: ${validCategories.join(", ")}`,
       );
     }
   }
@@ -63,112 +63,125 @@ function parseIntValue(value: string, name: string, min: number, max: number): n
 const program = new Command();
 
 program
-  .name('seomator')
-  .description('SEOmator - Comprehensive SEO audit CLI with 251 rules across 20 categories')
-  .version('3.0.0');
+  .name("seomator")
+  .description("SEOmator - Comprehensive SEO audit CLI with 251 rules across 20 categories")
+  .version("3.0.0");
 
 // Audit command
 program
-  .command('audit <url>')
-  .description('Run SEO audit on a URL')
-  .option('-c, --categories <list>', 'Categories to audit', parseCategories)
-  .option('-j, --json', 'Output as JSON (deprecated, use --format json)', false)
-  .option('-f, --format <type>', 'Output format: console, json, html, markdown, llm')
-  .option('-o, --output <path>', 'Output file path (for html/markdown/json)')
-  .option('--crawl', 'Enable multi-page crawl', false)
-  .option('-m, --max-pages <n>', 'Max pages to crawl', (v) => parseIntValue(v, 'max-pages', 1, 1000), 10)
-  .option('--concurrency <n>', 'Concurrent requests', (v) => parseIntValue(v, 'concurrency', 1, 20), 3)
-  .option('--timeout <ms>', 'Request timeout', (v) => parseIntValue(v, 'timeout', 1000, 120000), 30000)
-  .option('-v, --verbose', 'Show progress', false)
-  .option('--no-cwv', 'Skip Core Web Vitals')
-  .option('-r, --refresh', 'Ignore cache, fetch all pages fresh', false)
-  .option('--resume', 'Resume interrupted crawl', false)
-  .option('--config <path>', 'Config file path')
-  .option('--save', 'Save report to .seomator/reports/', false)
+  .command("audit <url>")
+  .description("Run SEO audit on a URL")
+  .option("-c, --categories <list>", "Categories to audit", parseCategories)
+  .option("-j, --json", "Output as JSON (deprecated, use --format json)", false)
+  .option("-f, --format <type>", "Output format: console, json, html, markdown, llm")
+  .option("-o, --output <path>", "Output file path (for html/markdown/json)")
+  .option("--crawl", "Enable multi-page crawl", false)
+  .option(
+    "-m, --max-pages <n>",
+    "Max pages to crawl",
+    (v) => parseIntValue(v, "max-pages", 1, 1000),
+    10,
+  )
+  .option(
+    "--concurrency <n>",
+    "Concurrent requests",
+    (v) => parseIntValue(v, "concurrency", 1, 20),
+    3,
+  )
+  .option(
+    "--timeout <ms>",
+    "Request timeout",
+    (v) => parseIntValue(v, "timeout", 1000, 120000),
+    30000,
+  )
+  .option("-v, --verbose", "Show progress", false)
+  .option("--no-cwv", "Skip Core Web Vitals")
+  .option("-r, --refresh", "Ignore cache, fetch all pages fresh", false)
+  .option("--resume", "Resume interrupted crawl", false)
+  .option("--config <path>", "Config file path")
+  .option("--save", "Save report to .seomator/reports/", false)
   .action(runAudit);
 
 // Init command
 program
-  .command('init')
-  .description('Create seomator.toml config file')
-  .option('--name <name>', 'Project name')
-  .option('--preset <type>', 'Use preset (default, blog, ecommerce, ci)')
-  .option('-y, --yes', 'Use defaults without prompts', false)
+  .command("init")
+  .description("Create seomator.toml config file")
+  .option("--name <name>", "Project name")
+  .option("--preset <type>", "Use preset (default, blog, ecommerce, ci)")
+  .option("-y, --yes", "Use defaults without prompts", false)
   .action(runInit);
 
 // Crawl command
 program
-  .command('crawl <url>')
-  .description('Crawl website without analysis')
-  .option('-m, --max-pages <n>', 'Max pages to crawl', (v) => parseIntValue(v, 'max-pages', 1, 1000))
-  .option('-r, --refresh', 'Ignore cache, fetch all pages fresh', false)
-  .option('--resume', 'Resume interrupted crawl', false)
-  .option('--output <path>', 'Output directory')
-  .option('-v, --verbose', 'Show progress', false)
+  .command("crawl <url>")
+  .description("Crawl website without analysis")
+  .option("-m, --max-pages <n>", "Max pages to crawl", (v) =>
+    parseIntValue(v, "max-pages", 1, 1000),
+  )
+  .option("-r, --refresh", "Ignore cache, fetch all pages fresh", false)
+  .option("--resume", "Resume interrupted crawl", false)
+  .option("--output <path>", "Output directory")
+  .option("-v, --verbose", "Show progress", false)
   .action(runCrawl);
 
 // Analyze command
 program
-  .command('analyze [crawl-id]')
-  .description('Run rules on stored crawl data')
-  .option('-c, --categories <list>', 'Categories to analyze', parseCategories)
-  .option('--latest', 'Use most recent crawl', false)
-  .option('--save', 'Save report', false)
-  .option('-j, --json', 'Output as JSON', false)
-  .option('-v, --verbose', 'Show progress', false)
+  .command("analyze [crawl-id]")
+  .description("Run rules on stored crawl data")
+  .option("-c, --categories <list>", "Categories to analyze", parseCategories)
+  .option("--latest", "Use most recent crawl", false)
+  .option("--save", "Save report", false)
+  .option("-j, --json", "Output as JSON", false)
+  .option("-v, --verbose", "Show progress", false)
   .action(runAnalyze);
 
 // Report command
 program
-  .command('report [query]')
-  .description('View and query past reports')
-  .option('--list', 'List all reports', false)
-  .option('--project <name>', 'Filter by project')
-  .option('--since <date>', 'Filter by date (ISO format)')
-  .option('--format <type>', 'Output format (table, json)', 'table')
+  .command("report [query]")
+  .description("View and query past reports")
+  .option("--list", "List all reports", false)
+  .option("--project <name>", "Filter by project")
+  .option("--since <date>", "Filter by date (ISO format)")
+  .option("--format <type>", "Output format (table, json)", "table")
   .action(runReport);
 
 // Config command
 program
-  .command('config [key] [value]')
-  .description('View or modify configuration')
-  .option('--global', 'Modify global settings', false)
-  .option('--local', 'Modify local settings', false)
-  .option('--list', 'Show all config values', false)
+  .command("config [key] [value]")
+  .description("View or modify configuration")
+  .option("--global", "Modify global settings", false)
+  .option("--local", "Modify local settings", false)
+  .option("--list", "Show all config values", false)
   .action(runConfig);
 
 // Database management command
-const dbCommand = program
-  .command('db')
-  .description('Database management commands');
+const dbCommand = program.command("db").description("Database management commands");
 
 dbCommand
-  .command('migrate')
-  .description('Migrate JSON files to SQLite databases')
-  .option('--dry-run', 'Preview migration without making changes', false)
-  .option('--no-backup', 'Skip creating backup of original files')
+  .command("migrate")
+  .description("Migrate JSON files to SQLite databases")
+  .option("--dry-run", "Preview migration without making changes", false)
+  .option("--no-backup", "Skip creating backup of original files")
   .action(runDbMigrate);
 
 dbCommand
-  .command('stats')
-  .description('Show database statistics')
-  .option('-v, --verbose', 'Show detailed statistics', false)
+  .command("stats")
+  .description("Show database statistics")
+  .option("-v, --verbose", "Show detailed statistics", false)
   .action(runDbStats);
 
 dbCommand
-  .command('restore')
-  .description('Restore from backup (rollback migration)')
+  .command("restore")
+  .description("Restore from backup (rollback migration)")
   .action(runDbRestore);
 
 // Self command (diagnostics)
-const selfCommand = program
-  .command('self')
-  .description('Self-diagnostics and maintenance');
+const selfCommand = program.command("self").description("Self-diagnostics and maintenance");
 
 selfCommand
-  .command('doctor')
-  .description('Check system setup and dependencies')
-  .option('-v, --verbose', 'Show detailed output', false)
+  .command("doctor")
+  .description("Check system setup and dependencies")
+  .option("-v, --verbose", "Show detailed output", false)
   .action(runSelfDoctor);
 
 program.parse();

@@ -1,57 +1,54 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Common resource paths that should not be blocked by robots.txt
  */
 const RESOURCE_PATH_PATTERNS = [
-  '/css/',
-  '/js/',
-  '/assets/',
-  '/static/',
-  '/wp-content/',
-  '/wp-includes/',
-  '/themes/',
-  '/scripts/',
-  '/styles/',
+  "/css/",
+  "/js/",
+  "/assets/",
+  "/static/",
+  "/wp-content/",
+  "/wp-includes/",
+  "/themes/",
+  "/scripts/",
+  "/styles/",
 ];
 
 /**
  * File extension patterns that indicate resource blocking
  */
-const RESOURCE_EXTENSION_PATTERNS = [
-  '.css',
-  '.js',
-];
+const RESOURCE_EXTENSION_PATTERNS = [".css", ".js"];
 
 /**
  * Parse robots.txt to extract Disallow rules for relevant user-agents
  */
 function extractDisallowRules(content: string): string[] {
-  const lines = content.split('\n').map((line) => line.trim());
+  const lines = content.split("\n").map((line) => line.trim());
   const disallowRules: string[] = [];
 
   let inRelevantUserAgent = false;
   let sawAnyUserAgent = false;
 
   for (const line of lines) {
-    if (line.startsWith('#') || !line) {
+    if (line.startsWith("#") || !line) {
       continue;
     }
 
-    const colonIndex = line.indexOf(':');
+    const colonIndex = line.indexOf(":");
     if (colonIndex === -1) continue;
 
     const directive = line.substring(0, colonIndex).trim().toLowerCase();
     const value = line.substring(colonIndex + 1).trim();
 
-    if (directive === 'user-agent') {
+    if (directive === "user-agent") {
       sawAnyUserAgent = true;
       inRelevantUserAgent =
-        value === '*' ||
-        value.toLowerCase().includes('googlebot') ||
-        value.toLowerCase().includes('bingbot');
-    } else if ((inRelevantUserAgent || !sawAnyUserAgent) && directive === 'disallow' && value) {
+        value === "*" ||
+        value.toLowerCase().includes("googlebot") ||
+        value.toLowerCase().includes("bingbot");
+    } else if ((inRelevantUserAgent || !sawAnyUserAgent) && directive === "disallow" && value) {
       disallowRules.push(value);
     }
   }
@@ -83,7 +80,7 @@ function findBlockedResources(disallowRules: string[]): {
     // Check if rule blocks resource file extensions via wildcard patterns
     // e.g., "/*.css", "/*.css$", "/*.js", "/*.js$"
     for (const ext of RESOURCE_EXTENSION_PATTERNS) {
-      if (lowerRule.includes('*' + ext) || lowerRule.endsWith(ext + '$')) {
+      if (lowerRule.includes("*" + ext) || lowerRule.endsWith(ext + "$")) {
         blockedExtensions.push(rule);
         break;
       }
@@ -101,30 +98,26 @@ function findBlockedResources(disallowRules: string[]): {
  * the page properly, which negatively impacts indexing and ranking.
  */
 export const blockedResourcesRule = defineRule({
-  id: 'crawl-blocked-resources',
-  name: 'Blocked Resources',
-  description: 'Checks if robots.txt blocks important CSS/JS resources',
-  category: 'crawl',
+  id: "crawl-blocked-resources",
+  name: "Blocked Resources",
+  description: "Checks if robots.txt blocks important CSS/JS resources",
+  category: "crawl",
   weight: 7,
   run: async (context: AuditContext) => {
     const robotsTxtContent = (context as any).robotsTxtContent as string | undefined;
 
     if (!robotsTxtContent) {
-      return pass(
-        'crawl-blocked-resources',
-        'No robots.txt content available to check',
-        { robotsTxtAvailable: false }
-      );
+      return pass("crawl-blocked-resources", "No robots.txt content available to check", {
+        robotsTxtAvailable: false,
+      });
     }
 
     const disallowRules = extractDisallowRules(robotsTxtContent);
 
     if (disallowRules.length === 0) {
-      return pass(
-        'crawl-blocked-resources',
-        'No Disallow rules found in robots.txt',
-        { disallowRuleCount: 0 }
-      );
+      return pass("crawl-blocked-resources", "No Disallow rules found in robots.txt", {
+        disallowRuleCount: 0,
+      });
     }
 
     const { blockedPaths, blockedExtensions } = findBlockedResources(disallowRules);
@@ -148,20 +141,21 @@ export const blockedResourcesRule = defineRule({
       }
 
       return warn(
-        'crawl-blocked-resources',
-        `robots.txt may block CSS/JS resources: ${issues.join('; ')}`,
+        "crawl-blocked-resources",
+        `robots.txt may block CSS/JS resources: ${issues.join("; ")}`,
         {
           ...details,
-          impact: 'Search engines cannot render pages properly without CSS and JavaScript',
-          recommendation: 'Allow search engines to access CSS and JS files by removing or adjusting these Disallow rules',
-        }
+          impact: "Search engines cannot render pages properly without CSS and JavaScript",
+          recommendation:
+            "Allow search engines to access CSS and JS files by removing or adjusting these Disallow rules",
+        },
       );
     }
 
     return pass(
-      'crawl-blocked-resources',
-      'robots.txt does not block important CSS/JS resources',
-      details
+      "crawl-blocked-resources",
+      "robots.txt does not block important CSS/JS resources",
+      details,
     );
   },
 });

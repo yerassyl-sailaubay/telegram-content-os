@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchPage } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchPage } from "../../crawler/fetcher.js";
 
 /**
  * Extracts the base URL (origin) from a full URL
@@ -21,7 +21,7 @@ function getPath(url: string): string {
   try {
     return new URL(url).pathname;
   } catch {
-    return '/';
+    return "/";
   }
 }
 
@@ -32,7 +32,7 @@ function parseRobotsTxt(content: string): {
   disallowedPaths: string[];
   allowedPaths: string[];
 } {
-  const lines = content.split('\n').map((line) => line.trim());
+  const lines = content.split("\n").map((line) => line.trim());
   const disallowedPaths: string[] = [];
   const allowedPaths: string[] = [];
 
@@ -41,27 +41,27 @@ function parseRobotsTxt(content: string): {
 
   for (const line of lines) {
     // Skip comments
-    if (line.startsWith('#') || !line) {
+    if (line.startsWith("#") || !line) {
       continue;
     }
 
-    const colonIndex = line.indexOf(':');
+    const colonIndex = line.indexOf(":");
     if (colonIndex === -1) continue;
 
     const directive = line.substring(0, colonIndex).trim().toLowerCase();
     const value = line.substring(colonIndex + 1).trim();
 
-    if (directive === 'user-agent') {
+    if (directive === "user-agent") {
       sawAnyUserAgent = true;
       // Check if this applies to all bots or googlebot
       inRelevantUserAgent =
-        value === '*' ||
-        value.toLowerCase().includes('googlebot') ||
-        value.toLowerCase().includes('bingbot');
+        value === "*" ||
+        value.toLowerCase().includes("googlebot") ||
+        value.toLowerCase().includes("bingbot");
     } else if (inRelevantUserAgent || !sawAnyUserAgent) {
-      if (directive === 'disallow' && value) {
+      if (directive === "disallow" && value) {
         disallowedPaths.push(value);
-      } else if (directive === 'allow' && value) {
+      } else if (directive === "allow" && value) {
         allowedPaths.push(value);
       }
     }
@@ -77,50 +77,47 @@ function parseRobotsTxt(content: string): {
 function pathMatchesRule(path: string, rule: string): boolean {
   // Convert robots.txt pattern to regex
   let pattern = rule
-    .replace(/[.+?^${}()|[\]\\]/g, '\\$&') // Escape special regex chars except * and $
-    .replace(/\*/g, '.*'); // * matches anything
+    .replace(/[.+?^${}()|[\]\\]/g, "\\$&") // Escape special regex chars except * and $
+    .replace(/\*/g, ".*"); // * matches anything
 
   // $ at end means exact match
-  if (pattern.endsWith('\\$')) {
-    pattern = pattern.slice(0, -2) + '$';
+  if (pattern.endsWith("\\$")) {
+    pattern = pattern.slice(0, -2) + "$";
   } else {
     // Otherwise, match prefix
-    pattern = '^' + pattern;
+    pattern = "^" + pattern;
   }
 
   try {
     return new RegExp(pattern).test(path);
   } catch {
     // If regex is invalid, do simple prefix match
-    return path.startsWith(rule.replace(/\*/g, '').replace(/\$/g, ''));
+    return path.startsWith(rule.replace(/\*/g, "").replace(/\$/g, ""));
   }
 }
 
 /**
  * Check if page has noindex directive
  */
-function getNoindexDirectives(
-  $: AuditContext['$'],
-  headers: Record<string, string>
-): string[] {
+function getNoindexDirectives($: AuditContext["$"], headers: Record<string, string>): string[] {
   const sources: string[] = [];
 
   // Check meta robots
-  const robotsMeta = $('meta[name="robots"]').attr('content') || '';
+  const robotsMeta = $('meta[name="robots"]').attr("content") || "";
   if (/noindex/i.test(robotsMeta)) {
     sources.push('meta[name="robots"]');
   }
 
   // Check googlebot meta
-  const googlebotMeta = $('meta[name="googlebot"]').attr('content') || '';
+  const googlebotMeta = $('meta[name="googlebot"]').attr("content") || "";
   if (/noindex/i.test(googlebotMeta)) {
     sources.push('meta[name="googlebot"]');
   }
 
   // Check X-Robots-Tag header
-  const xRobotsTag = headers['x-robots-tag'] || headers['X-Robots-Tag'] || '';
+  const xRobotsTag = headers["x-robots-tag"] || headers["X-Robots-Tag"] || "";
   if (/noindex/i.test(xRobotsTag)) {
-    sources.push('X-Robots-Tag header');
+    sources.push("X-Robots-Tag header");
   }
 
   return sources;
@@ -133,10 +130,10 @@ function getNoindexDirectives(
  * Conflicts create ambiguous instructions for search engines.
  */
 export const indexabilityConflictRule = defineRule({
-  id: 'crawl-indexability-conflict',
-  name: 'Indexability Conflict',
-  description: 'Detects conflicts between robots.txt and noindex directives',
-  category: 'crawl',
+  id: "crawl-indexability-conflict",
+  name: "Indexability Conflict",
+  description: "Detects conflicts between robots.txt and noindex directives",
+  category: "crawl",
   weight: 15,
   run: async (context: AuditContext) => {
     const { $, url, headers } = context;
@@ -150,7 +147,7 @@ export const indexabilityConflictRule = defineRule({
     const robotsTxtUrl = `${baseUrl}/robots.txt`;
     const pagePath = getPath(url);
 
-    let robotsTxtStatus: 'accessible' | 'not-found' | 'error' = 'not-found';
+    let robotsTxtStatus: "accessible" | "not-found" | "error" = "not-found";
     let disallowedPaths: string[] = [];
     let allowedPaths: string[] = [];
     let isDisallowed = false;
@@ -159,7 +156,7 @@ export const indexabilityConflictRule = defineRule({
     try {
       const result = await fetchPage(robotsTxtUrl);
       if (result.statusCode === 200) {
-        robotsTxtStatus = 'accessible';
+        robotsTxtStatus = "accessible";
         const parsed = parseRobotsTxt(result.html);
         disallowedPaths = parsed.disallowedPaths;
         allowedPaths = parsed.allowedPaths;
@@ -171,7 +168,7 @@ export const indexabilityConflictRule = defineRule({
             // Check if there's a more specific allow rule
             const hasAllowOverride = allowedPaths.some(
               (allowRule) =>
-                pathMatchesRule(pagePath, allowRule) && allowRule.length >= rule.length
+                pathMatchesRule(pagePath, allowRule) && allowRule.length >= rule.length,
             );
             if (!hasAllowOverride) {
               isDisallowed = true;
@@ -181,12 +178,12 @@ export const indexabilityConflictRule = defineRule({
           }
         }
       } else if (result.statusCode === 404) {
-        robotsTxtStatus = 'not-found';
+        robotsTxtStatus = "not-found";
       } else {
-        robotsTxtStatus = 'error';
+        robotsTxtStatus = "error";
       }
     } catch {
-      robotsTxtStatus = 'error';
+      robotsTxtStatus = "error";
     }
 
     const details = {
@@ -199,13 +196,13 @@ export const indexabilityConflictRule = defineRule({
     };
 
     // No robots.txt - can't have conflict
-    if (robotsTxtStatus !== 'accessible') {
+    if (robotsTxtStatus !== "accessible") {
       return pass(
-        'crawl-indexability-conflict',
-        robotsTxtStatus === 'not-found'
-          ? 'No robots.txt found (no conflict possible)'
-          : 'Could not access robots.txt to check for conflicts',
-        details
+        "crawl-indexability-conflict",
+        robotsTxtStatus === "not-found"
+          ? "No robots.txt found (no conflict possible)"
+          : "Could not access robots.txt to check for conflicts",
+        details,
       );
     }
 
@@ -213,15 +210,14 @@ export const indexabilityConflictRule = defineRule({
     // This is redundant - search engines can't crawl to see the noindex
     if (isDisallowed && hasNoindex) {
       return warn(
-        'crawl-indexability-conflict',
+        "crawl-indexability-conflict",
         `Page is blocked by robots.txt AND has noindex (redundant)`,
         {
           ...details,
-          conflictType: 'redundant-noindex',
-          impact: 'Search engines cannot crawl the page to see the noindex directive',
-          recommendation:
-            'Choose one method: either block in robots.txt OR use noindex, not both',
-        }
+          conflictType: "redundant-noindex",
+          impact: "Search engines cannot crawl the page to see the noindex directive",
+          recommendation: "Choose one method: either block in robots.txt OR use noindex, not both",
+        },
       );
     }
 
@@ -229,13 +225,13 @@ export const indexabilityConflictRule = defineRule({
     // This works but can be confusing
     if (!isDisallowed && hasNoindex) {
       return pass(
-        'crawl-indexability-conflict',
-        'robots.txt allows crawling, noindex prevents indexing (functional but check if intentional)',
+        "crawl-indexability-conflict",
+        "robots.txt allows crawling, noindex prevents indexing (functional but check if intentional)",
         {
           ...details,
-          conflictType: 'none',
-          note: 'This is a valid configuration if you want the page crawlable but not indexed',
-        }
+          conflictType: "none",
+          note: "This is a valid configuration if you want the page crawlable but not indexed",
+        },
       );
     }
 
@@ -243,23 +239,19 @@ export const indexabilityConflictRule = defineRule({
     // Page might get indexed via external links
     if (isDisallowed && !hasNoindex) {
       return warn(
-        'crawl-indexability-conflict',
+        "crawl-indexability-conflict",
         `Page blocked by robots.txt (${matchedRule}) but has no noindex`,
         {
           ...details,
-          conflictType: 'blocked-but-indexable',
-          impact: 'Page could still be indexed if linked from other sites',
+          conflictType: "blocked-but-indexable",
+          impact: "Page could still be indexed if linked from other sites",
           recommendation:
-            'Add noindex if you want to guarantee no indexing, or allow crawling in robots.txt',
-        }
+            "Add noindex if you want to guarantee no indexing, or allow crawling in robots.txt",
+        },
       );
     }
 
     // No conflict: robots.txt allows and page is indexable
-    return pass(
-      'crawl-indexability-conflict',
-      'No indexability conflict detected',
-      details
-    );
+    return pass("crawl-indexability-conflict", "No indexability conflict detected", details);
   },
 });

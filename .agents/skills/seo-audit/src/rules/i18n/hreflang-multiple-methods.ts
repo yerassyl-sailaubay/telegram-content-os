@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Hreflang Multiple Methods
@@ -17,10 +17,10 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * Reference: https://developers.google.com/search/docs/specialty/international/localized-versions
  */
 export const hreflangMultipleMethodsRule = defineRule({
-  id: 'i18n-hreflang-multiple-methods',
-  name: 'Hreflang Multiple Methods',
-  description: 'Checks if hreflang is specified via both HTML link tags and HTTP headers',
-  category: 'i18n',
+  id: "i18n-hreflang-multiple-methods",
+  name: "Hreflang Multiple Methods",
+  description: "Checks if hreflang is specified via both HTML link tags and HTTP headers",
+  category: "i18n",
   weight: 6,
   run: (context: AuditContext) => {
     const { $, headers } = context;
@@ -30,11 +30,11 @@ export const hreflangMultipleMethodsRule = defineRule({
 
     // Check HTTP Link header for hreflang
     // Format: <URL>; rel="alternate"; hreflang="en"
-    const linkHeader = headers['link'] || '';
-    const hasHeaderHreflang = linkHeader.toLowerCase().includes('hreflang');
+    const linkHeader = headers["link"] || "";
+    const hasHeaderHreflang = linkHeader.toLowerCase().includes("hreflang");
 
     if (!hasHtmlHreflang && !hasHeaderHreflang) {
-      return pass('i18n-hreflang-multiple-methods', 'No hreflang declarations found', {
+      return pass("i18n-hreflang-multiple-methods", "No hreflang declarations found", {
         htmlHreflang: false,
         headerHreflang: false,
       });
@@ -42,41 +42,41 @@ export const hreflangMultipleMethodsRule = defineRule({
 
     if (hasHtmlHreflang && !hasHeaderHreflang) {
       return pass(
-        'i18n-hreflang-multiple-methods',
-        'Hreflang declared via HTML link tags only (consistent method)',
+        "i18n-hreflang-multiple-methods",
+        "Hreflang declared via HTML link tags only (consistent method)",
         {
           htmlHreflang: true,
           headerHreflang: false,
-          method: 'html',
+          method: "html",
           htmlCount: $('link[rel="alternate"][hreflang]').length,
-        }
+        },
       );
     }
 
     if (!hasHtmlHreflang && hasHeaderHreflang) {
       return pass(
-        'i18n-hreflang-multiple-methods',
-        'Hreflang declared via HTTP Link header only (consistent method)',
+        "i18n-hreflang-multiple-methods",
+        "Hreflang declared via HTTP Link header only (consistent method)",
         {
           htmlHreflang: false,
           headerHreflang: true,
-          method: 'header',
-        }
+          method: "header",
+        },
       );
     }
 
     // Both methods are used
     return warn(
-      'i18n-hreflang-multiple-methods',
-      'Hreflang declared via both HTML link tags and HTTP Link header (risk of inconsistency)',
+      "i18n-hreflang-multiple-methods",
+      "Hreflang declared via both HTML link tags and HTTP Link header (risk of inconsistency)",
       {
         htmlHreflang: true,
         headerHreflang: true,
         htmlCount: $('link[rel="alternate"][hreflang]').length,
         linkHeader,
         recommendation:
-          'Use a single method for hreflang declaration to avoid conflicting annotations',
-      }
+          "Use a single method for hreflang declaration to avoid conflicting annotations",
+      },
     );
   },
 });

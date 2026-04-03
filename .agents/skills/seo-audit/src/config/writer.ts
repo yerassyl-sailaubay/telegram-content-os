@@ -1,40 +1,40 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as TOML from '@iarna/toml';
-import type { SeomatorConfig, PartialSeomatorConfig } from './schema.js';
+import * as fs from "fs";
+import * as path from "path";
+import * as TOML from "@iarna/toml";
+import type { SeomatorConfig, PartialSeomatorConfig } from "./schema.js";
 
 /**
  * Config presets for different use cases
  */
-export type ConfigPreset = 'default' | 'blog' | 'ecommerce' | 'ci';
+export type ConfigPreset = "default" | "blog" | "ecommerce" | "ci";
 
 /**
  * Get preset configuration
  */
 export function getPresetConfig(preset: ConfigPreset): PartialSeomatorConfig {
   switch (preset) {
-    case 'blog':
+    case "blog":
       return {
         crawler: {
           max_pages: 500,
-          exclude: ['/wp-admin/**', '/wp-content/uploads/**', '*.pdf'],
+          exclude: ["/wp-admin/**", "/wp-content/uploads/**", "*.pdf"],
         },
         rule_options: {
-          'meta-tags/description-length': { min_length: 120, max_length: 160 },
+          "meta-tags/description-length": { min_length: 120, max_length: 160 },
         },
       };
 
-    case 'ecommerce':
+    case "ecommerce":
       return {
         crawler: {
           max_pages: 1000,
-          include: ['/products/**', '/categories/**', '/collections/**'],
-          exclude: ['/cart/**', '/checkout/**', '/account/**', '*.pdf'],
-          allow_query_params: ['category', 'sort', 'filter', 'page'],
+          include: ["/products/**", "/categories/**", "/collections/**"],
+          exclude: ["/cart/**", "/checkout/**", "/account/**", "*.pdf"],
+          allow_query_params: ["category", "sort", "filter", "page"],
         },
       };
 
-    case 'ci':
+    case "ci":
       return {
         crawler: {
           max_pages: 100,
@@ -42,7 +42,7 @@ export function getPresetConfig(preset: ConfigPreset): PartialSeomatorConfig {
           respect_robots: false,
         },
         rules: {
-          enable: ['meta-tags/*', 'security/*', 'links/*'],
+          enable: ["meta-tags/*", "security/*", "links/*"],
           disable: [],
         },
         external_links: {
@@ -52,8 +52,8 @@ export function getPresetConfig(preset: ConfigPreset): PartialSeomatorConfig {
           concurrency: 5,
         },
         output: {
-          format: 'json',
-          path: 'reports/audit.json',
+          format: "json",
+          path: "reports/audit.json",
         },
       };
 
@@ -80,7 +80,7 @@ export function writeConfigFile(filePath: string, config: PartialSeomatorConfig)
   }
 
   const content = generateTomlConfig(config);
-  fs.writeFileSync(filePath, content, 'utf-8');
+  fs.writeFileSync(filePath, content, "utf-8");
 }
 
 /**
@@ -92,5 +92,5 @@ export function writeSettingsFile(filePath: string, settings: PartialSeomatorCon
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  fs.writeFileSync(filePath, JSON.stringify(settings, null, 2), 'utf-8');
+  fs.writeFileSync(filePath, JSON.stringify(settings, null, 2), "utf-8");
 }

@@ -13,45 +13,45 @@
  * - Media (video for animations)
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
 // Core Web Vitals
-import { lcpRule } from './lcp.js';
-import { clsRule } from './cls.js';
-import { inpRule } from './inp.js';
-import { ttfbRule } from './ttfb.js';
-import { fcpRule } from './fcp.js';
+import { lcpRule } from "./lcp.js";
+import { clsRule } from "./cls.js";
+import { inpRule } from "./inp.js";
+import { ttfbRule } from "./ttfb.js";
+import { fcpRule } from "./fcp.js";
 
 // Performance hints
-import { domSizeRule } from './dom-size.js';
-import { cssFileSizeRule } from './css-file-size.js';
-import { fontLoadingRule } from './font-loading.js';
-import { preconnectRule } from './preconnect.js';
-import { renderBlockingRule } from './render-blocking.js';
-import { lazyAboveFoldRule } from './lazy-above-fold.js';
-import { lcpHintsRule } from './lcp-hints.js';
+import { domSizeRule } from "./dom-size.js";
+import { cssFileSizeRule } from "./css-file-size.js";
+import { fontLoadingRule } from "./font-loading.js";
+import { preconnectRule } from "./preconnect.js";
+import { renderBlockingRule } from "./render-blocking.js";
+import { lazyAboveFoldRule } from "./lazy-above-fold.js";
+import { lcpHintsRule } from "./lcp-hints.js";
 
 // Compression
-import { textCompressionRule } from './text-compression.js';
-import { brotliRule } from './brotli.js';
+import { textCompressionRule } from "./text-compression.js";
+import { brotliRule } from "./brotli.js";
 
 // Caching
-import { cachePolicyRule } from './cache-policy.js';
+import { cachePolicyRule } from "./cache-policy.js";
 
 // Minification
-import { minifyCssRule } from './minify-css.js';
-import { minifyJsRule } from './minify-js.js';
+import { minifyCssRule } from "./minify-css.js";
+import { minifyJsRule } from "./minify-js.js";
 
 // Network
-import { responseTimeRule } from './response-time.js';
-import { http2Rule } from './http2.js';
+import { responseTimeRule } from "./response-time.js";
+import { http2Rule } from "./http2.js";
 
 // Page weight
-import { pageWeightRule } from './page-weight.js';
-import { jsFileSizeRule } from './js-file-size.js';
+import { pageWeightRule } from "./page-weight.js";
+import { jsFileSizeRule } from "./js-file-size.js";
 
 // Media
-import { videoForAnimationsRule } from './video-for-animations.js';
+import { videoForAnimationsRule } from "./video-for-animations.js";
 
 // Export all rules
 export {

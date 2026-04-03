@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockUser, mockInsert, mockReturning, mockGetMe, mockValues } = vi.hoisted(() => ({
-  mockUser: { id: "user-123", email: "test@example.com" },
-  mockInsert: vi.fn(),
-  mockReturning: vi.fn(),
-  mockGetMe: vi.fn(),
-  mockValues: vi.fn(),
-}));
+const { mockUser, mockInsert, mockReturning, mockResolveTelegramBotUsername, mockValues } =
+  vi.hoisted(() => ({
+    mockUser: { id: "user-123", email: "test@example.com" },
+    mockInsert: vi.fn(),
+    mockReturning: vi.fn(),
+    mockResolveTelegramBotUsername: vi.fn(),
+    mockValues: vi.fn(),
+  }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockResolvedValue({
@@ -37,10 +38,8 @@ vi.mock("@/server/db", () => ({
   },
 }));
 
-vi.mock("@/lib/telegram/client", () => ({
-  getTelegramClient: vi.fn().mockReturnValue({
-    getMe: mockGetMe,
-  }),
+vi.mock("@/lib/telegram/bot-identity", () => ({
+  resolveTelegramBotUsername: (...args: unknown[]) => mockResolveTelegramBotUsername(...args),
 }));
 
 import { createTelegramBotLink } from "../telegram-bot";
@@ -49,7 +48,7 @@ describe("createTelegramBotLink", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockReturning.mockResolvedValue([{ id: "link-token-1" }]);
-    mockGetMe.mockResolvedValue({ username: "teleflow_bot" });
+    mockResolveTelegramBotUsername.mockResolvedValue("teleflow_bot");
   });
 
   it("returns an error when the user is not authenticated", async () => {
@@ -115,7 +114,7 @@ describe("createTelegramBotLink", () => {
   });
 
   it("returns an error when the bot username cannot be resolved", async () => {
-    mockGetMe.mockResolvedValue({ username: undefined });
+    mockResolveTelegramBotUsername.mockResolvedValue("bot");
 
     const result = await createTelegramBotLink();
 

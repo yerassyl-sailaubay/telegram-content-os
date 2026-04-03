@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Check for links with whitespace issues in href attributes
@@ -10,26 +10,25 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * guaranteed and can lead to broken links or inconsistent crawling.
  */
 export const whitespaceHrefRule = defineRule({
-  id: 'links-whitespace-href',
-  name: 'No Whitespace in Hrefs',
-  description: 'Checks for links with whitespace-only or leading/trailing whitespace in href attributes',
-  category: 'links',
+  id: "links-whitespace-href",
+  name: "No Whitespace in Hrefs",
+  description:
+    "Checks for links with whitespace-only or leading/trailing whitespace in href attributes",
+  category: "links",
   weight: 4,
   run: (context: AuditContext) => {
     const { $ } = context;
     const whitespaceOnly: string[] = [];
     const untrimmed: Array<{ href: string; text: string }> = [];
 
-    $('a[href]').each((_i, el) => {
+    $("a[href]").each((_i, el) => {
       const node = $(el);
-      const href = node.attr('href');
+      const href = node.attr("href");
       if (href === undefined || href === null) return;
 
       // Check for whitespace-only hrefs
       if (/^\s+$/.test(href)) {
-        whitespaceOnly.push(
-          node.text().trim().slice(0, 80) || '[no text]'
-        );
+        whitespaceOnly.push(node.text().trim().slice(0, 80) || "[no text]");
         return;
       }
 
@@ -37,7 +36,7 @@ export const whitespaceHrefRule = defineRule({
       if (href.length > 0 && href.trim() !== href) {
         untrimmed.push({
           href: href.slice(0, 100),
-          text: node.text().trim().slice(0, 80) || '[no text]',
+          text: node.text().trim().slice(0, 80) || "[no text]",
         });
       }
     });
@@ -46,7 +45,7 @@ export const whitespaceHrefRule = defineRule({
 
     if (totalIssues > 0) {
       return warn(
-        'links-whitespace-href',
+        "links-whitespace-href",
         `Found ${totalIssues} link(s) with whitespace issues in href attributes`,
         {
           totalIssues,
@@ -55,14 +54,11 @@ export const whitespaceHrefRule = defineRule({
           whitespaceOnlyLinks: whitespaceOnly.slice(0, 5),
           untrimmedLinks: untrimmed.slice(0, 5),
           recommendation:
-            'Trim whitespace from href attributes and replace whitespace-only hrefs with valid URLs',
-        }
+            "Trim whitespace from href attributes and replace whitespace-only hrefs with valid URLs",
+        },
       );
     }
 
-    return pass(
-      'links-whitespace-href',
-      'All link hrefs are free of whitespace issues',
-    );
+    return pass("links-whitespace-href", "All link hrefs are free of whitespace issues");
   },
 });

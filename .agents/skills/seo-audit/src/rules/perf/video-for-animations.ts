@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Maximum number of GIF URLs to include in details
@@ -15,10 +15,10 @@ const MAX_URLS_IN_DETAILS = 5;
  * Consider using <video> with MP4/WebM or animated WebP/AVIF instead.
  */
 export const videoForAnimationsRule = defineRule({
-  id: 'perf-video-for-animations',
-  name: 'Video for Animations',
-  description: 'Checks if page uses GIF images that should be replaced with video or WebP',
-  category: 'perf',
+  id: "perf-video-for-animations",
+  name: "Video for Animations",
+  description: "Checks if page uses GIF images that should be replaced with video or WebP",
+  category: "perf",
   weight: 4,
   run: (context: AuditContext) => {
     const { $, images } = context;
@@ -33,7 +33,7 @@ export const videoForAnimationsRule = defineRule({
 
     // Also check <source> elements and any images not captured in context.images
     $('source[type="image/gif"]').each((_, el) => {
-      const srcset = $(el).attr('srcset') || $(el).attr('src') || '';
+      const srcset = $(el).attr("srcset") || $(el).attr("src") || "";
       if (srcset && !gifUrls.includes(srcset)) {
         gifUrls.push(srcset);
       }
@@ -41,7 +41,7 @@ export const videoForAnimationsRule = defineRule({
 
     // Check for CSS background GIFs in inline styles
     $('[style*=".gif"]').each((_, el) => {
-      const style = $(el).attr('style') || '';
+      const style = $(el).attr("style") || "";
       const matches = style.match(/url\s*\(\s*['"]?([^'")]+\.gif[^'")]*)/gi) || [];
       for (const match of matches) {
         const urlMatch = match.match(/url\s*\(\s*['"]?([^'")\s]+)/i);
@@ -59,20 +59,19 @@ export const videoForAnimationsRule = defineRule({
     };
 
     if (gifCount > 0) {
-      const truncatedNote = gifCount > MAX_URLS_IN_DETAILS
-        ? ` (showing first ${MAX_URLS_IN_DETAILS})`
-        : '';
+      const truncatedNote =
+        gifCount > MAX_URLS_IN_DETAILS ? ` (showing first ${MAX_URLS_IN_DETAILS})` : "";
       return warn(
-        'perf-video-for-animations',
+        "perf-video-for-animations",
         `Found ${gifCount} GIF image(s)${truncatedNote} — consider using <video> (MP4/WebM) or animated WebP/AVIF for much smaller file sizes`,
-        details
+        details,
       );
     }
 
     return pass(
-      'perf-video-for-animations',
-      'No GIF images found — page uses appropriate media formats',
-      details
+      "perf-video-for-animations",
+      "No GIF images found — page uses appropriate media formats",
+      details,
     );
   },
 });

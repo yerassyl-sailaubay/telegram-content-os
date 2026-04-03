@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-03-20
-**Commit:** 4387972
+**Generated:** 2026-03-21
+**Commit:** e02001e
 **Branch:** work/telegram-content-os
 
 ## OVERVIEW
@@ -36,7 +36,10 @@ src/
 | Add API route or webhook             | `src/app/api/AGENTS.md`                    | Named HTTP methods, OAuth/webhook constraints           |
 | Add feature component                | `src/components/AGENTS.md`                 | Feature folders, large component hotspots, shadcn rules |
 | Add business logic or background job | `src/lib/AGENTS.md`                        | Module map, Inngest registry, quota rules               |
+| Add Inngest function                 | `src/lib/inngest/functions/AGENTS.md`      | Function registration, step patterns, testing           |
+| Add AI generation feature            | `src/lib/ai/AGENTS.md`                     | Engines, prompts, telemetry, Gemini integration         |
 | Add server action                    | `src/server/AGENTS.md`                     | `ActionResult<T>`, auth-first patterns, DB access       |
+| Add server action (new domain)       | `src/server/actions/AGENTS.md`             | 20 action modules, centralized pattern                  |
 | Add DB table/schema                  | `src/server/db/schema/AGENTS.md`           | Barrel exports, enums, relations, schema tests          |
 | Adjust locale config/navigation      | `src/i18n/{routing,request,navigation}.ts` | Default locale is `ru`                                  |
 | Update shared test utilities         | `src/test/`                                | Helpers only; feature tests stay colocated              |
@@ -145,4 +148,4 @@ bunx tsc --noEmit    # CI typecheck command
 - DB schema currently has **19 tables**; full inventory lives in `src/server/db/schema/AGENTS.md`.
 - Middleware file naming is still `middleware.ts`; Next.js 16 warns that `proxy` is the newer convention.
 - `telegram-content-os-landing/` is a separate Vite app excluded from the main `tsconfig.json`; see `telegram-content-os-landing/AGENTS.md`.
-- **22 Inngest functions** registered (up from 17) — see `src/lib/inngest/functions/index.ts`.
+- **22 Inngest functions** registered — see `src/lib/inngest/functions/index.ts` and `src/lib/inngest/functions/AGENTS.md`.

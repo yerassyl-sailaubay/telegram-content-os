@@ -1,4 +1,4 @@
-import type { AuditRule } from '../types.js';
+import type { AuditRule } from "../types.js";
 
 /**
  * Internal registry storing all audit rules by their ID
@@ -14,7 +14,7 @@ export function registerRule(rule: AuditRule): void {
   if (rules.has(rule.id)) {
     throw new Error(
       `Duplicate rule ID: "${rule.id}" is already registered. ` +
-        `Each rule must have a unique identifier.`
+        `Each rule must have a unique identifier.`,
     );
   }
   rules.set(rule.id, rule);
@@ -34,9 +34,7 @@ export function getAllRules(): AuditRule[] {
  * @returns Array of rules in the specified category
  */
 export function getRulesByCategory(categoryId: string): AuditRule[] {
-  return Array.from(rules.values()).filter(
-    (rule) => rule.category === categoryId
-  );
+  return Array.from(rules.values()).filter((rule) => rule.category === categoryId);
 }
 
 /**

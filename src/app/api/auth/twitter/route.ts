@@ -18,9 +18,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Twitter OAuth is not configured" }, { status: 500 });
   }
 
-  // Determine redirect URI from request origin
+  // Determine redirect URI from configured app URL to avoid host-header abuse
   const url = new URL(request.url);
-  const redirectUri = `${url.origin}/api/auth/twitter/callback`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
+  const redirectUri = `${appUrl}/api/auth/twitter/callback`;
 
   // Generate PKCE parameters
   const codeVerifier = generateCodeVerifier();

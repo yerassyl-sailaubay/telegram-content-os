@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 // Global store for tracking descriptions across pages during a crawl
 // This is reset at the start of each audit run
@@ -38,7 +38,7 @@ export function getDescriptionRegistryStats(): {
  * - Collapse multiple spaces
  */
 function normalizeDescription(description: string): string {
-  return description.toLowerCase().trim().replace(/\s+/g, ' ');
+  return description.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
 /**
@@ -49,26 +49,25 @@ function normalizeDescription(description: string): string {
  * in search results.
  */
 export const duplicateDescriptionRule = defineRule({
-  id: 'content-duplicate-description',
-  name: 'Duplicate Description',
-  description: 'Checks for duplicate meta descriptions across the site',
-  category: 'content',
+  id: "content-duplicate-description",
+  name: "Duplicate Description",
+  description: "Checks for duplicate meta descriptions across the site",
+  category: "content",
   weight: 5,
   run: async (context: AuditContext) => {
     const { $, url } = context;
 
     // Get the meta description
     const descriptionElement = $('meta[name="description"]');
-    const description = descriptionElement.attr('content')?.trim();
+    const description = descriptionElement.attr("content")?.trim();
 
     if (!description) {
-      return fail('content-duplicate-description', 'Page has no meta description', {
+      return fail("content-duplicate-description", "Page has no meta description", {
         description: null,
         url,
         impact:
-          'Missing meta description reduces control over how the page appears in search results',
-        recommendation:
-          'Add a unique, compelling meta description between 120-160 characters',
+          "Missing meta description reduces control over how the page appears in search results",
+        recommendation: "Add a unique, compelling meta description between 120-160 characters",
       });
     }
 
@@ -81,28 +80,28 @@ export const duplicateDescriptionRule = defineRule({
       if (existingUrls) {
         existingUrls.push(url);
         return warn(
-          'content-duplicate-description',
+          "content-duplicate-description",
           `Duplicate description found on ${existingUrls.length} pages (also too short)`,
           {
             description,
             normalizedDescription,
             length: description.length,
             duplicateUrls: existingUrls,
-            impact:
-              'Duplicate descriptions confuse search engines and reduce click-through rates',
+            impact: "Duplicate descriptions confuse search engines and reduce click-through rates",
             recommendation:
-              'Create unique, compelling descriptions for each page (120-160 characters)',
-          }
+              "Create unique, compelling descriptions for each page (120-160 characters)",
+          },
         );
       }
 
       descriptionRegistry.set(normalizedDescription, [url]);
 
-      return warn('content-duplicate-description', 'Meta description is too short', {
+      return warn("content-duplicate-description", "Meta description is too short", {
         description,
         length: description.length,
         url,
-        recommendation: 'Expand description to 120-160 characters for optimal display in search results',
+        recommendation:
+          "Expand description to 120-160 characters for optimal display in search results",
       });
     }
 
@@ -116,7 +115,7 @@ export const duplicateDescriptionRule = defineRule({
       existingUrls.push(url);
 
       return warn(
-        'content-duplicate-description',
+        "content-duplicate-description",
         `Duplicate description found on ${existingUrls.length} pages`,
         {
           description,
@@ -124,17 +123,17 @@ export const duplicateDescriptionRule = defineRule({
           length: description.length,
           duplicateUrls: existingUrls,
           impact:
-            'Duplicate descriptions confuse search engines about which page to display. They also reduce click-through rates by not differentiating pages.',
+            "Duplicate descriptions confuse search engines about which page to display. They also reduce click-through rates by not differentiating pages.",
           recommendation:
-            'Create unique, descriptive meta descriptions for each page that accurately summarize the specific content',
-        }
+            "Create unique, descriptive meta descriptions for each page that accurately summarize the specific content",
+        },
       );
     }
 
     // New description - register it
     descriptionRegistry.set(normalizedDescription, [url]);
 
-    return pass('content-duplicate-description', 'Meta description is unique', {
+    return pass("content-duplicate-description", "Meta description is unique", {
       description,
       normalizedDescription,
       length: description.length,

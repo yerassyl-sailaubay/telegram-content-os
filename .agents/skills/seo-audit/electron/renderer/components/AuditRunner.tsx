@@ -2,7 +2,7 @@
  * Audit runner form with URL input, options, and Run/Cancel button.
  */
 
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from "react";
 
 interface AuditRunnerProps {
   isRunning: boolean;
@@ -11,7 +11,7 @@ interface AuditRunnerProps {
 }
 
 export function AuditRunner({ isRunning, onRun, onCancel }: AuditRunnerProps) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
   const [measureCwv, setMeasureCwv] = useState(false);
   const [crawl, setCrawl] = useState(false);
   const [maxPages, setMaxPages] = useState(10);
@@ -30,23 +30,23 @@ export function AuditRunner({ isRunning, onRun, onCancel }: AuditRunnerProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* URL input */}
       <div className="flex gap-3">
-        <div className="flex-1 relative">
+        <div className="relative flex-1">
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Enter URL to audit (e.g., example.com)"
             disabled={isRunning}
-            className="w-full px-4 py-2.5 rounded-lg border-2 border-[var(--color-border)] bg-[var(--color-bg)] text-sm focus:outline-none focus:border-[var(--color-accent)] disabled:opacity-50 transition-colors placeholder:text-[var(--color-text-muted)]"
-            style={{ color: 'var(--color-text)' }}
+            className="w-full rounded-lg border-2 border-[var(--color-border)] bg-[var(--color-bg)] px-4 py-2.5 text-sm transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none disabled:opacity-50"
+            style={{ color: "var(--color-text)" }}
           />
         </div>
         {isRunning ? (
           <button
             type="button"
             onClick={onCancel}
-            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white transition-colors"
-            style={{ backgroundColor: 'var(--color-fail)' }}
+            className="rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors"
+            style={{ backgroundColor: "var(--color-fail)" }}
           >
             Cancel
           </button>
@@ -54,8 +54,8 @@ export function AuditRunner({ isRunning, onRun, onCancel }: AuditRunnerProps) {
           <button
             type="submit"
             disabled={!url.trim()}
-            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-40 transition-colors"
-            style={{ backgroundColor: 'var(--color-accent)' }}
+            className="rounded-lg px-5 py-2.5 text-sm font-medium text-white transition-colors disabled:opacity-40"
+            style={{ backgroundColor: "var(--color-accent)" }}
           >
             Run Audit
           </button>
@@ -65,11 +65,11 @@ export function AuditRunner({ isRunning, onRun, onCancel }: AuditRunnerProps) {
       {/* Options */}
       <div className="flex items-center gap-4">
         <label
-          className="flex items-center gap-2 text-xs font-medium cursor-pointer px-3 py-1.5 rounded-lg border transition-colors"
+          className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
           style={{
-            color: measureCwv ? 'var(--color-accent)' : 'var(--color-text-muted)',
-            borderColor: measureCwv ? 'var(--color-accent)' : 'var(--color-border)',
-            backgroundColor: measureCwv ? 'var(--color-accent-light)' : 'transparent',
+            color: measureCwv ? "var(--color-accent)" : "var(--color-text-muted)",
+            borderColor: measureCwv ? "var(--color-accent)" : "var(--color-border)",
+            backgroundColor: measureCwv ? "var(--color-accent-light)" : "transparent",
           }}
         >
           <input
@@ -82,11 +82,11 @@ export function AuditRunner({ isRunning, onRun, onCancel }: AuditRunnerProps) {
           Core Web Vitals
         </label>
         <label
-          className="flex items-center gap-2 text-xs font-medium cursor-pointer px-3 py-1.5 rounded-lg border transition-colors"
+          className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
           style={{
-            color: crawl ? 'var(--color-accent)' : 'var(--color-text-muted)',
-            borderColor: crawl ? 'var(--color-accent)' : 'var(--color-border)',
-            backgroundColor: crawl ? 'var(--color-accent-light)' : 'transparent',
+            color: crawl ? "var(--color-accent)" : "var(--color-text-muted)",
+            borderColor: crawl ? "var(--color-accent)" : "var(--color-border)",
+            backgroundColor: crawl ? "var(--color-accent-light)" : "transparent",
           }}
         >
           <input
@@ -99,7 +99,10 @@ export function AuditRunner({ isRunning, onRun, onCancel }: AuditRunnerProps) {
           Crawl site
         </label>
         {crawl && (
-          <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+          <label
+            className="flex items-center gap-2 text-xs"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
             Max pages:
             <input
               type="range"
@@ -110,7 +113,12 @@ export function AuditRunner({ isRunning, onRun, onCancel }: AuditRunnerProps) {
               disabled={isRunning}
               className="w-24 accent-[var(--color-accent)]"
             />
-            <span className="text-xs font-mono w-6 text-right" style={{ color: 'var(--color-text-muted)' }}>{maxPages}</span>
+            <span
+              className="w-6 text-right font-mono text-xs"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              {maxPages}
+            </span>
           </label>
         )}
       </div>

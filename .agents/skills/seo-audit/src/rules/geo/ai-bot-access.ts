@@ -1,21 +1,21 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchPage } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchPage } from "../../crawler/fetcher.js";
 
 /**
  * Known AI crawler user-agent identifiers.
  * These are the primary bots used by generative AI platforms to index web content.
  */
 const AI_BOTS = [
-  'GPTBot',
-  'ChatGPT-User',
-  'Google-Extended',
-  'CCBot',
-  'anthropic-ai',
-  'Claude-Web',
-  'Bytespider',
-  'PerplexityBot',
-  'Amazonbot',
+  "GPTBot",
+  "ChatGPT-User",
+  "Google-Extended",
+  "CCBot",
+  "anthropic-ai",
+  "Claude-Web",
+  "Bytespider",
+  "PerplexityBot",
+  "Amazonbot",
 ] as const;
 
 /**
@@ -39,7 +39,7 @@ function getBaseUrl(url: string): string {
  * the wildcard *) AND whether that section contains `Disallow: /`.
  */
 function findBlockedAiBots(content: string): string[] {
-  const lines = content.split('\n').map((l) => l.trim());
+  const lines = content.split("\n").map((l) => l.trim());
   const blocked: string[] = [];
 
   // Build a map: user-agent -> list of disallow paths
@@ -48,11 +48,11 @@ function findBlockedAiBots(content: string): string[] {
 
   for (const line of lines) {
     // Skip comments and empty lines
-    if (!line || line.startsWith('#')) {
+    if (!line || line.startsWith("#")) {
       continue;
     }
 
-    const colonIdx = line.indexOf(':');
+    const colonIdx = line.indexOf(":");
     if (colonIdx === -1) {
       continue;
     }
@@ -60,11 +60,11 @@ function findBlockedAiBots(content: string): string[] {
     const directive = line.substring(0, colonIdx).trim().toLowerCase();
     const value = line.substring(colonIdx + 1).trim();
 
-    if (directive === 'user-agent') {
+    if (directive === "user-agent") {
       // If we encounter a new User-agent after disallow directives,
       // it starts a new group
       currentAgents.push(value);
-    } else if (directive === 'disallow') {
+    } else if (directive === "disallow") {
       // Assign this disallow to all current agents
       for (const agent of currentAgents) {
         const existing = sections.get(agent) || [];
@@ -84,7 +84,7 @@ function findBlockedAiBots(content: string): string[] {
   let group: { agents: string[]; disallows: string[] } = { agents: [], disallows: [] };
 
   for (const line of lines) {
-    if (!line || line.startsWith('#')) {
+    if (!line || line.startsWith("#")) {
       if (group.agents.length > 0) {
         groups.push(group);
         group = { agents: [], disallows: [] };
@@ -92,20 +92,20 @@ function findBlockedAiBots(content: string): string[] {
       continue;
     }
 
-    const colonIdx = line.indexOf(':');
+    const colonIdx = line.indexOf(":");
     if (colonIdx === -1) continue;
 
     const directive = line.substring(0, colonIdx).trim().toLowerCase();
     const value = line.substring(colonIdx + 1).trim();
 
-    if (directive === 'user-agent') {
+    if (directive === "user-agent") {
       // If we already have disallows, start a new group
       if (group.disallows.length > 0) {
         groups.push(group);
         group = { agents: [], disallows: [] };
       }
       group.agents.push(value);
-    } else if (directive === 'disallow') {
+    } else if (directive === "disallow") {
       group.disallows.push(value);
     }
   }
@@ -120,12 +120,9 @@ function findBlockedAiBots(content: string): string[] {
 
     for (const g of groups) {
       // Check if this group applies to this bot (exact match or wildcard)
-      const applies = g.agents.some(
-        (agent) =>
-          agent === '*' || agent.toLowerCase() === botLower
-      );
+      const applies = g.agents.some((agent) => agent === "*" || agent.toLowerCase() === botLower);
 
-      if (applies && g.disallows.includes('/')) {
+      if (applies && g.disallows.includes("/")) {
         isBlocked = true;
         break;
       }
@@ -155,11 +152,11 @@ function findBlockedAiBots(content: string): string[] {
  * - All major AI bots blocked: fail
  */
 export const aiBotAccessRule = defineRule({
-  id: 'geo-ai-bot-access',
-  name: 'AI Bot Access',
+  id: "geo-ai-bot-access",
+  name: "AI Bot Access",
   description:
-    'Checks if robots.txt blocks AI crawlers (GPTBot, ChatGPT-User, Google-Extended, Claude-Web, etc.)',
-  category: 'geo',
+    "Checks if robots.txt blocks AI crawlers (GPTBot, ChatGPT-User, Google-Extended, Claude-Web, etc.)",
+  category: "geo",
   weight: 20,
   run: async (context: AuditContext) => {
     const baseUrl = getBaseUrl(context.url);
@@ -178,14 +175,14 @@ export const aiBotAccessRule = defineRule({
 
     if (robotsContent === null) {
       return pass(
-        'geo-ai-bot-access',
-        'No robots.txt found or not accessible - AI bots are not blocked',
+        "geo-ai-bot-access",
+        "No robots.txt found or not accessible - AI bots are not blocked",
         {
           robotsTxtUrl,
           robotsTxtAccessible: false,
           blockedBots: [],
           totalBotsChecked: AI_BOTS.length,
-        }
+        },
       );
     }
 
@@ -202,33 +199,29 @@ export const aiBotAccessRule = defineRule({
     };
 
     if (blockedBots.length === 0) {
-      return pass(
-        'geo-ai-bot-access',
-        'AI bots are not blocked in robots.txt',
-        details
-      );
+      return pass("geo-ai-bot-access", "AI bots are not blocked in robots.txt", details);
     }
 
     if (blockedBots.length >= AI_BOTS.length) {
       return fail(
-        'geo-ai-bot-access',
+        "geo-ai-bot-access",
         `All ${AI_BOTS.length} major AI bots are blocked in robots.txt`,
         {
           ...details,
           recommendation:
-            'Remove or relax AI bot restrictions to allow your content to appear in AI-generated answers',
-        }
+            "Remove or relax AI bot restrictions to allow your content to appear in AI-generated answers",
+        },
       );
     }
 
     return warn(
-      'geo-ai-bot-access',
-      `${blockedBots.length}/${AI_BOTS.length} AI bots blocked in robots.txt: ${blockedBots.join(', ')}`,
+      "geo-ai-bot-access",
+      `${blockedBots.length}/${AI_BOTS.length} AI bots blocked in robots.txt: ${blockedBots.join(", ")}`,
       {
         ...details,
         recommendation:
-          'Consider allowing AI bots to crawl your content for better visibility in AI-generated answers',
-      }
+          "Consider allowing AI bots to crawl your content for better visibility in AI-generated answers",
+      },
     );
   },
 });

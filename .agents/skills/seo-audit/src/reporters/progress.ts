@@ -1,8 +1,8 @@
-import ora, { type Ora } from 'ora';
-import cliProgress from 'cli-progress';
-import chalk from 'chalk';
-import type { CategoryResult, RuleResult } from '../types.js';
-import { getCategoryById } from '../categories/index.js';
+import ora, { type Ora } from "ora";
+import cliProgress from "cli-progress";
+import chalk from "chalk";
+import type { CategoryResult, RuleResult } from "../types.js";
+import { getCategoryById } from "../categories/index.js";
 
 /**
  * Progress reporter using ora spinners and cli-progress bars
@@ -34,7 +34,7 @@ export class ProgressReporter {
    */
   private log(message: string): void {
     if (this.isJsonMode && this.isVerbose) {
-      process.stderr.write(message + '\n');
+      process.stderr.write(message + "\n");
     } else if (!this.isJsonMode) {
       console.log(message);
     }
@@ -49,7 +49,7 @@ export class ProgressReporter {
       return;
     }
     // Banner already shows URL, just add spacing
-    this.log('');
+    this.log("");
   }
 
   /**
@@ -68,7 +68,7 @@ export class ProgressReporter {
 
     this.spinner = ora({
       text: chalk.yellow(`Auditing ${categoryName}...`),
-      spinner: 'dots',
+      spinner: "dots",
     }).start();
   }
 
@@ -96,11 +96,7 @@ export class ProgressReporter {
   /**
    * Called when a category audit completes
    */
-  onCategoryComplete(
-    categoryId: string,
-    categoryName: string,
-    result: CategoryResult
-  ): void {
+  onCategoryComplete(categoryId: string, categoryName: string, result: CategoryResult): void {
     if (!this.shouldShowProgress()) {
       return;
     }
@@ -122,18 +118,18 @@ export class ProgressReporter {
   private printCategoryResult(
     categoryId: string,
     categoryName: string,
-    result: CategoryResult
+    result: CategoryResult,
   ): void {
     const scoreColor = this.getScoreColor(result.score);
     const scoreStr = `${result.score}`.padStart(3);
 
     const passStr = chalk.green(`${result.passCount} passed`);
-    const warnStr = result.warnCount > 0 ? chalk.yellow(`, ${result.warnCount} warnings`) : '';
-    const failStr = result.failCount > 0 ? chalk.red(`, ${result.failCount} failed`) : '';
+    const warnStr = result.warnCount > 0 ? chalk.yellow(`, ${result.warnCount} warnings`) : "";
+    const failStr = result.failCount > 0 ? chalk.red(`, ${result.failCount} failed`) : "";
 
     this.log(
       `  ${this.getCategoryIcon(result)} ${categoryName.padEnd(20)} ` +
-      `${scoreColor(scoreStr)} ${passStr}${warnStr}${failStr}`
+        `${scoreColor(scoreStr)} ${passStr}${warnStr}${failStr}`,
     );
   }
 
@@ -142,25 +138,25 @@ export class ProgressReporter {
    */
   private getCategoryIcon(result: CategoryResult): string {
     if (result.failCount > 0) {
-      return chalk.red('\u2717'); // Cross mark
+      return chalk.red("\u2717"); // Cross mark
     }
     if (result.warnCount > 0) {
-      return chalk.yellow('\u26A0'); // Warning
+      return chalk.yellow("\u26A0"); // Warning
     }
-    return chalk.green('\u2713'); // Check mark
+    return chalk.green("\u2713"); // Check mark
   }
 
   /**
    * Get status icon for a rule result
    */
-  private getStatusIcon(status: 'pass' | 'warn' | 'fail'): string {
+  private getStatusIcon(status: "pass" | "warn" | "fail"): string {
     switch (status) {
-      case 'pass':
-        return chalk.green('\u2713');
-      case 'warn':
-        return chalk.yellow('\u26A0');
-      case 'fail':
-        return chalk.red('\u2717');
+      case "pass":
+        return chalk.green("\u2713");
+      case "warn":
+        return chalk.yellow("\u26A0");
+      case "fail":
+        return chalk.red("\u2717");
     }
   }
 
@@ -181,10 +177,10 @@ export class ProgressReporter {
       return;
     }
 
-    this.log('');
+    this.log("");
     this.log(chalk.bold(`Crawling and auditing up to ${totalPages} pages...`));
-    this.log(chalk.gray('(Each page runs 251 SEO checks across 20 categories)'));
-    this.log('');
+    this.log(chalk.gray("(Each page runs 251 SEO checks across 20 categories)"));
+    this.log("");
 
     // In verbose JSON mode, don't use progress bar (use simple logs)
     if (this.isJsonMode && this.isVerbose) {
@@ -193,15 +189,15 @@ export class ProgressReporter {
 
     this.progressBar = new cliProgress.SingleBar(
       {
-        format: chalk.cyan('{bar}') + ' {percentage}% | {value}/{total} pages | {url}',
-        barCompleteChar: '\u2588',
-        barIncompleteChar: '\u2591',
+        format: chalk.cyan("{bar}") + " {percentage}% | {value}/{total} pages | {url}",
+        barCompleteChar: "\u2588",
+        barIncompleteChar: "\u2591",
         hideCursor: true,
       },
-      cliProgress.Presets.shades_classic
+      cliProgress.Presets.shades_classic,
     );
 
-    this.progressBar.start(totalPages, 0, { url: 'Starting...' });
+    this.progressBar.start(totalPages, 0, { url: "Starting..." });
   }
 
   /**
@@ -214,9 +210,7 @@ export class ProgressReporter {
 
     // Truncate URL if too long
     const maxUrlLength = 50;
-    const displayUrl = url.length > maxUrlLength
-      ? url.substring(0, maxUrlLength - 3) + '...'
-      : url;
+    const displayUrl = url.length > maxUrlLength ? url.substring(0, maxUrlLength - 3) + "..." : url;
 
     // In verbose JSON mode, log to stderr
     if (this.isJsonMode && this.isVerbose) {
@@ -243,9 +237,9 @@ export class ProgressReporter {
       return;
     }
 
-    this.log('');
-    this.log(chalk.bold('Category Results:'));
-    this.log('');
+    this.log("");
+    this.log(chalk.bold("Category Results:"));
+    this.log("");
 
     for (const [categoryId, result] of this.categoryResults) {
       const category = getCategoryById(categoryId);
@@ -259,11 +253,11 @@ export class ProgressReporter {
       // Show individual rule results
       for (const ruleResult of result.results) {
         const ruleIcon = this.getStatusIcon(ruleResult.status);
-        const indent = '    ';
+        const indent = "    ";
         this.log(`${indent}${ruleIcon} ${ruleResult.message}`);
       }
 
-      this.log('');
+      this.log("");
     }
   }
 

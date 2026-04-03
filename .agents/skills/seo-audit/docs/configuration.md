@@ -65,37 +65,37 @@ path = ""                       # Output file path (optional)
 
 Project identification and domain configuration.
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `name` | string | - | Project name for reports |
-| `domains` | string[] | - | Allowed domains (crawl stays within these) |
+| Key       | Type     | Default | Description                                |
+| --------- | -------- | ------- | ------------------------------------------ |
+| `name`    | string   | -       | Project name for reports                   |
+| `domains` | string[] | -       | Allowed domains (crawl stays within these) |
 
 ### [crawler]
 
 Controls how SEOmator crawls websites.
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `max_pages` | number | 10 | Maximum pages to crawl |
-| `concurrency` | number | 3 | Concurrent requests |
-| `timeout_ms` | number | 30000 | Request timeout in milliseconds |
-| `respect_robots` | boolean | true | Honor robots.txt directives |
-| `delay_ms` | number | 100 | Delay between requests |
-| `user_agent` | string | "" | Custom user agent (empty = random browser UA) |
-| `include` | string[] | [] | URL patterns to include (glob) |
-| `exclude` | string[] | [] | URL patterns to exclude (glob) |
-| `drop_query_prefixes` | string[] | ["utm_", "gclid", "fbclid"] | Query params to strip |
-| `allow_query_params` | string[] | [] | Query params to keep (empty = all except dropped) |
-| `max_prefix_budget` | number | 0.25 | Max fraction of crawl for single path prefix |
+| Key                   | Type     | Default                     | Description                                       |
+| --------------------- | -------- | --------------------------- | ------------------------------------------------- |
+| `max_pages`           | number   | 10                          | Maximum pages to crawl                            |
+| `concurrency`         | number   | 3                           | Concurrent requests                               |
+| `timeout_ms`          | number   | 30000                       | Request timeout in milliseconds                   |
+| `respect_robots`      | boolean  | true                        | Honor robots.txt directives                       |
+| `delay_ms`            | number   | 100                         | Delay between requests                            |
+| `user_agent`          | string   | ""                          | Custom user agent (empty = random browser UA)     |
+| `include`             | string[] | []                          | URL patterns to include (glob)                    |
+| `exclude`             | string[] | []                          | URL patterns to exclude (glob)                    |
+| `drop_query_prefixes` | string[] | ["utm_", "gclid", "fbclid"] | Query params to strip                             |
+| `allow_query_params`  | string[] | []                          | Query params to keep (empty = all except dropped) |
+| `max_prefix_budget`   | number   | 0.25                        | Max fraction of crawl for single path prefix      |
 
 ### [rules]
 
 Enable or disable specific audit rules.
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `enable` | string[] | ["*"] | Rules to enable (supports wildcards) |
-| `disable` | string[] | [] | Rules to disable (supports wildcards) |
+| Key       | Type     | Default | Description                           |
+| --------- | -------- | ------- | ------------------------------------- |
+| `enable`  | string[] | ["*"]   | Rules to enable (supports wildcards)  |
+| `disable` | string[] | []      | Rules to disable (supports wildcards) |
 
 **Wildcard Examples:**
 
@@ -113,21 +113,21 @@ disable = [
 
 External link checking configuration.
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `enabled` | boolean | true | Check external links |
-| `cache_ttl_days` | number | 7 | Days to cache link check results |
-| `timeout_ms` | number | 10000 | External link timeout |
-| `concurrency` | number | 5 | Concurrent external link checks |
+| Key              | Type    | Default | Description                      |
+| ---------------- | ------- | ------- | -------------------------------- |
+| `enabled`        | boolean | true    | Check external links             |
+| `cache_ttl_days` | number  | 7       | Days to cache link check results |
+| `timeout_ms`     | number  | 10000   | External link timeout            |
+| `concurrency`    | number  | 5       | Concurrent external link checks  |
 
 ### [output]
 
 Default output configuration.
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
+| Key      | Type   | Default   | Description                                       |
+| -------- | ------ | --------- | ------------------------------------------------- |
 | `format` | string | "console" | Output format: console, json, html, markdown, llm |
-| `path` | string | "" | Default output file path |
+| `path`   | string | ""        | Default output file path                          |
 
 ## Config Priority
 
@@ -149,12 +149,12 @@ seomator init --preset ecommerce  # E-commerce sites
 seomator init --preset ci         # Minimal CI/CD config
 ```
 
-| Preset | Description |
-|--------|-------------|
-| `default` | Standard configuration |
-| `blog` | Optimized for content sites - focuses on content, E-E-A-T |
+| Preset      | Description                                                        |
+| ----------- | ------------------------------------------------------------------ |
+| `default`   | Standard configuration                                             |
+| `blog`      | Optimized for content sites - focuses on content, E-E-A-T          |
 | `ecommerce` | Optimized for e-commerce - focuses on structured data, performance |
-| `ci` | Minimal config for CI/CD - fast, essential rules only |
+| `ci`        | Minimal config for CI/CD - fast, essential rules only              |
 
 ## Config Commands
 
@@ -184,17 +184,17 @@ seomator config validate          # Check for errors/warnings
 
 CLI options override config file settings:
 
-| Option | Config Equivalent | Description |
-|--------|-------------------|-------------|
-| `-m, --max-pages <n>` | `crawler.max_pages` | Max pages to crawl |
-| `--concurrency <n>` | `crawler.concurrency` | Concurrent requests |
-| `--timeout <ms>` | `crawler.timeout_ms` | Request timeout |
-| `-c, --categories <list>` | - | Filter to specific categories |
-| `-f, --format <type>` | `output.format` | Output format |
-| `-o, --output <path>` | `output.path` | Output file path |
-| `--no-cwv` | - | Skip Core Web Vitals |
-| `-r, --refresh` | - | Ignore cache |
-| `--resume` | - | Resume interrupted crawl |
+| Option                    | Config Equivalent     | Description                   |
+| ------------------------- | --------------------- | ----------------------------- |
+| `-m, --max-pages <n>`     | `crawler.max_pages`   | Max pages to crawl            |
+| `--concurrency <n>`       | `crawler.concurrency` | Concurrent requests           |
+| `--timeout <ms>`          | `crawler.timeout_ms`  | Request timeout               |
+| `-c, --categories <list>` | -                     | Filter to specific categories |
+| `-f, --format <type>`     | `output.format`       | Output format                 |
+| `-o, --output <path>`     | `output.path`         | Output file path              |
+| `--no-cwv`                | -                     | Skip Core Web Vitals          |
+| `-r, --refresh`           | -                     | Ignore cache                  |
+| `--resume`                | -                     | Resume interrupted crawl      |
 
 ## URL Filtering
 
@@ -228,12 +228,12 @@ exclude = [
 
 ### Glob pattern syntax
 
-| Pattern | Matches |
-|---------|---------|
-| `*` | Single path segment |
-| `**` | Multiple path segments |
-| `?` | Single character |
-| `[abc]` | Character class |
+| Pattern | Matches                |
+| ------- | ---------------------- |
+| `*`     | Single path segment    |
+| `**`    | Multiple path segments |
+| `?`     | Single character       |
+| `[abc]` | Character class        |
 
 ## Query Parameter Handling
 

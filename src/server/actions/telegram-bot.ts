@@ -3,8 +3,8 @@
 import { randomBytes } from "node:crypto";
 import { db } from "@/server/db";
 import { telegramLinkTokens } from "@/server/db/schema";
-import { createClient } from "@/lib/supabase/server";
-import { getTelegramClient } from "@/lib/telegram/client";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
+import { resolveTelegramBotUsername } from "@/lib/telegram/bot-identity";
 
 export type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
@@ -17,19 +17,6 @@ export type TelegramBotLinkData = {
 
 const TELEGRAM_BOT_LINK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-async function getCurrentUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  return user;
-}
-
 function buildDeepLink(botUsername: string, token: string): string {
   return `https://t.me/${botUsername}?start=${token}`;
 }
@@ -40,21 +27,19 @@ function generateLinkToken(): string {
 
 export async function createTelegramBotLink(): Promise<ActionResult<TelegramBotLinkData>> {
   try {
-    const user = await getCurrentUser();
+    const userId = await getCurrentUserId();
     const token = generateLinkToken();
     const expiresAt = new Date(Date.now() + TELEGRAM_BOT_LINK_TTL_MS);
 
-    const tgClient = getTelegramClient();
-    const bot = await tgClient.getMe();
-
-    if (!bot.username) {
+    const botUsername = await resolveTelegramBotUsername();
+    if (!botUsername || botUsername === "bot") {
       return { success: false, error: "Telegram bot username is not configured" };
     }
 
     await db
       .insert(telegramLinkTokens)
       .values({
-        userId: user.id,
+        userId,
         token,
         expiresAt,
       })
@@ -63,9 +48,9 @@ export async function createTelegramBotLink(): Promise<ActionResult<TelegramBotL
     return {
       success: true,
       data: {
-        botUsername: bot.username,
+        botUsername,
         token,
-        deepLinkUrl: buildDeepLink(bot.username, token),
+        deepLinkUrl: buildDeepLink(botUsername, token),
         expiresAt: expiresAt.toISOString(),
       },
     };

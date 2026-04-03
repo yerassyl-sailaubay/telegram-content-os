@@ -1,21 +1,21 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Extract Sitemap directives from robots.txt content
  */
 function extractSitemapDirectives(content: string): string[] {
   const sitemapUrls: string[] = [];
-  const lines = content.split('\n');
+  const lines = content.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim();
     // Skip comments
-    if (trimmed.startsWith('#')) continue;
+    if (trimmed.startsWith("#")) continue;
 
     // Case-insensitive match for Sitemap: directive
     if (/^sitemap:/i.test(trimmed)) {
-      const url = trimmed.substring(trimmed.indexOf(':') + 1).trim();
+      const url = trimmed.substring(trimmed.indexOf(":") + 1).trim();
       if (url) {
         sitemapUrls.push(url);
       }
@@ -33,20 +33,18 @@ function extractSitemapDirectives(content: string): string[] {
  * and crawl the sitemap without needing to guess its location.
  */
 export const sitemapInRobotstxtRule = defineRule({
-  id: 'crawl-sitemap-in-robotstxt',
-  name: 'Sitemap in robots.txt',
-  description: 'Checks if robots.txt references the sitemap',
-  category: 'crawl',
+  id: "crawl-sitemap-in-robotstxt",
+  name: "Sitemap in robots.txt",
+  description: "Checks if robots.txt references the sitemap",
+  category: "crawl",
   weight: 6,
   run: async (context: AuditContext) => {
     const robotsTxtContent = (context as any).robotsTxtContent as string | undefined;
 
     if (!robotsTxtContent) {
-      return pass(
-        'crawl-sitemap-in-robotstxt',
-        'No robots.txt content available to check',
-        { robotsTxtAvailable: false }
-      );
+      return pass("crawl-sitemap-in-robotstxt", "No robots.txt content available to check", {
+        robotsTxtAvailable: false,
+      });
     }
 
     const sitemapDirectives = extractSitemapDirectives(robotsTxtContent);
@@ -57,21 +55,18 @@ export const sitemapInRobotstxtRule = defineRule({
     };
 
     if (sitemapDirectives.length === 0) {
-      return warn(
-        'crawl-sitemap-in-robotstxt',
-        'robots.txt does not reference a sitemap',
-        {
-          ...details,
-          impact: 'Search engines may not discover the sitemap without a Sitemap: directive',
-          recommendation: 'Add a Sitemap: directive to robots.txt (e.g., Sitemap: https://example.com/sitemap.xml)',
-        }
-      );
+      return warn("crawl-sitemap-in-robotstxt", "robots.txt does not reference a sitemap", {
+        ...details,
+        impact: "Search engines may not discover the sitemap without a Sitemap: directive",
+        recommendation:
+          "Add a Sitemap: directive to robots.txt (e.g., Sitemap: https://example.com/sitemap.xml)",
+      });
     }
 
     return pass(
-      'crawl-sitemap-in-robotstxt',
+      "crawl-sitemap-in-robotstxt",
       `robots.txt references ${sitemapDirectives.length} sitemap(s)`,
-      details
+      details,
     );
   },
 });

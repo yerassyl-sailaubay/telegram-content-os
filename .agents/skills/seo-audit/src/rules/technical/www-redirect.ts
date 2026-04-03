@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchUrl } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchUrl } from "../../crawler/fetcher.js";
 
 /**
  * Gets the www and non-www versions of a URL
@@ -13,7 +13,7 @@ function getWwwVariants(url: string): { wwwUrl: string; nonWwwUrl: string } | nu
     let wwwHostname: string;
     let nonWwwHostname: string;
 
-    if (hostname.startsWith('www.')) {
+    if (hostname.startsWith("www.")) {
       wwwHostname = hostname;
       nonWwwHostname = hostname.substring(4);
     } else {
@@ -42,7 +42,7 @@ function getWwwVariants(url: string): { wwwUrl: string; nonWwwUrl: string } | nu
  */
 function getCanonicalHostname(context: AuditContext): string | null {
   const { $ } = context;
-  const canonicalLink = $('link[rel="canonical"]').attr('href');
+  const canonicalLink = $('link[rel="canonical"]').attr("href");
 
   if (canonicalLink) {
     try {
@@ -60,11 +60,10 @@ function getCanonicalHostname(context: AuditContext): string | null {
  * Rule: Check www and non-www redirect to one canonical version
  */
 export const wwwRedirectRule = defineRule({
-  id: 'technical-www-redirect',
-  name: 'WWW Redirect',
-  description:
-    'Checks that www and non-www versions redirect to one canonical version',
-  category: 'technical',
+  id: "technical-www-redirect",
+  name: "WWW Redirect",
+  description: "Checks that www and non-www versions redirect to one canonical version",
+  category: "technical",
   weight: 1,
   run: async (context: AuditContext) => {
     const { url } = context;
@@ -72,15 +71,15 @@ export const wwwRedirectRule = defineRule({
 
     if (!variants) {
       return warn(
-        'technical-www-redirect',
-        'Could not determine www/non-www variants for this URL',
-        { url }
+        "technical-www-redirect",
+        "Could not determine www/non-www variants for this URL",
+        { url },
       );
     }
 
     const { wwwUrl, nonWwwUrl } = variants;
     const currentHostname = new URL(url).hostname;
-    const isWww = currentHostname.startsWith('www.');
+    const isWww = currentHostname.startsWith("www.");
 
     // Check canonical link
     const canonicalHostname = getCanonicalHostname(context);
@@ -116,12 +115,12 @@ export const wwwRedirectRule = defineRule({
     // If one version is not accessible, that's fine (means redirect is working)
     if (results.wwwStatus === 0 || results.nonWwwStatus === 0) {
       // One version is not directly accessible - likely redirecting
-      const accessibleVersion = results.wwwStatus !== 0 ? 'www' : 'non-www';
+      const accessibleVersion = results.wwwStatus !== 0 ? "www" : "non-www";
 
       return pass(
-        'technical-www-redirect',
+        "technical-www-redirect",
         `Only ${accessibleVersion} version is directly accessible (redirect likely in place)`,
-        details
+        details,
       );
     }
 
@@ -130,21 +129,20 @@ export const wwwRedirectRule = defineRule({
 
     // If canonical is set, use that to verify
     if (canonicalHostname) {
-      const canonicalIsWww = canonicalHostname.startsWith('www.');
-      const canonicalMatchesCurrent =
-        (canonicalIsWww && isWww) || (!canonicalIsWww && !isWww);
+      const canonicalIsWww = canonicalHostname.startsWith("www.");
+      const canonicalMatchesCurrent = (canonicalIsWww && isWww) || (!canonicalIsWww && !isWww);
 
       if (canonicalMatchesCurrent) {
         return pass(
-          'technical-www-redirect',
-          `Canonical URL is set to ${canonicalIsWww ? 'www' : 'non-www'} version`,
-          { ...details, canonicalMatchesCurrent }
+          "technical-www-redirect",
+          `Canonical URL is set to ${canonicalIsWww ? "www" : "non-www"} version`,
+          { ...details, canonicalMatchesCurrent },
         );
       } else {
         return warn(
-          'technical-www-redirect',
-          `Current page is ${isWww ? 'www' : 'non-www'} but canonical points to ${canonicalIsWww ? 'www' : 'non-www'}`,
-          { ...details, canonicalMatchesCurrent }
+          "technical-www-redirect",
+          `Current page is ${isWww ? "www" : "non-www"} but canonical points to ${canonicalIsWww ? "www" : "non-www"}`,
+          { ...details, canonicalMatchesCurrent },
         );
       }
     }
@@ -152,17 +150,17 @@ export const wwwRedirectRule = defineRule({
     // Both accessible, no canonical - this is a problem
     if (results.wwwStatus === 200 && results.nonWwwStatus === 200) {
       return fail(
-        'technical-www-redirect',
-        'Both www and non-www versions are accessible (should redirect to one canonical version)',
-        details
+        "technical-www-redirect",
+        "Both www and non-www versions are accessible (should redirect to one canonical version)",
+        details,
       );
     }
 
     // One returns non-200 status
     return warn(
-      'technical-www-redirect',
+      "technical-www-redirect",
       `WWW version returned ${results.wwwStatus}, non-www returned ${results.nonWwwStatus}`,
-      details
+      details,
     );
   },
 });

@@ -18,6 +18,14 @@ export async function middleware(request: NextRequest) {
   // Run i18n middleware first to handle locale detection and routing
   const intlResponse = intlMiddleware(request);
 
+  // Server Actions and mutation requests already perform auth checks in their
+  // handlers. Skipping middleware auth refresh on non-navigation requests
+  // removes an extra network hop from every POST/PUT/PATCH/DELETE.
+  const isNavigationRequest = request.method === "GET" || request.method === "HEAD";
+  if (!isNavigationRequest) {
+    return intlResponse;
+  }
+
   // After i18n middleware, resolve the effective pathname (without locale prefix)
   // to check auth rules
   const localePattern = /^\/(en|ru)(\/|$)/;

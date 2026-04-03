@@ -6,9 +6,9 @@
  * Returns the same PlaywrightFetchResult interface so the Auditor is agnostic.
  */
 
-import { BrowserWindow, session } from 'electron';
-import type { PlaywrightFetchResult } from '@core/crawler/index.js';
-import type { CoreWebVitals } from '@core/types.js';
+import { BrowserWindow, session } from "electron";
+import type { PlaywrightFetchResult } from "@core/crawler/index.js";
+import type { CoreWebVitals } from "@core/types.js";
 
 /**
  * Fetch a page using a hidden Electron BrowserWindow.
@@ -23,16 +23,13 @@ export async function fetchPageWithBrowserWindow(
 
   // Capture the status code from the main-frame navigation response
   let statusCode = 0;
-  ses.webRequest.onHeadersReceived(
-    { urls: ['*://*/*'] },
-    (details, callback) => {
-      // Only capture the top-level navigation, not sub-resources
-      if (details.resourceType === 'mainFrame') {
-        statusCode = details.statusCode;
-      }
-      callback({});
-    },
-  );
+  ses.webRequest.onHeadersReceived({ urls: ["*://*/*"] }, (details, callback) => {
+    // Only capture the top-level navigation, not sub-resources
+    if (details.resourceType === "mainFrame") {
+      statusCode = details.statusCode;
+    }
+    callback({});
+  });
 
   const win = new BrowserWindow({
     show: false,
@@ -58,9 +55,7 @@ export async function fetchPageWithBrowserWindow(
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Get rendered HTML
-    const html = await win.webContents.executeJavaScript(
-      'document.documentElement.outerHTML',
-    );
+    const html = await win.webContents.executeJavaScript("document.documentElement.outerHTML");
 
     // Measure Core Web Vitals
     const cwv = await measureCwvInWindow(win);

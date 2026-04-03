@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchUrl, fetchPage } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchUrl, fetchPage } from "../../crawler/fetcher.js";
 
 /**
  * Extracts the base URL (origin) from a full URL
@@ -19,12 +19,12 @@ function getBaseUrl(url: string): string {
  */
 function extractSitemapUrlsFromRobotsTxt(content: string): string[] {
   const sitemapUrls: string[] = [];
-  const lines = content.split('\n');
+  const lines = content.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim().toLowerCase();
-    if (trimmed.startsWith('sitemap:')) {
-      const url = line.substring(line.indexOf(':') + 1).trim();
+    if (trimmed.startsWith("sitemap:")) {
+      const url = line.substring(line.indexOf(":") + 1).trim();
       if (url) {
         sitemapUrls.push(url);
       }
@@ -38,11 +38,10 @@ function extractSitemapUrlsFromRobotsTxt(content: string): string[] {
  * Rule: Check that a sitemap exists
  */
 export const sitemapExistsRule = defineRule({
-  id: 'technical-sitemap-exists',
-  name: 'Sitemap Exists',
-  description:
-    'Checks that a sitemap.xml exists at /sitemap.xml or is referenced in robots.txt',
-  category: 'technical',
+  id: "technical-sitemap-exists",
+  name: "Sitemap Exists",
+  description: "Checks that a sitemap.xml exists at /sitemap.xml or is referenced in robots.txt",
+  category: "technical",
   weight: 1,
   run: async (context: AuditContext) => {
     const baseUrl = getBaseUrl(context.url);
@@ -91,33 +90,33 @@ export const sitemapExistsRule = defineRule({
 
     if (foundSitemaps.length > 0) {
       return pass(
-        'technical-sitemap-exists',
+        "technical-sitemap-exists",
         `Sitemap found: ${foundSitemaps.length} sitemap(s) accessible`,
         {
           foundSitemaps,
           checkedLocations,
-        }
+        },
       );
     }
 
     if (checkedLocations.length === 1) {
       return fail(
-        'technical-sitemap-exists',
-        'No sitemap.xml found at default location and no sitemap referenced in robots.txt',
+        "technical-sitemap-exists",
+        "No sitemap.xml found at default location and no sitemap referenced in robots.txt",
         {
           checkedLocations,
           foundSitemaps: [],
-        }
+        },
       );
     }
 
     return warn(
-      'technical-sitemap-exists',
+      "technical-sitemap-exists",
       `Sitemap referenced in robots.txt but not accessible (checked ${checkedLocations.length} locations)`,
       {
         checkedLocations,
         foundSitemaps: [],
-      }
+      },
     );
   },
 });

@@ -3,50 +3,24 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ChannelList } from "@/components/channels/channel-list";
 import { ConnectChannelWizard } from "@/components/channels/connect-channel-wizard";
 import { listChannels } from "@/server/actions/channels";
-import { getTelegramClient } from "@/lib/telegram/client";
-
-const BOT_USERNAME_LOOKUP_TIMEOUT_MS = 8000;
-
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`Timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-
-    promise
-      .then((value) => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch((error) => {
-        clearTimeout(timer);
-        reject(error);
-      });
-  });
-}
-
-async function resolveBotUsername(): Promise<string> {
-  if (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME) {
-    return process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-  }
-
-  try {
-    const tgClient = getTelegramClient();
-    const me = await withTimeout(tgClient.getMe(), BOT_USERNAME_LOOKUP_TIMEOUT_MS);
-    return me.username ?? "bot";
-  } catch {
-    return "bot";
-  }
-}
+import { resolveTelegramBotUsername } from "@/lib/telegram/bot-identity";
+import { elapsedMs, logHotRoutePerf } from "@/lib/perf/hot-routes";
 
 export default async function ChannelsPage() {
+  const startedAt = performance.now();
   const [t, botUsername, channelsResult] = await Promise.all([
     getTranslations("channels"),
-    resolveBotUsername(),
+    resolveTelegramBotUsername(),
     listChannels(),
   ]);
 
   if (!channelsResult.success) {
+    logHotRoutePerf("route:/dashboard/channels", {
+      totalMs: elapsedMs(startedAt),
+      success: false,
+      error: channelsResult.error,
+    });
+
     return (
       <>
         <PageHeader
@@ -60,6 +34,12 @@ export default async function ChannelsPage() {
       </>
     );
   }
+
+  logHotRoutePerf("route:/dashboard/channels", {
+    totalMs: elapsedMs(startedAt),
+    success: true,
+    channels: channelsResult.data.length,
+  });
 
   return (
     <>

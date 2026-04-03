@@ -1,7 +1,7 @@
-import type { AuditResult, CategoryResult, RuleResult } from '../types.js';
-import { getCategoryById } from '../categories/index.js';
-import { getFixSuggestion } from './fix-suggestions.js';
-import { getRuleById } from '../rules/registry.js';
+import type { AuditResult, CategoryResult, RuleResult } from "../types.js";
+import { getCategoryById } from "../categories/index.js";
+import { getFixSuggestion } from "./fix-suggestions.js";
+import { getRuleById } from "../rules/registry.js";
 
 /**
  * Rule metadata cache structure
@@ -17,7 +17,7 @@ interface RuleMetadata {
  */
 interface AggregatedIssue {
   ruleId: string;
-  status: 'fail' | 'warn' | 'pass';
+  status: "fail" | "warn" | "pass";
   categoryId: string;
   categoryName: string;
   message: string;
@@ -40,7 +40,7 @@ function buildRuleMetadataCache(categoryResults: CategoryResult[]): Map<string, 
         cache.set(r.ruleId, {
           id: r.ruleId,
           name: rule?.name ?? formatRuleIdAsName(r.ruleId),
-          description: rule?.description ?? ''
+          description: rule?.description ?? "",
         });
       }
     }
@@ -55,9 +55,9 @@ function buildRuleMetadataCache(categoryResults: CategoryResult[]): Map<string, 
  */
 function formatRuleIdAsName(ruleId: string): string {
   return ruleId
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 /**
@@ -65,7 +65,7 @@ function formatRuleIdAsName(ruleId: string): string {
  */
 function aggregateIssuesByRule(
   categoryResults: CategoryResult[],
-  ruleMetadataCache: Map<string, RuleMetadata>
+  ruleMetadataCache: Map<string, RuleMetadata>,
 ): Map<string, AggregatedIssue[]> {
   const aggregatedByCategory = new Map<string, AggregatedIssue[]>();
 
@@ -89,9 +89,9 @@ function aggregateIssuesByRule(
           categoryName,
           message: r.message,
           ruleName: metadata?.name ?? formatRuleIdAsName(r.ruleId),
-          ruleDescription: metadata?.description ?? '',
+          ruleDescription: metadata?.description ?? "",
           pages: [],
-          pageCount: 0
+          pageCount: 0,
         });
       }
 
@@ -112,33 +112,33 @@ function aggregateIssuesByRule(
  * Get color class for score
  */
 function getScoreColor(score: number): string {
-  if (score >= 90) return 'var(--color-pass)';
-  if (score >= 70) return 'var(--color-warn)';
-  if (score >= 50) return 'var(--color-orange)';
-  return 'var(--color-fail)';
+  if (score >= 90) return "var(--color-pass)";
+  if (score >= 70) return "var(--color-warn)";
+  if (score >= 50) return "var(--color-orange)";
+  return "var(--color-fail)";
 }
 
 /**
  * Get score label
  */
 function getScoreLabel(score: number): string {
-  if (score >= 90) return 'Excellent';
-  if (score >= 70) return 'Good';
-  if (score >= 50) return 'Needs Work';
-  return 'Poor';
+  if (score >= 90) return "Excellent";
+  if (score >= 70) return "Good";
+  if (score >= 50) return "Needs Work";
+  return "Poor";
 }
 
 /**
  * Escape HTML special characters
  */
 function escapeHtml(text: string | null | undefined): string {
-  if (text == null) return '';
+  if (text == null) return "";
   return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /**
@@ -149,10 +149,10 @@ function extractUrlFromDetails(details: Record<string, unknown> | undefined): st
 
   // pageUrl is the standard field injected by the auditor
   // Check it first, then fall back to other common URL fields
-  const urlFields = ['pageUrl', 'url', 'htmlCanonical', 'canonical'];
+  const urlFields = ["pageUrl", "url", "htmlCanonical", "canonical"];
   for (const field of urlFields) {
     const value = details[field];
-    if (typeof value === 'string' && value.startsWith('http')) {
+    if (typeof value === "string" && value.startsWith("http")) {
       return value;
     }
   }
@@ -165,7 +165,7 @@ function extractUrlFromDetails(details: Record<string, unknown> | undefined): st
 function getShortUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    return parsed.pathname === '/' ? '/' : parsed.pathname;
+    return parsed.pathname === "/" ? "/" : parsed.pathname;
   } catch {
     return url;
   }
@@ -1505,14 +1505,17 @@ function getIcon(name: string): string {
     logo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>',
     moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
     sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
-    check: '✓',
-    warning: '!',
-    error: '✕',
-    lightbulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21h6M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3z"/></svg>',
-    category: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
-    pages: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>',
+    check: "✓",
+    warning: "!",
+    error: "✕",
+    lightbulb:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21h6M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3z"/></svg>',
+    category:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+    pages:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>',
   };
-  return icons[name] || '';
+  return icons[name] || "";
 }
 
 /**
@@ -1547,9 +1550,9 @@ export function renderHtmlReport(result: AuditResult): string {
     allAggregatedIssues.push(...issues);
   }
 
-  const failures = allAggregatedIssues.filter(i => i.status === 'fail');
-  const warnings = allAggregatedIssues.filter(i => i.status === 'warn');
-  const passes = allAggregatedIssues.filter(i => i.status === 'pass');
+  const failures = allAggregatedIssues.filter((i) => i.status === "fail");
+  const warnings = allAggregatedIssues.filter((i) => i.status === "warn");
+  const passes = allAggregatedIssues.filter((i) => i.status === "pass");
   const totalChecks = allAggregatedIssues.length;
   const uniqueUrls = Array.from(allUrls).sort();
 
@@ -1561,18 +1564,19 @@ export function renderHtmlReport(result: AuditResult): string {
   // Generate issues table rows (failures and warnings only) - now using aggregated data
   const issueTableRows = [...failures, ...warnings]
     .map((issue) => {
-      const urlsCommaSeparated = issue.pages.map(p => p.url).join(',');
-      const pageDisplay = issue.pages.length === 0
-        ? '-'
-        : issue.pages.length === 1
-          ? `<span class="issue-row-url" title="${escapeHtml(issue.pages[0].url)}">${escapeHtml(getShortUrl(issue.pages[0].url))}</span>`
-          : `<span class="issue-row-url">${issue.pages.length} pages</span>`;
+      const urlsCommaSeparated = issue.pages.map((p) => p.url).join(",");
+      const pageDisplay =
+        issue.pages.length === 0
+          ? "-"
+          : issue.pages.length === 1
+            ? `<span class="issue-row-url" title="${escapeHtml(issue.pages[0].url)}">${escapeHtml(getShortUrl(issue.pages[0].url))}</span>`
+            : `<span class="issue-row-url">${issue.pages.length} pages</span>`;
 
       return `
       <tr class="issue-row" data-rule-id="${escapeHtml(issue.ruleId)}" data-status="${issue.status}" data-urls="${escapeHtml(urlsCommaSeparated)}">
         <td>
           <div class="issue-row-name">
-            <div class="issue-row-icon ${issue.status}">${issue.status === 'fail' ? '✕' : '!'}</div>
+            <div class="issue-row-icon ${issue.status}">${issue.status === "fail" ? "✕" : "!"}</div>
             <div>
               <div class="issue-row-text">${escapeHtml(issue.ruleName)}</div>
               <div class="issue-row-category">${escapeHtml(issue.categoryName)}</div>
@@ -1583,39 +1587,45 @@ export function renderHtmlReport(result: AuditResult): string {
           ${pageDisplay}
         </td>
         <td>
-          <span class="issue-row-severity ${issue.status}">${issue.status === 'fail' ? 'Critical' : 'Warning'}</span>
+          <span class="issue-row-severity ${issue.status}">${issue.status === "fail" ? "Critical" : "Warning"}</span>
         </td>
       </tr>
     `;
-    }).join('');
+    })
+    .join("");
 
   // Generate URL filter options
-  const urlFilterOptions = uniqueUrls.length > 1
-    ? `<option value="all">All Pages (${uniqueUrls.length})</option>
-       ${uniqueUrls.map(url => `<option value="${escapeHtml(url)}">${escapeHtml(getShortUrl(url))}</option>`).join('')}`
-    : '';
+  const urlFilterOptions =
+    uniqueUrls.length > 1
+      ? `<option value="all">All Pages (${uniqueUrls.length})</option>
+       ${uniqueUrls.map((url) => `<option value="${escapeHtml(url)}">${escapeHtml(getShortUrl(url))}</option>`).join("")}`
+      : "";
 
   // Generate sidebar links
-  const sidebarLinks = result.categoryResults.map(cat => {
-    const category = getCategoryById(cat.categoryId);
-    const categoryName = category?.name ?? cat.categoryId;
-    const issueCount = cat.failCount + cat.warnCount;
-    const countClass = cat.failCount > 0 ? 'fail' : cat.warnCount > 0 ? 'warn' : 'pass';
+  const sidebarLinks = result.categoryResults
+    .map((cat) => {
+      const category = getCategoryById(cat.categoryId);
+      const categoryName = category?.name ?? cat.categoryId;
+      const issueCount = cat.failCount + cat.warnCount;
+      const countClass = cat.failCount > 0 ? "fail" : cat.warnCount > 0 ? "warn" : "pass";
 
-    return `
+      return `
       <li>
         <a class="sidebar-link" data-category="${cat.categoryId}">
-          <span class="sidebar-link-icon">${getIcon('category')}</span>
+          <span class="sidebar-link-icon">${getIcon("category")}</span>
           ${escapeHtml(categoryName)}
-          ${issueCount > 0 ? `<span class="sidebar-link-count ${countClass}">${issueCount}</span>` : ''}
+          ${issueCount > 0 ? `<span class="sidebar-link-count ${countClass}">${issueCount}</span>` : ""}
         </a>
       </li>
     `;
-  }).join('');
+    })
+    .join("");
 
   // Helper function to generate pages list HTML
-  const generatePagesListHtml = (pages: Array<{ url: string; details: Record<string, unknown> }>): string => {
-    if (pages.length === 0) return '';
+  const generatePagesListHtml = (
+    pages: Array<{ url: string; details: Record<string, unknown> }>,
+  ): string => {
+    if (pages.length === 0) return "";
 
     // For single page, show inline
     if (pages.length === 1) {
@@ -1630,7 +1640,7 @@ export function renderHtmlReport(result: AuditResult): string {
     if (pages.length <= 3) {
       return `
         <div class="pages-inline">
-          ${pages.map(p => `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">${escapeHtml(getShortUrl(p.url))}</a>`).join('')}
+          ${pages.map((p) => `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">${escapeHtml(getShortUrl(p.url))}</a>`).join("")}
         </div>
       `;
     }
@@ -1640,44 +1650,47 @@ export function renderHtmlReport(result: AuditResult): string {
       <details class="pages-toggle">
         <summary>${pages.length} pages affected</summary>
         <div class="pages-list">
-          ${pages.map(p => `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">${escapeHtml(getShortUrl(p.url))}</a>`).join('')}
+          ${pages.map((p) => `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">${escapeHtml(getShortUrl(p.url))}</a>`).join("")}
         </div>
       </details>
     `;
   };
 
   // Generate category sections using aggregated issues
-  const categorySectionsHtml = result.categoryResults.map(cat => {
-    const category = getCategoryById(cat.categoryId);
-    const categoryName = category?.name ?? cat.categoryId;
-    const categoryColor = getScoreColor(cat.score);
+  const categorySectionsHtml = result.categoryResults
+    .map((cat) => {
+      const category = getCategoryById(cat.categoryId);
+      const categoryName = category?.name ?? cat.categoryId;
+      const categoryColor = getScoreColor(cat.score);
 
-    // Get aggregated issues for this category
-    const aggregatedIssues = aggregatedByCategory.get(cat.categoryId) || [];
+      // Get aggregated issues for this category
+      const aggregatedIssues = aggregatedByCategory.get(cat.categoryId) || [];
 
-    const rulesHtml = aggregatedIssues.map(issue => {
-      const fix = getFixSuggestion(issue.ruleId);
-      const statusIcon = issue.status === 'pass' ? '✓' : issue.status === 'warn' ? '!' : '✕';
-      const urlsCommaSeparated = issue.pages.map(p => p.url).join(',');
+      const rulesHtml = aggregatedIssues
+        .map((issue) => {
+          const fix = getFixSuggestion(issue.ruleId);
+          const statusIcon = issue.status === "pass" ? "✓" : issue.status === "warn" ? "!" : "✕";
+          const urlsCommaSeparated = issue.pages.map((p) => p.url).join(",");
 
-      // Generate pages list HTML (collapsible for 4+ pages)
-      const pagesHtml = generatePagesListHtml(issue.pages);
+          // Generate pages list HTML (collapsible for 4+ pages)
+          const pagesHtml = generatePagesListHtml(issue.pages);
 
-      // Show description only if we have one and it's not just the message repeated
-      const showDescription = issue.ruleDescription && issue.ruleDescription !== issue.message;
+          // Show description only if we have one and it's not just the message repeated
+          const showDescription = issue.ruleDescription && issue.ruleDescription !== issue.message;
 
-      // For passed rules, use collapsible details to reduce visual clutter
-      const fixHtml = issue.status !== 'pass'
-        ? `<div class="rule-fix">
+          // For passed rules, use collapsible details to reduce visual clutter
+          const fixHtml =
+            issue.status !== "pass"
+              ? `<div class="rule-fix">
             <div class="rule-fix-header">
-              ${getIcon('lightbulb')}
+              ${getIcon("lightbulb")}
               <span>How to Fix</span>
             </div>
             <div class="rule-fix-text">${escapeHtml(fix)}</div>
           </div>`
-        : '';
+              : "";
 
-      return `
+          return `
         <div class="rule-card" data-status="${issue.status}" data-rule-id="${escapeHtml(issue.ruleId)}" data-urls="${escapeHtml(urlsCommaSeparated)}">
           <div class="rule-header">
             <div class="rule-status-icon ${issue.status}">${statusIcon}</div>
@@ -1686,7 +1699,7 @@ export function renderHtmlReport(result: AuditResult): string {
                 <span class="rule-title">${escapeHtml(issue.ruleName)}</span>
                 <span class="rule-id">${escapeHtml(issue.ruleId)}</span>
               </div>
-              ${showDescription ? `<div class="rule-description">${escapeHtml(issue.ruleDescription)}</div>` : ''}
+              ${showDescription ? `<div class="rule-description">${escapeHtml(issue.ruleDescription)}</div>` : ""}
               <div class="rule-message">${escapeHtml(issue.message)}</div>
               ${pagesHtml}
               ${fixHtml}
@@ -1694,9 +1707,10 @@ export function renderHtmlReport(result: AuditResult): string {
           </div>
         </div>
       `;
-    }).join('');
+        })
+        .join("");
 
-    return `
+      return `
       <section class="category-section" id="category-${cat.categoryId}">
         <div class="category-header">
           <div class="category-title">
@@ -1714,7 +1728,8 @@ export function renderHtmlReport(result: AuditResult): string {
         </div>
       </section>
     `;
-  }).join('');
+    })
+    .join("");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1729,7 +1744,7 @@ export function renderHtmlReport(result: AuditResult): string {
   <!-- Fixed Header -->
   <header class="header">
     <a class="header-brand" href="#">
-      ${getIcon('logo')}
+      ${getIcon("logo")}
       <span>SEO Audit</span>
     </a>
     <div class="header-url">
@@ -1737,29 +1752,33 @@ export function renderHtmlReport(result: AuditResult): string {
     </div>
     <div class="header-meta">
       <div class="header-meta-item">
-        ${getIcon('pages')}
-        <span>${result.crawledPages} page${result.crawledPages !== 1 ? 's' : ''}</span>
+        ${getIcon("pages")}
+        <span>${result.crawledPages} page${result.crawledPages !== 1 ? "s" : ""}</span>
       </div>
       <div class="header-meta-item">
         <span>${timestamp}</span>
       </div>
       <button class="theme-toggle" title="Toggle dark mode">
-        <span class="icon-moon">${getIcon('moon')}</span>
-        <span class="icon-sun">${getIcon('sun')}</span>
+        <span class="icon-moon">${getIcon("moon")}</span>
+        <span class="icon-sun">${getIcon("sun")}</span>
       </button>
     </div>
   </header>
 
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
-    ${uniqueUrls.length > 1 ? `
+    ${
+      uniqueUrls.length > 1
+        ? `
     <div class="url-filter">
       <label class="url-filter-label">Filter by Page</label>
       <select id="url-filter" class="url-filter-select">
         ${urlFilterOptions}
       </select>
     </div>
-    ` : ''}
+    `
+        : ""
+    }
     <div class="sidebar-section">
       <div class="sidebar-title">Categories</div>
       <ul class="sidebar-nav">
@@ -1787,8 +1806,8 @@ export function renderHtmlReport(result: AuditResult): string {
           </div>
         </div>
         <div class="score-details">
-          <div class="score-status ${isPassing ? 'pass' : 'fail'}">
-            ${isPassing ? '✓ Audit Passed' : '✕ Audit Failed'} (threshold: 70)
+          <div class="score-status ${isPassing ? "pass" : "fail"}">
+            ${isPassing ? "✓ Audit Passed" : "✕ Audit Failed"} (threshold: 70)
           </div>
           <div class="score-stats">
             <div class="score-stat">
@@ -1812,11 +1831,12 @@ export function renderHtmlReport(result: AuditResult): string {
           <div class="category-progress-section">
             <div class="category-progress-title">Category Scores</div>
             <div class="category-progress-list">
-              ${result.categoryResults.map(cat => {
-                const category = getCategoryById(cat.categoryId);
-                const catName = category?.name ?? cat.categoryId;
-                const catColor = getScoreColor(cat.score);
-                return `
+              ${result.categoryResults
+                .map((cat) => {
+                  const category = getCategoryById(cat.categoryId);
+                  const catName = category?.name ?? cat.categoryId;
+                  const catColor = getScoreColor(cat.score);
+                  return `
                 <a href="#category-${cat.categoryId}" class="category-progress-item">
                   <span class="category-progress-name">${escapeHtml(catName)}</span>
                   <div class="category-progress-bar">
@@ -1825,7 +1845,8 @@ export function renderHtmlReport(result: AuditResult): string {
                   <span class="category-progress-value" style="color: ${catColor};">${cat.score}%</span>
                 </a>
                 `;
-              }).join('')}
+                })
+                .join("")}
             </div>
           </div>
         </div>
@@ -1849,7 +1870,9 @@ export function renderHtmlReport(result: AuditResult): string {
         </div>
       </div>
 
-      ${failures.length + warnings.length > 0 ? `
+      ${
+        failures.length + warnings.length > 0
+          ? `
       <!-- Issues Summary Table -->
       <div class="issues-summary">
         <div class="issues-summary-header">
@@ -1868,7 +1891,9 @@ export function renderHtmlReport(result: AuditResult): string {
           </tbody>
         </table>
       </div>
-      ` : ''}
+      `
+          : ""
+      }
 
       <!-- Category Sections -->
       ${categorySectionsHtml}
@@ -1891,7 +1916,7 @@ export function renderHtmlReport(result: AuditResult): string {
  * @param filePath - Output file path
  */
 export async function writeHtmlReport(result: AuditResult, filePath: string): Promise<void> {
-  const fs = await import('fs');
+  const fs = await import("fs");
   const html = renderHtmlReport(result);
-  fs.writeFileSync(filePath, html, 'utf-8');
+  fs.writeFileSync(filePath, html, "utf-8");
 }

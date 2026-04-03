@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Rule: Password Input on HTTP
@@ -13,20 +13,20 @@ import { defineRule, pass, fail } from '../define-rule.js';
  * is flagged by all modern browsers.
  */
 export const passwordHttpRule = defineRule({
-  id: 'security-password-http',
-  name: 'Password Input on HTTP',
-  description: 'Checks if password inputs are served over insecure HTTP',
-  category: 'security',
+  id: "security-password-http",
+  name: "Password Input on HTTP",
+  description: "Checks if password inputs are served over insecure HTTP",
+  category: "security",
   weight: 10,
   run: (context: AuditContext) => {
     const { $, url } = context;
 
     // If page is served over HTTPS, password fields are safe
-    if (url.startsWith('https://')) {
+    if (url.startsWith("https://")) {
       return pass(
-        'security-password-http',
-        'Page is served over HTTPS; password inputs are secure',
-        { isHttps: true }
+        "security-password-http",
+        "Page is served over HTTPS; password inputs are secure",
+        { isHttps: true },
       );
     }
 
@@ -35,21 +35,20 @@ export const passwordHttpRule = defineRule({
     const count = passwordInputs.length;
 
     if (count === 0) {
-      return pass(
-        'security-password-http',
-        'No password input fields found on this HTTP page',
-        { isHttps: false, passwordInputCount: 0 }
-      );
+      return pass("security-password-http", "No password input fields found on this HTTP page", {
+        isHttps: false,
+        passwordInputCount: 0,
+      });
     }
 
     return fail(
-      'security-password-http',
+      "security-password-http",
       `Found ${count} password input(s) on an HTTP page; credentials will be transmitted in plaintext`,
       {
         isHttps: false,
         passwordInputCount: count,
-        recommendation: 'Migrate the page to HTTPS to protect user credentials from interception',
-      }
+        recommendation: "Migrate the page to HTTPS to protect user credentials from interception",
+      },
     );
   },
 });

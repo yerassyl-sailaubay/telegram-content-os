@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Rule: Check for double slashes in URL path
@@ -9,11 +9,10 @@ import { defineRule, pass, fail } from '../define-rule.js';
  * `/path/to`, causing crawl waste or duplicate content.
  */
 export const doubleSlashRule = defineRule({
-  id: 'url-double-slash',
-  name: 'Double Slashes in URL Path',
-  description:
-    'Checks for double slashes in the URL path which indicate malformed URLs',
-  category: 'url',
+  id: "url-double-slash",
+  name: "Double Slashes in URL Path",
+  description: "Checks for double slashes in the URL path which indicate malformed URLs",
+  category: "url",
   weight: 5,
   run: async (context: AuditContext) => {
     const { url } = context;
@@ -22,24 +21,20 @@ export const doubleSlashRule = defineRule({
       const urlObj = new URL(url);
       const pathname = urlObj.pathname;
 
-      if (pathname.includes('//')) {
-        return fail(
-          'url-double-slash',
-          'URL path contains double slashes',
-          {
-            url,
-            path: pathname,
-            fix: `Remove double slashes: ${pathname.replace(/\/{2,}/g, '/')}`,
-          }
-        );
+      if (pathname.includes("//")) {
+        return fail("url-double-slash", "URL path contains double slashes", {
+          url,
+          path: pathname,
+          fix: `Remove double slashes: ${pathname.replace(/\/{2,}/g, "/")}`,
+        });
       }
 
-      return pass('url-double-slash', 'URL path has no double slashes', {
+      return pass("url-double-slash", "URL path has no double slashes", {
         url,
         path: pathname,
       });
     } catch {
-      return pass('url-double-slash', 'Could not parse URL', { url });
+      return pass("url-double-slash", "Could not parse URL", { url });
     }
   },
 });

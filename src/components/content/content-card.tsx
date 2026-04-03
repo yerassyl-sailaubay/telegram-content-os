@@ -38,7 +38,7 @@ type StatusBadgeProps = {
   className?: string;
 };
 
-function StatusBadge({ status, className }: StatusBadgeProps) {
+export function StatusBadge({ status, className }: StatusBadgeProps) {
   const t = useTranslations("content");
 
   const config: Record<string, { label: string; className: string }> = {
@@ -79,7 +79,7 @@ type SourceIndicatorProps = {
   sourceType: string | null;
 };
 
-function SourceIndicator({ sourceType }: SourceIndicatorProps) {
+export function SourceIndicator({ sourceType }: SourceIndicatorProps) {
   const t = useTranslations("content");
 
   const config: Record<string, { label: string; icon: React.ElementType; className: string }> = {
@@ -139,7 +139,7 @@ type ContentCardProps = {
   onEdit?: (item: ContentItem) => void;
 };
 
-function readVoiceTranscript(sourceMetadata: unknown): string | null {
+export function readVoiceTranscript(sourceMetadata: unknown): string | null {
   if (!sourceMetadata || typeof sourceMetadata !== "object" || Array.isArray(sourceMetadata)) {
     return null;
   }

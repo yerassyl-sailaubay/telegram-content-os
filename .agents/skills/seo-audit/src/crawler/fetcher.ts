@@ -1,5 +1,5 @@
-import * as cheerio from 'cheerio';
-import type { CheerioAPI } from 'cheerio';
+import * as cheerio from "cheerio";
+import type { CheerioAPI } from "cheerio";
 import type {
   AuditContext,
   LinkInfo,
@@ -10,7 +10,7 @@ import type {
   FigureInfo,
   InlineSvgInfo,
   PictureElementInfo,
-} from '../types.js';
+} from "../types.js";
 
 /**
  * Result of fetching a page
@@ -42,14 +42,14 @@ export async function fetchPage(url: string, timeout = 30000): Promise<FetchResu
 
   try {
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       signal: controller.signal,
       headers: {
-        'User-Agent': 'SEOmatorBot/1.0 (+https://github.com/seo-skills/seo-audit-skill)',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
+        "User-Agent": "SEOmatorBot/1.0 (+https://github.com/seo-skills/seo-audit-skill)",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
       },
-      redirect: 'follow',
+      redirect: "follow",
     });
 
     const responseTime = performance.now() - startTime;
@@ -86,18 +86,18 @@ export async function fetchUrl(url: string, timeout = 10000): Promise<number> {
 
   try {
     const response = await fetch(url, {
-      method: 'HEAD',
+      method: "HEAD",
       signal: controller.signal,
       headers: {
-        'User-Agent': 'SEOmatorBot/1.0 (+https://github.com/seo-skills/seo-audit-skill)',
+        "User-Agent": "SEOmatorBot/1.0 (+https://github.com/seo-skills/seo-audit-skill)",
       },
-      redirect: 'follow',
+      redirect: "follow",
     });
 
     return response.status;
   } catch (error) {
     // Return 0 for network errors, timeouts, etc.
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (error instanceof Error && error.name === "AbortError") {
       return 0; // Timeout
     }
     return 0; // Network error
@@ -125,16 +125,16 @@ function extractLinks($: CheerioAPI, baseUrl: string): LinkExtractionResult {
   const invalidLinks: InvalidLinkInfo[] = [];
   const baseUrlObj = new URL(baseUrl);
 
-  $('a[href]').each((_, element) => {
+  $("a[href]").each((_, element) => {
     const $el = $(element);
-    const href = $el.attr('href');
-    const text = ($el.text().trim() || $el.attr('title') || '').slice(0, 200);
+    const href = $el.attr("href");
+    const text = ($el.text().trim() || $el.attr("title") || "").slice(0, 200);
 
     // Check for empty or hash-only href
-    if (!href || href === '' || href === '#') {
+    if (!href || href === "" || href === "#") {
       invalidLinks.push({
-        href: href || '',
-        reason: 'empty',
+        href: href || "",
+        reason: "empty",
         text,
       });
       return;
@@ -144,7 +144,7 @@ function extractLinks($: CheerioAPI, baseUrl: string): LinkExtractionResult {
     if (/^javascript:/i.test(href)) {
       invalidLinks.push({
         href,
-        reason: 'javascript',
+        reason: "javascript",
         text,
       });
       return;
@@ -164,8 +164,8 @@ function extractLinks($: CheerioAPI, baseUrl: string): LinkExtractionResult {
       const isInternal = resolvedUrl.hostname === baseUrlObj.hostname;
 
       // Check for nofollow
-      const rel = $el.attr('rel') || '';
-      const isNoFollow = rel.toLowerCase().includes('nofollow');
+      const rel = $el.attr("rel") || "";
+      const isNoFollow = rel.toLowerCase().includes("nofollow");
 
       links.push({
         href: normalizedHref,
@@ -177,7 +177,7 @@ function extractLinks($: CheerioAPI, baseUrl: string): LinkExtractionResult {
       // Malformed URL
       invalidLinks.push({
         href,
-        reason: 'malformed',
+        reason: "malformed",
         text,
       });
     }
@@ -191,12 +191,12 @@ function extractLinks($: CheerioAPI, baseUrl: string): LinkExtractionResult {
  */
 function isValidEmail(email: string): { isValid: boolean; issue?: string } {
   if (!email) {
-    return { isValid: false, issue: 'Empty email address' };
+    return { isValid: false, issue: "Empty email address" };
   }
   // Basic email regex - checks for format: something@something.something
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return { isValid: false, issue: 'Invalid email format' };
+    return { isValid: false, issue: "Invalid email format" };
   }
   return { isValid: true };
 }
@@ -206,12 +206,12 @@ function isValidEmail(email: string): { isValid: boolean; issue?: string } {
  */
 function isValidPhone(phone: string): { isValid: boolean; issue?: string } {
   if (!phone) {
-    return { isValid: false, issue: 'Empty phone number' };
+    return { isValid: false, issue: "Empty phone number" };
   }
   // Remove allowed characters and check if remaining are digits
-  const cleaned = phone.replace(/[\s\-\(\)\+\.]/g, '');
+  const cleaned = phone.replace(/[\s\-\(\)\+\.]/g, "");
   if (!/^\d{7,15}$/.test(cleaned)) {
-    return { isValid: false, issue: 'Invalid phone format (should be 7-15 digits)' };
+    return { isValid: false, issue: "Invalid phone format (should be 7-15 digits)" };
   }
   return { isValid: true };
 }
@@ -224,19 +224,19 @@ function isValidPhone(phone: string): { isValid: boolean; issue?: string } {
 function extractSpecialLinks($: CheerioAPI): SpecialLinkInfo[] {
   const specialLinks: SpecialLinkInfo[] = [];
 
-  $('a[href]').each((_, element) => {
+  $("a[href]").each((_, element) => {
     const $el = $(element);
-    const href = $el.attr('href');
+    const href = $el.attr("href");
     if (!href) return;
 
-    const text = ($el.text().trim() || $el.attr('title') || '').slice(0, 200);
+    const text = ($el.text().trim() || $el.attr("title") || "").slice(0, 200);
 
     // Check for tel: links
     if (/^tel:/i.test(href)) {
-      const value = href.replace(/^tel:/i, '');
+      const value = href.replace(/^tel:/i, "");
       const validation = isValidPhone(value);
       specialLinks.push({
-        type: 'tel',
+        type: "tel",
         href,
         value,
         text,
@@ -249,10 +249,10 @@ function extractSpecialLinks($: CheerioAPI): SpecialLinkInfo[] {
     // Check for mailto: links
     if (/^mailto:/i.test(href)) {
       // Extract email (before any ? for subject/body params)
-      const value = href.replace(/^mailto:/i, '').split('?')[0];
+      const value = href.replace(/^mailto:/i, "").split("?")[0];
       const validation = isValidEmail(value);
       specialLinks.push({
-        type: 'mailto',
+        type: "mailto",
         href,
         value,
         text,
@@ -274,12 +274,12 @@ function extractSpecialLinks($: CheerioAPI): SpecialLinkInfo[] {
 function extractImages($: CheerioAPI, baseUrl: string): ImageInfo[] {
   const images: ImageInfo[] = [];
 
-  $('img').each((_, element) => {
+  $("img").each((_, element) => {
     const $el = $(element);
-    const src = $el.attr('src') || $el.attr('data-src') || '';
+    const src = $el.attr("src") || $el.attr("data-src") || "";
 
     // Skip data URLs and empty sources
-    if (!src || src.startsWith('data:')) {
+    if (!src || src.startsWith("data:")) {
       return;
     }
 
@@ -290,16 +290,16 @@ function extractImages($: CheerioAPI, baseUrl: string): ImageInfo[] {
       // Keep original if resolution fails
     }
 
-    const alt = $el.attr('alt');
-    const loading = $el.attr('loading');
+    const alt = $el.attr("alt");
+    const loading = $el.attr("loading");
 
     images.push({
       src: resolvedSrc,
-      alt: alt ?? '',
+      alt: alt ?? "",
       hasAlt: alt !== undefined,
-      width: $el.attr('width'),
-      height: $el.attr('height'),
-      isLazyLoaded: loading === 'lazy' || $el.attr('data-src') !== undefined,
+      width: $el.attr("width"),
+      height: $el.attr("height"),
+      isLazyLoaded: loading === "lazy" || $el.attr("data-src") !== undefined,
     });
   });
 
@@ -314,13 +314,13 @@ function extractImages($: CheerioAPI, baseUrl: string): ImageInfo[] {
 function extractFigures($: CheerioAPI): FigureInfo[] {
   const figures: FigureInfo[] = [];
 
-  $('figure').each((_, element) => {
+  $("figure").each((_, element) => {
     const $el = $(element);
-    const $figcaption = $el.find('figcaption');
+    const $figcaption = $el.find("figcaption");
 
     figures.push({
       hasFigcaption: $figcaption.length > 0,
-      imageCount: $el.find('img').length,
+      imageCount: $el.find("img").length,
       captionText: $figcaption.text().trim().slice(0, 200) || undefined,
     });
   });
@@ -336,14 +336,14 @@ function extractFigures($: CheerioAPI): FigureInfo[] {
 function extractInlineSvgs($: CheerioAPI): InlineSvgInfo[] {
   const svgs: InlineSvgInfo[] = [];
 
-  $('svg').each((_, element) => {
+  $("svg").each((_, element) => {
     const $el = $(element);
     const html = $.html($el);
 
     svgs.push({
-      sizeBytes: Buffer.byteLength(html, 'utf8'),
-      hasViewBox: $el.attr('viewBox') !== undefined,
-      hasTitle: $el.find('title').length > 0,
+      sizeBytes: Buffer.byteLength(html, "utf8"),
+      hasViewBox: $el.attr("viewBox") !== undefined,
+      hasTitle: $el.find("title").length > 0,
       snippet: html.slice(0, 100),
     });
   });
@@ -359,21 +359,21 @@ function extractInlineSvgs($: CheerioAPI): InlineSvgInfo[] {
 function extractPictureElements($: CheerioAPI): PictureElementInfo[] {
   const pictures: PictureElementInfo[] = [];
 
-  $('picture').each((_, element) => {
+  $("picture").each((_, element) => {
     const $el = $(element);
-    const $img = $el.find('img');
-    const $sources = $el.find('source');
+    const $img = $el.find("img");
+    const $sources = $el.find("source");
 
     const sourceTypes: string[] = [];
     $sources.each((_, source) => {
-      const type = $(source).attr('type');
+      const type = $(source).attr("type");
       if (type) sourceTypes.push(type);
     });
 
     pictures.push({
       hasImgFallback: $img.length > 0,
       sourceCount: $sources.length,
-      imgSrc: $img.attr('src'),
+      imgSrc: $img.attr("src"),
       sourceTypes,
     });
   });
@@ -405,7 +405,7 @@ export interface RedirectResult {
 export async function fetchUrlWithRedirects(
   url: string,
   timeout = 10000,
-  maxRedirects = 5
+  maxRedirects = 5,
 ): Promise<RedirectResult> {
   const chain: string[] = [url];
   let currentUrl = url;
@@ -417,19 +417,19 @@ export async function fetchUrlWithRedirects(
 
     try {
       const response = await fetch(currentUrl, {
-        method: 'HEAD',
+        method: "HEAD",
         signal: controller.signal,
         headers: {
-          'User-Agent': 'SEOmatorBot/1.0 (+https://github.com/seo-skills/seo-audit-skill)',
+          "User-Agent": "SEOmatorBot/1.0 (+https://github.com/seo-skills/seo-audit-skill)",
         },
-        redirect: 'manual', // Don't auto-follow redirects
+        redirect: "manual", // Don't auto-follow redirects
       });
 
       clearTimeout(timeoutId);
 
       // Check for redirect status codes
       if (response.status >= 300 && response.status < 400) {
-        const location = response.headers.get('location');
+        const location = response.headers.get("location");
         if (location) {
           // Resolve relative redirect URLs
           const nextUrl = new URL(location, currentUrl).href;
@@ -478,7 +478,7 @@ export async function fetchUrlWithRedirects(
 export function createAuditContext(
   url: string,
   fetchResult: FetchResult,
-  cwv: CoreWebVitals = {}
+  cwv: CoreWebVitals = {},
 ): AuditContext {
   const { html, $, headers, statusCode, responseTime } = fetchResult;
   const { links, invalidLinks } = extractLinks($, url);

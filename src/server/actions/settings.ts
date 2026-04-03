@@ -2,9 +2,15 @@
 
 import { db } from "@/server/db";
 import { users, userPreferences, platformConnections, subscriptions } from "@/server/db/schema";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/current-user";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import {
+  elapsedMs,
+  logHotRoutePerf,
+  measurePerfStep,
+  type PerfTimings,
+} from "@/lib/perf/hot-routes";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -52,48 +58,61 @@ export type SettingsData = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function getCurrentUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  return user;
-}
-
 // ─── Server Actions ──────────────────────────────────────────────────────────
 
 export async function getSettings(): Promise<ActionResult<SettingsData>> {
+  const startedAt = performance.now();
+  const timings: PerfTimings = {};
+
   try {
-    const authUser = await getCurrentUser();
+    const authUser = await measurePerfStep(timings, "authMs", () => getCurrentUser());
     const userId = authUser.id;
 
-    // Fetch user record
-    const [userRecord] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [userRows, prefRows, connections, subRows] = await Promise.all([
+      measurePerfStep(timings, "userRecordMs", () =>
+        db
+          .select({
+            name: users.name,
+            telegramUserId: users.telegramUserId,
+            telegramLinkedAt: users.telegramLinkedAt,
+          })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1),
+      ),
+      measurePerfStep(timings, "preferencesMs", () =>
+        db
+          .select({
+            timezone: userPreferences.timezone,
+            language: userPreferences.language,
+            aiModel: userPreferences.aiModel,
+            adaptationTone: userPreferences.adaptationTone,
+          })
+          .from(userPreferences)
+          .where(eq(userPreferences.userId, userId))
+          .limit(1),
+      ),
+      measurePerfStep(timings, "connectionsMs", () =>
+        db.select().from(platformConnections).where(eq(platformConnections.userId, userId)),
+      ),
+      measurePerfStep(timings, "subscriptionMs", () =>
+        db
+          .select({
+            plan: subscriptions.plan,
+            status: subscriptions.status,
+            stripeCustomerId: subscriptions.stripeCustomerId,
+            cancelAtPeriodEnd: subscriptions.cancelAtPeriodEnd,
+            currentPeriodEnd: subscriptions.currentPeriodEnd,
+          })
+          .from(subscriptions)
+          .where(eq(subscriptions.userId, userId))
+          .limit(1),
+      ),
+    ]);
 
-    // Fetch user preferences (may not exist yet)
-    const [prefs] = await db
-      .select()
-      .from(userPreferences)
-      .where(eq(userPreferences.userId, userId))
-      .limit(1);
-
-    // Fetch platform connections
-    const connections = await db
-      .select()
-      .from(platformConnections)
-      .where(eq(platformConnections.userId, userId));
-
-    // Fetch subscription
-    const [sub] = await db
-      .select()
-      .from(subscriptions)
-      .where(eq(subscriptions.userId, userId))
-      .limit(1);
+    const userRecord = userRows[0];
+    const prefs = prefRows[0];
+    const sub = subRows[0];
 
     const now = new Date();
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -115,7 +134,7 @@ export async function getSettings(): Promise<ActionResult<SettingsData>> {
       };
     });
 
-    return {
+    const result: ActionResult<SettingsData> = {
       success: true,
       data: {
         profile: {
@@ -144,7 +163,22 @@ export async function getSettings(): Promise<ActionResult<SettingsData>> {
         },
       },
     };
+
+    logHotRoutePerf("settings-data", {
+      totalMs: elapsedMs(startedAt),
+      timings,
+      connections: connections.length,
+      linkedTelegram: Boolean(userRecord?.telegramUserId),
+    });
+
+    return result;
   } catch (error) {
+    logHotRoutePerf("settings-data", {
+      totalMs: elapsedMs(startedAt),
+      timings,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+
     const message = error instanceof Error ? error.message : "Failed to load settings";
     return { success: false, error: message };
   }

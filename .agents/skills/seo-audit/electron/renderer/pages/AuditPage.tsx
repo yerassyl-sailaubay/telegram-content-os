@@ -2,26 +2,26 @@
  * Main audit page — run an audit, see live progress, view results.
  */
 
-import { useState, useCallback } from 'react';
-import { useAudit } from '../hooks/useAudit.js';
-import { AuditRunner } from '../components/AuditRunner.js';
-import { ProgressStream } from '../components/ProgressStream.js';
-import { ScoreCircle } from '../components/ScoreCircle.js';
-import { ScoreStats } from '../components/ScoreStats.js';
-import { CategoryGrid } from '../components/CategoryGrid.js';
-import { FilterTabs, type FilterStatus } from '../components/FilterTabs.js';
-import { IssuesTable } from '../components/IssuesTable.js';
-import { CategorySection } from '../components/CategorySection.js';
-import { Sidebar } from '../components/Sidebar.js';
+import { useState, useCallback } from "react";
+import { useAudit } from "../hooks/useAudit.js";
+import { AuditRunner } from "../components/AuditRunner.js";
+import { ProgressStream } from "../components/ProgressStream.js";
+import { ScoreCircle } from "../components/ScoreCircle.js";
+import { ScoreStats } from "../components/ScoreStats.js";
+import { CategoryGrid } from "../components/CategoryGrid.js";
+import { FilterTabs, type FilterStatus } from "../components/FilterTabs.js";
+import { IssuesTable } from "../components/IssuesTable.js";
+import { CategorySection } from "../components/CategorySection.js";
+import { Sidebar } from "../components/Sidebar.js";
 
 export function AuditPage() {
   const { status, progress, result, ruleMetadata, error, run, cancel, reset } = useAudit();
-  const [filter, setFilter] = useState<FilterStatus>('all');
+  const [filter, setFilter] = useState<FilterStatus>("all");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const handleRun = useCallback(
     (url: string, opts: { measureCwv: boolean; crawl: boolean; maxPages: number }) => {
-      setFilter('all');
+      setFilter("all");
       setActiveCategory(null);
       run(url, opts);
     },
@@ -31,7 +31,7 @@ export function AuditPage() {
   const handleCategoryClick = useCallback((categoryId: string) => {
     setActiveCategory(categoryId);
     const el = document.getElementById(`category-${categoryId}`);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   const handleIssueClick = useCallback((ruleId: string, categoryId: string) => {
@@ -39,10 +39,10 @@ export function AuditPage() {
     setActiveCategory(categoryId);
     setTimeout(() => {
       const el = document.getElementById(`rule-${ruleId}`);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
       // Flash highlight
-      el?.classList.add('ring-2', 'ring-[var(--color-accent)]');
-      setTimeout(() => el?.classList.remove('ring-2', 'ring-[var(--color-accent)]'), 2000);
+      el?.classList.add("ring-2", "ring-[var(--color-accent)]");
+      setTimeout(() => el?.classList.remove("ring-2", "ring-[var(--color-accent)]"), 2000);
     }, 100);
   }, []);
 
@@ -54,15 +54,15 @@ export function AuditPage() {
           0,
         ),
         fail: result.categoryResults.reduce((n, c) => {
-          const unique = new Set(c.results.filter((r) => r.status === 'fail').map((r) => r.ruleId));
+          const unique = new Set(c.results.filter((r) => r.status === "fail").map((r) => r.ruleId));
           return n + unique.size;
         }, 0),
         warn: result.categoryResults.reduce((n, c) => {
-          const unique = new Set(c.results.filter((r) => r.status === 'warn').map((r) => r.ruleId));
+          const unique = new Set(c.results.filter((r) => r.status === "warn").map((r) => r.ruleId));
           return n + unique.size;
         }, 0),
         pass: result.categoryResults.reduce((n, c) => {
-          const unique = new Set(c.results.filter((r) => r.status === 'pass').map((r) => r.ruleId));
+          const unique = new Set(c.results.filter((r) => r.status === "pass").map((r) => r.ruleId));
           return n + unique.size;
         }, 0),
       }
@@ -75,7 +75,7 @@ export function AuditPage() {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar (only when results are shown) */}
-      {status === 'complete' && result && (
+      {status === "complete" && result && (
         <Sidebar
           categories={result.categoryResults}
           activeCategory={activeCategory}
@@ -86,42 +86,48 @@ export function AuditPage() {
       {/* Main content */}
       <div
         className="flex-1 pt-[var(--header-height)]"
-        style={{ marginLeft: status === 'complete' && result ? 'var(--sidebar-width)' : '0' }}
+        style={{ marginLeft: status === "complete" && result ? "var(--sidebar-width)" : "0" }}
       >
-        <div className="max-w-[var(--content-max-width)] mx-auto p-6 space-y-6">
+        <div className="mx-auto max-w-[var(--content-max-width)] space-y-6 p-6">
           {/* Audit runner form */}
-          <div className="p-5 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <AuditRunner isRunning={status === 'running'} onRun={handleRun} onCancel={cancel} />
+          <div
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5"
+            style={{ boxShadow: "var(--shadow-sm)" }}
+          >
+            <AuditRunner isRunning={status === "running"} onRun={handleRun} onCancel={cancel} />
           </div>
 
           {/* Running state: progress stream */}
-          {status === 'running' && (
-            <div className="p-5 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]" style={{ boxShadow: 'var(--shadow-sm)' }}>
+          {status === "running" && (
+            <div
+              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5"
+              style={{ boxShadow: "var(--shadow-sm)" }}
+            >
               <ProgressStream progress={progress} />
             </div>
           )}
 
           {/* Error state */}
-          {status === 'error' && error && (
+          {status === "error" && error && (
             <div
-              className="p-4 rounded-lg border"
+              className="rounded-lg border p-4"
               style={{
-                backgroundColor: 'var(--color-fail-bg)',
-                borderColor: 'var(--color-fail)',
-                color: 'var(--color-fail)',
+                backgroundColor: "var(--color-fail-bg)",
+                borderColor: "var(--color-fail)",
+                color: "var(--color-fail)",
               }}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Audit failed</p>
-                  <p className="text-sm mt-1">{error}</p>
+                  <p className="mt-1 text-sm">{error}</p>
                 </div>
                 <button
                   onClick={reset}
-                  className="px-3 py-1.5 text-sm rounded-md font-medium"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium"
                   style={{
-                    backgroundColor: 'var(--color-fail)',
-                    color: '#fff',
+                    backgroundColor: "var(--color-fail)",
+                    color: "#fff",
                   }}
                 >
                   Try again
@@ -131,20 +137,20 @@ export function AuditPage() {
           )}
 
           {/* Results */}
-          {status === 'complete' && result && (
+          {status === "complete" && result && (
             <>
               {/* Score overview */}
               <div
-                className="p-6 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)] flex items-center gap-8"
-                style={{ boxShadow: 'var(--shadow-sm)' }}
+                className="flex items-center gap-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-6"
+                style={{ boxShadow: "var(--shadow-sm)" }}
               >
                 <ScoreCircle score={result.overallScore} size={140} />
                 <div className="space-y-3">
                   <div>
-                    <h2 className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>
+                    <h2 className="text-lg font-semibold" style={{ color: "var(--color-text)" }}>
                       Overall Score
                     </h2>
-                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
                       {result.categoryResults.length} categories audited
                       {result.crawledPages > 1 && ` across ${result.crawledPages} pages`}
                     </p>
@@ -154,8 +160,11 @@ export function AuditPage() {
               </div>
 
               {/* Category progress grid */}
-              <div className="p-5 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]" style={{ boxShadow: 'var(--shadow-sm)' }}>
-                <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text)' }}>
+              <div
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5"
+                style={{ boxShadow: "var(--shadow-sm)" }}
+              >
+                <h3 className="mb-3 text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                   Category Scores
                 </h3>
                 <CategoryGrid
@@ -167,18 +176,28 @@ export function AuditPage() {
 
               {/* Issues summary table */}
               {(totalFail > 0 || totalWarn > 0) && (
-                <div className="p-5 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]" style={{ boxShadow: 'var(--shadow-sm)' }}>
-                  <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text)' }}>
+                <div
+                  className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5"
+                  style={{ boxShadow: "var(--shadow-sm)" }}
+                >
+                  <h3 className="mb-3 text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                     Issues to Fix
                   </h3>
-                  <IssuesTable result={result} ruleMetadata={ruleMetadata} onIssueClick={handleIssueClick} />
+                  <IssuesTable
+                    result={result}
+                    ruleMetadata={ruleMetadata}
+                    onIssueClick={handleIssueClick}
+                  />
                 </div>
               )}
 
               {/* Filter tabs + detailed results */}
-              <div className="p-5 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border)]" style={{ boxShadow: 'var(--shadow-sm)' }}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
+              <div
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-5"
+                style={{ boxShadow: "var(--shadow-sm)" }}
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                     Detailed Results
                   </h3>
                   <FilterTabs active={filter} counts={counts} onChange={setFilter} />
@@ -192,7 +211,7 @@ export function AuditPage() {
                       ruleMetadata={ruleMetadata}
                       defaultExpanded={
                         activeCategory === cat.categoryId ||
-                        (filter === 'fail' && cat.failCount > 0)
+                        (filter === "fail" && cat.failCount > 0)
                       }
                     />
                   ))}
@@ -202,8 +221,8 @@ export function AuditPage() {
           )}
 
           {/* Idle state */}
-          {status === 'idle' && (
-            <div className="text-center py-16" style={{ color: 'var(--color-text-muted)' }}>
+          {status === "idle" && (
+            <div className="py-16 text-center" style={{ color: "var(--color-text-muted)" }}>
               <svg
                 className="mx-auto mb-5"
                 width="48"
@@ -214,35 +233,39 @@ export function AuditPage() {
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                style={{ color: 'var(--color-text-muted)' }}
+                style={{ color: "var(--color-text-muted)" }}
               >
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
                 <path d="M11 8v6" />
                 <path d="M8 11h6" />
               </svg>
-              <p className="text-lg font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>
+              <p
+                className="mb-1 text-lg font-semibold"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 Ready to Audit
               </p>
-              <p className="text-sm mb-5">
-                Enter a URL above to analyze your site
-              </p>
+              <p className="mb-5 text-sm">Enter a URL above to analyze your site</p>
               <div className="flex items-center justify-center gap-2">
                 <span
-                  className="text-xs px-2.5 py-1 rounded-full font-medium"
-                  style={{ backgroundColor: 'var(--color-accent-light)', color: 'var(--color-accent)' }}
+                  className="rounded-full px-2.5 py-1 text-xs font-medium"
+                  style={{
+                    backgroundColor: "var(--color-accent-light)",
+                    color: "var(--color-accent)",
+                  }}
                 >
                   251 Rules
                 </span>
                 <span
-                  className="text-xs px-2.5 py-1 rounded-full font-medium"
-                  style={{ backgroundColor: 'var(--color-info-bg)', color: 'var(--color-info)' }}
+                  className="rounded-full px-2.5 py-1 text-xs font-medium"
+                  style={{ backgroundColor: "var(--color-info-bg)", color: "var(--color-info)" }}
                 >
                   20 Categories
                 </span>
                 <span
-                  className="text-xs px-2.5 py-1 rounded-full font-medium"
-                  style={{ backgroundColor: 'var(--color-pass-bg)', color: 'var(--color-pass)' }}
+                  className="rounded-full px-2.5 py-1 text-xs font-medium"
+                  style={{ backgroundColor: "var(--color-pass-bg)", color: "var(--color-pass)" }}
                 >
                   Core Web Vitals
                 </span>

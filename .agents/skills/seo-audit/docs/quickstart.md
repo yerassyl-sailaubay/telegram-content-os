@@ -11,6 +11,7 @@ npm install -g @seomator/seo-audit
 This installs the `seomator` command globally.
 
 **Requirements:**
+
 - Node.js 18+
 - Chrome, Chromium, or Edge (for Core Web Vitals - auto-detected)
 
@@ -153,6 +154,7 @@ seomator audit https://example.com --format html -o report.html
 ```
 
 The HTML report includes:
+
 - **Category progress bars** - Visual overview of all category scores at a glance
 - **Rule names & descriptions** - Human-readable titles instead of just rule IDs
 - **Collapsible pages lists** - "N pages affected" toggles for multi-page issues
@@ -180,13 +182,13 @@ seomator audit https://example.com -c core,perf,security
 
 ## Output Formats
 
-| Format | Flag | Use Case |
-|--------|------|----------|
-| `console` | (default) | Human-readable terminal output |
-| `json` | `--format json` | CI/CD pipelines, programmatic processing |
-| `html` | `--format html` | Interactive visual reports with dark mode, filtering, progress bars |
-| `markdown` | `--format markdown` | Documentation, GitHub |
-| `llm` | `--format llm` | Compact AI-optimized (50-70% smaller) |
+| Format     | Flag                | Use Case                                                            |
+| ---------- | ------------------- | ------------------------------------------------------------------- |
+| `console`  | (default)           | Human-readable terminal output                                      |
+| `json`     | `--format json`     | CI/CD pipelines, programmatic processing                            |
+| `html`     | `--format html`     | Interactive visual reports with dark mode, filtering, progress bars |
+| `markdown` | `--format markdown` | Documentation, GitHub                                               |
+| `llm`      | `--format llm`      | Compact AI-optimized (50-70% smaller)                               |
 
 ## Configuration
 
@@ -223,11 +225,11 @@ format = "console"
 
 SEOmator uses exit codes for CI/CD integration:
 
-| Code | Meaning |
-|------|---------|
-| `0` | Passed (score >= 70) |
-| `1` | Failed (score < 70) |
-| `2` | Error |
+| Code | Meaning              |
+| ---- | -------------------- |
+| `0`  | Passed (score >= 70) |
+| `1`  | Failed (score < 70)  |
+| `2`  | Error                |
 
 ## Using with AI Agents
 

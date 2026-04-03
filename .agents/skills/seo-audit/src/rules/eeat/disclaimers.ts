@@ -1,6 +1,6 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
-import { detectYMYL } from './ymyl-detection.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
+import { detectYMYL } from "./ymyl-detection.js";
 
 /**
  * Disclaimer patterns by content type
@@ -42,17 +42,17 @@ const DISCLAIMER_PATTERNS = {
  * Disclaimer location selectors
  */
 const DISCLAIMER_SELECTORS = [
-  '.disclaimer',
-  '.notice',
-  '.warning',
-  '.legal-notice',
-  '.medical-disclaimer',
-  '.financial-disclaimer',
+  ".disclaimer",
+  ".notice",
+  ".warning",
+  ".legal-notice",
+  ".medical-disclaimer",
+  ".financial-disclaimer",
   '[class*="disclaimer"]',
   '[class*="notice"]',
   '[id*="disclaimer"]',
-  'small',
-  '.fine-print',
+  "small",
+  ".fine-print",
 ];
 
 /**
@@ -62,10 +62,10 @@ const DISCLAIMER_SELECTORS = [
  * disclaimers to protect both users and publishers.
  */
 export const disclaimersRule = defineRule({
-  id: 'eeat-disclaimers',
-  name: 'Disclaimers',
-  description: 'Checks for appropriate disclaimers on sensitive content',
-  category: 'eeat',
+  id: "eeat-disclaimers",
+  name: "Disclaimers",
+  description: "Checks for appropriate disclaimers on sensitive content",
+  category: "eeat",
   weight: 4,
 
   run(context: AuditContext): RuleResult {
@@ -75,13 +75,13 @@ export const disclaimersRule = defineRule({
     const ymylResult = detectYMYL($);
 
     // Get all page text for disclaimer detection
-    const bodyText = $('body').text();
+    const bodyText = $("body").text();
 
     // Check disclaimer areas specifically
-    let disclaimerAreaText = '';
+    let disclaimerAreaText = "";
     for (const selector of DISCLAIMER_SELECTORS) {
       $(selector).each((_, el) => {
-        disclaimerAreaText += ' ' + $(el).text();
+        disclaimerAreaText += " " + $(el).text();
       });
     }
 
@@ -89,14 +89,14 @@ export const disclaimersRule = defineRule({
 
     // Check for disclaimers based on YMYL categories
     const categoriesToCheck = ymylResult.isYMYL
-      ? ymylResult.categories.map((c) => c.toLowerCase().replace(/[^a-z]/g, ''))
+      ? ymylResult.categories.map((c) => c.toLowerCase().replace(/[^a-z]/g, ""))
       : [];
 
     // Map category names to disclaimer pattern keys
     const categoryToPatternKey: Record<string, keyof typeof DISCLAIMER_PATTERNS> = {
-      healthmedical: 'medical',
-      financial: 'financial',
-      legal: 'legal',
+      healthmedical: "medical",
+      financial: "financial",
+      legal: "legal",
     };
 
     // Check specific disclaimers for YMYL categories
@@ -123,7 +123,7 @@ export const disclaimersRule = defineRule({
       const match = (disclaimerAreaText || bodyText).match(pattern);
       if (match) {
         foundDisclaimers.push({
-          type: 'general',
+          type: "general",
           text: match[0].slice(0, 100),
         });
         break;
@@ -131,14 +131,14 @@ export const disclaimersRule = defineRule({
     }
 
     // Check for visible disclaimer section
-    const hasDisclaimerSection = $(DISCLAIMER_SELECTORS.join(', ')).length > 0;
+    const hasDisclaimerSection = $(DISCLAIMER_SELECTORS.join(", ")).length > 0;
 
     // Evaluate results based on YMYL status
     if (!ymylResult.isYMYL) {
       // Non-YMYL content doesn't require disclaimers
       if (foundDisclaimers.length > 0) {
         return {
-          status: 'pass',
+          status: "pass",
           score: 100,
           message: `Disclaimer found (not required for non-YMYL content)`,
           details: {
@@ -150,9 +150,9 @@ export const disclaimersRule = defineRule({
       }
 
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: 'Non-YMYL content - disclaimers not required',
+        message: "Non-YMYL content - disclaimers not required",
         details: {
           isYMYL: false,
           disclaimers: [],
@@ -162,13 +162,13 @@ export const disclaimersRule = defineRule({
 
     // YMYL content - disclaimers are important
     const requiredCategories = categoriesToCheck.filter((c) => categoryToPatternKey[c]);
-    const foundCategories = foundDisclaimers.map((d) => d.type).filter((t) => t !== 'general');
+    const foundCategories = foundDisclaimers.map((d) => d.type).filter((t) => t !== "general");
 
     if (foundDisclaimers.length > 0 && foundCategories.length >= requiredCategories.length) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: `Appropriate disclaimers found for YMYL content (${ymylResult.categories.join(', ')})`,
+        message: `Appropriate disclaimers found for YMYL content (${ymylResult.categories.join(", ")})`,
         details: {
           isYMYL: true,
           ymylCategories: ymylResult.categories,
@@ -180,24 +180,24 @@ export const disclaimersRule = defineRule({
 
     if (foundDisclaimers.length > 0) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 80,
-        message: `Disclaimer found, but may need category-specific disclaimer for ${ymylResult.categories.join(', ')} content`,
+        message: `Disclaimer found, but may need category-specific disclaimer for ${ymylResult.categories.join(", ")} content`,
         details: {
           isYMYL: true,
           ymylCategories: ymylResult.categories,
           disclaimers: foundDisclaimers,
           hasDisclaimerSection,
-          recommendation: `Consider adding specific disclaimers for ${ymylResult.categories.join(', ')} content`,
+          recommendation: `Consider adding specific disclaimers for ${ymylResult.categories.join(", ")} content`,
         },
       };
     }
 
     // YMYL content without disclaimers
     return {
-      status: 'warn',
+      status: "warn",
       score: 50,
-      message: `YMYL content (${ymylResult.categories.join(', ')}) without appropriate disclaimers`,
+      message: `YMYL content (${ymylResult.categories.join(", ")}) without appropriate disclaimers`,
       details: {
         isYMYL: true,
         ymylCategories: ymylResult.categories,
@@ -217,18 +217,24 @@ function getDisclaimerRecommendation(categories: string[]): string {
 
   for (const category of categories) {
     const lower = category.toLowerCase();
-    if (lower.includes('health') || lower.includes('medical')) {
-      recommendations.push('Add medical disclaimer: "This content is for informational purposes only and is not a substitute for professional medical advice"');
+    if (lower.includes("health") || lower.includes("medical")) {
+      recommendations.push(
+        'Add medical disclaimer: "This content is for informational purposes only and is not a substitute for professional medical advice"',
+      );
     }
-    if (lower.includes('financial')) {
-      recommendations.push('Add financial disclaimer: "This is not financial advice. Consult a qualified financial advisor"');
+    if (lower.includes("financial")) {
+      recommendations.push(
+        'Add financial disclaimer: "This is not financial advice. Consult a qualified financial advisor"',
+      );
     }
-    if (lower.includes('legal')) {
-      recommendations.push('Add legal disclaimer: "This is not legal advice. Consult a licensed attorney"');
+    if (lower.includes("legal")) {
+      recommendations.push(
+        'Add legal disclaimer: "This is not legal advice. Consult a licensed attorney"',
+      );
     }
   }
 
   return recommendations.length > 0
-    ? recommendations.join('. ')
-    : 'Add appropriate disclaimers for sensitive content';
+    ? recommendations.join(". ")
+    : "Add appropriate disclaimers for sensitive content";
 }

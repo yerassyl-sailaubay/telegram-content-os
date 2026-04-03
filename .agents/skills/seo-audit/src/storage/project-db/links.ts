@@ -1,6 +1,6 @@
-import type Database from 'better-sqlite3';
-import type { DbLink, HydratedLink, InsertLinkInput } from '../types.js';
-import { hashUrl } from '../utils/hash.js';
+import type Database from "better-sqlite3";
+import type { DbLink, HydratedLink, InsertLinkInput } from "../types.js";
+import { hashUrl } from "../utils/hash.js";
 
 /**
  * Hydrate a link record
@@ -31,7 +31,7 @@ function hydrateLink(row: DbLink): HydratedLink {
 export function insertLink(
   db: Database.Database,
   pageId: number,
-  input: InsertLinkInput
+  input: InsertLinkInput,
 ): HydratedLink {
   const hrefHash = hashUrl(input.href);
 
@@ -44,7 +44,7 @@ export function insertLink(
       target_status_code, target_error
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       pageId,
@@ -55,7 +55,7 @@ export function insertLink(
       input.isNofollow ? 1 : 0,
       input.relValue ?? null,
       input.targetStatusCode ?? null,
-      input.targetError ?? null
+      input.targetError ?? null,
     ) as DbLink;
 
   return hydrateLink(result);
@@ -72,7 +72,7 @@ export function insertLink(
 export function insertLinks(
   db: Database.Database,
   pageId: number,
-  links: InsertLinkInput[]
+  links: InsertLinkInput[],
 ): number {
   if (links.length === 0) return 0;
 
@@ -97,7 +97,7 @@ export function insertLinks(
         input.isNofollow ? 1 : 0,
         input.relValue ?? null,
         input.targetStatusCode ?? null,
-        input.targetError ?? null
+        input.targetError ?? null,
       );
       count++;
     }
@@ -114,13 +114,8 @@ export function insertLinks(
  * @param pageId - Page ID
  * @returns Array of links
  */
-export function getLinksByPage(
-  db: Database.Database,
-  pageId: number
-): HydratedLink[] {
-  const rows = db
-    .prepare('SELECT * FROM links WHERE page_id = ?')
-    .all(pageId) as DbLink[];
+export function getLinksByPage(db: Database.Database, pageId: number): HydratedLink[] {
+  const rows = db.prepare("SELECT * FROM links WHERE page_id = ?").all(pageId) as DbLink[];
 
   return rows.map(hydrateLink);
 }
@@ -132,12 +127,9 @@ export function getLinksByPage(
  * @param pageId - Page ID
  * @returns Array of internal links
  */
-export function getInternalLinks(
-  db: Database.Database,
-  pageId: number
-): HydratedLink[] {
+export function getInternalLinks(db: Database.Database, pageId: number): HydratedLink[] {
   const rows = db
-    .prepare('SELECT * FROM links WHERE page_id = ? AND is_internal = 1')
+    .prepare("SELECT * FROM links WHERE page_id = ? AND is_internal = 1")
     .all(pageId) as DbLink[];
 
   return rows.map(hydrateLink);
@@ -150,12 +142,9 @@ export function getInternalLinks(
  * @param pageId - Page ID
  * @returns Array of external links
  */
-export function getExternalLinks(
-  db: Database.Database,
-  pageId: number
-): HydratedLink[] {
+export function getExternalLinks(db: Database.Database, pageId: number): HydratedLink[] {
   const rows = db
-    .prepare('SELECT * FROM links WHERE page_id = ? AND is_internal = 0')
+    .prepare("SELECT * FROM links WHERE page_id = ? AND is_internal = 0")
     .all(pageId) as DbLink[];
 
   return rows.map(hydrateLink);
@@ -170,7 +159,7 @@ export function getExternalLinks(
  */
 export function getBrokenLinks(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): Array<HydratedLink & { sourceUrl: string }> {
   const rows = db
     .prepare(
@@ -180,7 +169,7 @@ export function getBrokenLinks(
     JOIN pages p ON l.page_id = p.id
     WHERE p.crawl_id = ?
       AND (l.target_status_code >= 400 OR l.target_error IS NOT NULL)
-  `
+  `,
     )
     .all(crawlId) as Array<DbLink & { source_url: string }>;
 
@@ -197,10 +186,7 @@ export function getBrokenLinks(
  * @param crawlId - Database crawl ID
  * @returns Array of unique external link URLs
  */
-export function getUniqueExternalLinks(
-  db: Database.Database,
-  crawlId: number
-): string[] {
+export function getUniqueExternalLinks(db: Database.Database, crawlId: number): string[] {
   const rows = db
     .prepare(
       `
@@ -208,7 +194,7 @@ export function getUniqueExternalLinks(
     FROM links l
     JOIN pages p ON l.page_id = p.id
     WHERE p.crawl_id = ? AND l.is_internal = 0
-  `
+  `,
     )
     .all(crawlId) as Array<{ href: string }>;
 
@@ -227,14 +213,14 @@ export function updateLinkStatus(
   db: Database.Database,
   linkId: number,
   statusCode: number,
-  error?: string
+  error?: string,
 ): void {
   db.prepare(
     `
     UPDATE links
     SET target_status_code = ?, target_error = ?
     WHERE id = ?
-  `
+  `,
   ).run(statusCode, error ?? null, linkId);
 }
 
@@ -246,7 +232,7 @@ export function updateLinkStatus(
  */
 export function updateLinkStatuses(
   db: Database.Database,
-  updates: Array<{ linkId: number; statusCode: number; error?: string }>
+  updates: Array<{ linkId: number; statusCode: number; error?: string }>,
 ): void {
   const stmt = db.prepare(`
     UPDATE links
@@ -254,13 +240,11 @@ export function updateLinkStatuses(
     WHERE id = ?
   `);
 
-  const updateAll = db.transaction(
-    (items: typeof updates) => {
-      for (const item of items) {
-        stmt.run(item.statusCode, item.error ?? null, item.linkId);
-      }
+  const updateAll = db.transaction((items: typeof updates) => {
+    for (const item of items) {
+      stmt.run(item.statusCode, item.error ?? null, item.linkId);
     }
-  );
+  });
 
   updateAll(updates);
 }
@@ -270,7 +254,7 @@ export function updateLinkStatuses(
  */
 export function getLinkCount(db: Database.Database, pageId: number): number {
   const result = db
-    .prepare('SELECT COUNT(*) as count FROM links WHERE page_id = ?')
+    .prepare("SELECT COUNT(*) as count FROM links WHERE page_id = ?")
     .get(pageId) as { count: number };
   return result.count;
 }
@@ -280,7 +264,7 @@ export function getLinkCount(db: Database.Database, pageId: number): number {
  */
 export function getLinkStats(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): {
   total: number;
   internal: number;
@@ -300,7 +284,7 @@ export function getLinkStats(
     FROM links l
     JOIN pages p ON l.page_id = p.id
     WHERE p.crawl_id = ?
-  `
+  `,
     )
     .get(crawlId) as {
     total: number;

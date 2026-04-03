@@ -12,15 +12,15 @@
  */
 function patternToRegex(pattern: string): RegExp {
   // Handle the special case of just `*` (matches everything)
-  if (pattern === '*') {
+  if (pattern === "*") {
     return /^.*$/;
   }
 
   // Escape special regex characters except *
-  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
 
   // Replace * with regex wildcard
-  const regexStr = escaped.replace(/\*/g, '.*');
+  const regexStr = escaped.replace(/\*/g, ".*");
 
   return new RegExp(`^${regexStr}$`);
 }
@@ -43,7 +43,7 @@ export function matchesPattern(ruleId: string, pattern: string): boolean {
  * @returns true if the rule matches any pattern
  */
 export function matchesAnyPattern(ruleId: string, patterns: string[]): boolean {
-  return patterns.some(pattern => matchesPattern(ruleId, pattern));
+  return patterns.some((pattern) => matchesPattern(ruleId, pattern));
 }
 
 /**
@@ -58,11 +58,7 @@ export function matchesAnyPattern(ruleId: string, patterns: string[]): boolean {
  * @param disable - Array of disable patterns
  * @returns true if the rule should be enabled
  */
-export function isRuleEnabled(
-  ruleId: string,
-  enable: string[],
-  disable: string[]
-): boolean {
+export function isRuleEnabled(ruleId: string, enable: string[], disable: string[]): boolean {
   // Check disable patterns first (they take precedence)
   if (disable.length > 0 && matchesAnyPattern(ruleId, disable)) {
     return false;
@@ -84,12 +80,8 @@ export function isRuleEnabled(
  * @param disable - Array of disable patterns
  * @returns Filtered array of enabled rule IDs
  */
-export function filterRules(
-  ruleIds: string[],
-  enable: string[],
-  disable: string[]
-): string[] {
-  return ruleIds.filter(ruleId => isRuleEnabled(ruleId, enable, disable));
+export function filterRules(ruleIds: string[], enable: string[], disable: string[]): string[] {
+  return ruleIds.filter((ruleId) => isRuleEnabled(ruleId, enable, disable));
 }
 
 /**
@@ -101,15 +93,15 @@ export function filterRules(
 export function getRuleCategory(ruleId: string): string | null {
   // Common category prefixes based on the codebase
   const categories = [
-    'meta-tags',
-    'core-web-vitals',
-    'structured-data',
-    'headings',
-    'technical',
-    'links',
-    'images',
-    'security',
-    'social',
+    "meta-tags",
+    "core-web-vitals",
+    "structured-data",
+    "headings",
+    "technical",
+    "links",
+    "images",
+    "security",
+    "social",
   ];
 
   for (const category of categories) {
@@ -119,7 +111,7 @@ export function getRuleCategory(ruleId: string): string | null {
   }
 
   // Fallback: split on first hyphen
-  const parts = ruleId.split('-');
+  const parts = ruleId.split("-");
   if (parts.length >= 2) {
     return parts[0];
   }

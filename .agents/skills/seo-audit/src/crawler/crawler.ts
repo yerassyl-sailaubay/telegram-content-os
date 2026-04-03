@@ -1,7 +1,7 @@
-import * as cheerio from 'cheerio';
-import { fetchPage, createAuditContext, type FetchResult } from './fetcher.js';
-import type { AuditContext, CoreWebVitals } from '../types.js';
-import { UrlFilter, type UrlFilterOptions } from './url-filter.js';
+import * as cheerio from "cheerio";
+import { fetchPage, createAuditContext, type FetchResult } from "./fetcher.js";
+import type { AuditContext, CoreWebVitals } from "../types.js";
+import { UrlFilter, type UrlFilterOptions } from "./url-filter.js";
 
 /**
  * Progress callback for reporting crawl status
@@ -58,7 +58,7 @@ export interface CrawledPage {
 export class Crawler {
   private visited: Set<string> = new Set();
   private queue: string[] = [];
-  private hostname: string = '';
+  private hostname: string = "";
   private options: CrawlerOptions;
   private results: CrawledPage[] = [];
   private activeCount = 0;
@@ -85,11 +85,7 @@ export class Crawler {
    * @param concurrency - Override concurrency (optional)
    * @returns Array of CrawledPage results
    */
-  async crawl(
-    startUrl: string,
-    maxPages?: number,
-    concurrency?: number
-  ): Promise<CrawledPage[]> {
+  async crawl(startUrl: string, maxPages?: number, concurrency?: number): Promise<CrawledPage[]> {
     // Reset state
     this.visited.clear();
     this.queue = [];
@@ -202,7 +198,7 @@ export class Crawler {
         this.results.push({
           url,
           context: this.createEmptyContext(url),
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         });
         return;
       }
@@ -290,17 +286,39 @@ export class Crawler {
    */
   private isNonHtmlResource(url: string): boolean {
     const nonHtmlExtensions = [
-      '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-      '.zip', '.rar', '.tar', '.gz',
-      '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico',
-      '.mp3', '.mp4', '.avi', '.mov', '.wmv',
-      '.css', '.js', '.json', '.xml',
+      ".pdf",
+      ".doc",
+      ".docx",
+      ".xls",
+      ".xlsx",
+      ".ppt",
+      ".pptx",
+      ".zip",
+      ".rar",
+      ".tar",
+      ".gz",
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".svg",
+      ".webp",
+      ".ico",
+      ".mp3",
+      ".mp4",
+      ".avi",
+      ".mov",
+      ".wmv",
+      ".css",
+      ".js",
+      ".json",
+      ".xml",
     ];
 
     try {
       const urlObj = new URL(url);
       const pathname = urlObj.pathname.toLowerCase();
-      return nonHtmlExtensions.some(ext => pathname.endsWith(ext));
+      return nonHtmlExtensions.some((ext) => pathname.endsWith(ext));
     } catch {
       return false;
     }
@@ -333,8 +351,8 @@ export class Crawler {
   private createEmptyContext(url: string): AuditContext {
     return {
       url,
-      html: '',
-      $: cheerio.load(''),
+      html: "",
+      $: cheerio.load(""),
       headers: {},
       statusCode: 0,
       responseTime: 0,
@@ -353,7 +371,7 @@ export class Crawler {
    * Sleep helper
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

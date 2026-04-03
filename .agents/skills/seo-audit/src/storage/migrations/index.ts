@@ -1,24 +1,26 @@
-import type Database from 'better-sqlite3';
-import type { Migration, MigrationResult, DbMigration } from '../types.js';
+import type Database from "better-sqlite3";
+import type { Migration, MigrationResult, DbMigration } from "../types.js";
 
 /**
  * Create the migrations tracking table if it doesn't exist
  */
 function ensureMigrationsTable(db: Database.Database): void {
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS _migrations (
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
       applied_at TEXT DEFAULT (datetime('now'))
     )
-  `).run();
+  `,
+  ).run();
 }
 
 /**
  * Get list of applied migrations
  */
 function getAppliedMigrations(db: Database.Database): Set<string> {
-  const rows = db.prepare('SELECT name FROM _migrations').all() as DbMigration[];
+  const rows = db.prepare("SELECT name FROM _migrations").all() as DbMigration[];
   return new Set(rows.map((r) => r.name));
 }
 
@@ -26,14 +28,14 @@ function getAppliedMigrations(db: Database.Database): Set<string> {
  * Record a migration as applied
  */
 function recordMigration(db: Database.Database, name: string): void {
-  db.prepare('INSERT INTO _migrations (name) VALUES (?)').run(name);
+  db.prepare("INSERT INTO _migrations (name) VALUES (?)").run(name);
 }
 
 /**
  * Remove a migration record (for rollback)
  */
 function removeMigration(db: Database.Database, name: string): void {
-  db.prepare('DELETE FROM _migrations WHERE name = ?').run(name);
+  db.prepare("DELETE FROM _migrations WHERE name = ?").run(name);
 }
 
 /**
@@ -46,10 +48,7 @@ function removeMigration(db: Database.Database, name: string): void {
  * @param migrations - Array of migrations to apply (in order)
  * @returns Result with lists of applied, skipped, and errored migrations
  */
-export function runMigrations(
-  db: Database.Database,
-  migrations: Migration[]
-): MigrationResult {
+export function runMigrations(db: Database.Database, migrations: Migration[]): MigrationResult {
   ensureMigrationsTable(db);
 
   const applied = getAppliedMigrations(db);
@@ -97,7 +96,7 @@ export function runMigrations(
 export function rollbackMigrations(
   db: Database.Database,
   migrations: Migration[],
-  count = 1
+  count = 1,
 ): MigrationResult {
   ensureMigrationsTable(db);
 
@@ -118,7 +117,7 @@ export function rollbackMigrations(
     if (!migration.down) {
       result.errors.push({
         name: migration.name,
-        error: 'Migration has no down function',
+        error: "Migration has no down function",
       });
       break;
     }
@@ -151,7 +150,7 @@ export function rollbackMigrations(
  */
 export function getMigrationStatus(
   db: Database.Database,
-  migrations: Migration[]
+  migrations: Migration[],
 ): { pending: string[]; applied: string[] } {
   ensureMigrationsTable(db);
 

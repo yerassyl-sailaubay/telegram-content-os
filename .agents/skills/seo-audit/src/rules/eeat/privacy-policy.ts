@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * Privacy policy link detection patterns
@@ -27,13 +27,13 @@ const PRIVACY_PATTERNS = {
   ],
   // Common privacy policy URLs
   urls: [
-    'privacy-policy',
-    'privacy_policy',
-    'privacypolicy',
-    'privacy',
-    'legal/privacy',
-    'policies/privacy',
-    'data-protection',
+    "privacy-policy",
+    "privacy_policy",
+    "privacypolicy",
+    "privacy",
+    "legal/privacy",
+    "policies/privacy",
+    "data-protection",
   ],
 };
 
@@ -48,10 +48,10 @@ const PRIVACY_PATTERNS = {
  * @see https://oag.ca.gov/privacy/ccpa
  */
 export const privacyPolicyRule = defineRule({
-  id: 'eeat-privacy-policy',
-  name: 'Privacy Policy',
-  description: 'Checks for privacy policy page linked from footer',
-  category: 'eeat',
+  id: "eeat-privacy-policy",
+  name: "Privacy Policy",
+  description: "Checks for privacy policy page linked from footer",
+  category: "eeat",
   weight: 8,
 
   run(context: AuditContext): RuleResult {
@@ -59,11 +59,11 @@ export const privacyPolicyRule = defineRule({
     const foundLinks: Array<{ href: string; text: string; location: string }> = [];
 
     // Check all links
-    $('a[href]').each((_, el) => {
-      const href = $(el).attr('href') || '';
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href") || "";
       const text = $(el).text().trim();
-      const ariaLabel = $(el).attr('aria-label') || '';
-      const title = $(el).attr('title') || '';
+      const ariaLabel = $(el).attr("aria-label") || "";
+      const title = $(el).attr("title") || "";
       const combinedText = `${text} ${ariaLabel} ${title}`;
 
       // Check link text
@@ -96,18 +96,19 @@ export const privacyPolicyRule = defineRule({
     });
 
     // Check for schema.org markup
-    const hasSchemaPrivacy = $('script[type="application/ld+json"]').filter((_, el) => {
-      const content = $(el).html() || '';
-      return /privacyPolicy|privacy.?policy/i.test(content);
-    }).length > 0;
+    const hasSchemaPrivacy =
+      $('script[type="application/ld+json"]').filter((_, el) => {
+        const content = $(el).html() || "";
+        return /privacyPolicy|privacy.?policy/i.test(content);
+      }).length > 0;
 
     if (foundLinks.length > 0) {
-      const inFooter = foundLinks.some((link) => link.location === 'footer');
+      const inFooter = foundLinks.some((link) => link.location === "footer");
 
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: `Privacy policy link found${inFooter ? ' in footer' : ''} (${foundLinks.length} link${foundLinks.length > 1 ? 's' : ''})`,
+        message: `Privacy policy link found${inFooter ? " in footer" : ""} (${foundLinks.length} link${foundLinks.length > 1 ? "s" : ""})`,
         details: {
           hasPrivacyPolicy: true,
           inFooter,
@@ -119,12 +120,12 @@ export const privacyPolicyRule = defineRule({
 
     // No privacy policy link found
     return {
-      status: 'warn',
+      status: "warn",
       score: 50,
-      message: 'No privacy policy link found - important for trust and legal compliance',
+      message: "No privacy policy link found - important for trust and legal compliance",
       details: {
         hasPrivacyPolicy: false,
-        recommendation: 'Add a link to your privacy policy in the footer of every page',
+        recommendation: "Add a link to your privacy policy in the footer of every page",
       },
     };
   },
@@ -138,37 +139,33 @@ function detectLocation($: cheerio.CheerioAPI, el: cheerio.Element): string {
 
   for (let i = 0; i < parents.length; i++) {
     const parent = parents.eq(i);
-    const tagName = parent.prop('tagName')?.toLowerCase() || '';
-    const className = parent.attr('class')?.toLowerCase() || '';
-    const id = parent.attr('id')?.toLowerCase() || '';
-    const role = parent.attr('role')?.toLowerCase() || '';
+    const tagName = parent.prop("tagName")?.toLowerCase() || "";
+    const className = parent.attr("class")?.toLowerCase() || "";
+    const id = parent.attr("id")?.toLowerCase() || "";
+    const role = parent.attr("role")?.toLowerCase() || "";
 
     if (
-      tagName === 'footer' ||
-      role === 'contentinfo' ||
-      className.includes('footer') ||
-      id.includes('footer')
+      tagName === "footer" ||
+      role === "contentinfo" ||
+      className.includes("footer") ||
+      id.includes("footer")
     ) {
-      return 'footer';
+      return "footer";
     }
 
     if (
-      tagName === 'header' ||
-      role === 'banner' ||
-      className.includes('header') ||
-      id.includes('header')
+      tagName === "header" ||
+      role === "banner" ||
+      className.includes("header") ||
+      id.includes("header")
     ) {
-      return 'header';
+      return "header";
     }
 
-    if (
-      tagName === 'nav' ||
-      role === 'navigation' ||
-      className.includes('nav')
-    ) {
-      return 'navigation';
+    if (tagName === "nav" || role === "navigation" || className.includes("nav")) {
+      return "navigation";
     }
   }
 
-  return 'body';
+  return "body";
 }

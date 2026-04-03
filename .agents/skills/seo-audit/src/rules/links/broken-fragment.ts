@@ -1,12 +1,12 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Escape a string for safe use inside a CSS selector.
  * Handles characters that have special meaning in CSS selectors.
  */
 function cssEscape(value: string): string {
-  return value.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+  return value.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, "\\$1");
 }
 
 /**
@@ -18,10 +18,10 @@ function cssEscape(value: string): string {
  * Search engines may also treat these as low-quality signals.
  */
 export const brokenFragmentRule = defineRule({
-  id: 'links-broken-fragment',
-  name: 'No Broken Fragment Links',
-  description: 'Checks that internal fragment links (#id) reference existing elements on the page',
-  category: 'links',
+  id: "links-broken-fragment",
+  name: "No Broken Fragment Links",
+  description: "Checks that internal fragment links (#id) reference existing elements on the page",
+  category: "links",
   weight: 6,
   run: (context: AuditContext) => {
     const { links, url, $ } = context;
@@ -30,10 +30,7 @@ export const brokenFragmentRule = defineRule({
     try {
       pageUrl = new URL(url);
     } catch {
-      return pass(
-        'links-broken-fragment',
-        'Could not parse page URL, skipping fragment check',
-      );
+      return pass("links-broken-fragment", "Could not parse page URL, skipping fragment check");
     }
 
     // Collect same-page links that contain a fragment
@@ -42,7 +39,7 @@ export const brokenFragmentRule = defineRule({
     for (const link of links) {
       if (!link.isInternal) continue;
 
-      const hashIdx = link.href.indexOf('#');
+      const hashIdx = link.href.indexOf("#");
       if (hashIdx === -1) continue;
 
       const fragment = link.href.slice(hashIdx + 1);
@@ -62,18 +59,16 @@ export const brokenFragmentRule = defineRule({
         }
       } catch {
         // If the href is just "#something", treat it as same-page
-        if (link.href.startsWith('#')) {
+        if (link.href.startsWith("#")) {
           fragmentLinks.push({ href: link.href, fragment });
         }
       }
     }
 
     if (fragmentLinks.length === 0) {
-      return pass(
-        'links-broken-fragment',
-        'No same-page fragment links found to check',
-        { fragmentLinksChecked: 0 }
-      );
+      return pass("links-broken-fragment", "No same-page fragment links found to check", {
+        fragmentLinksChecked: 0,
+      });
     }
 
     // De-duplicate fragments to avoid checking the same ID multiple times
@@ -97,7 +92,7 @@ export const brokenFragmentRule = defineRule({
         .slice(0, 5);
 
       return warn(
-        'links-broken-fragment',
+        "links-broken-fragment",
         `Found ${brokenFragments.length} fragment link(s) pointing to non-existent IDs`,
         {
           brokenCount: brokenFragments.length,
@@ -108,15 +103,15 @@ export const brokenFragmentRule = defineRule({
             fragment: l.fragment,
           })),
           recommendation:
-            'Add matching id attributes to target elements or update the fragment references',
-        }
+            "Add matching id attributes to target elements or update the fragment references",
+        },
       );
     }
 
     return pass(
-      'links-broken-fragment',
+      "links-broken-fragment",
       `All ${fragmentLinks.length} same-page fragment link(s) have matching IDs`,
-      { fragmentLinksChecked: fragmentLinks.length }
+      { fragmentLinksChecked: fragmentLinks.length },
     );
   },
 });

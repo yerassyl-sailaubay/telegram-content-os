@@ -1,20 +1,20 @@
 // =============================================================================
 // Legacy exports (maintained for backwards compatibility)
 // =============================================================================
-export * from './paths.js';
-export * from './crawl-store.js';
-export * from './report-store.js';
-export * from './link-cache.js';
+export * from "./paths.js";
+export * from "./crawl-store.js";
+export * from "./report-store.js";
+export * from "./link-cache.js";
 
 // =============================================================================
 // New SQLite storage exports
 // =============================================================================
 
 // Types for database records
-export * from './types.js';
+export * from "./types.js";
 
 // Utility functions
-export * from './utils/index.js';
+export * from "./utils/index.js";
 
 // Project database (per-domain crawl storage)
 export {
@@ -35,7 +35,7 @@ export {
   type InsertPageInput,
   type InsertLinkInput,
   type InsertImageInput,
-} from './project-db/index.js';
+} from "./project-db/index.js";
 
 // Audits database (centralized audit storage)
 export {
@@ -58,7 +58,7 @@ export {
   type RuleResultStatus,
   type IssueSeverity,
   type CategoryDelta,
-} from './audits-db/index.js';
+} from "./audits-db/index.js";
 
 // Migrations
 export {
@@ -66,7 +66,7 @@ export {
   rollbackMigrations,
   getMigrationStatus as getDbMigrationStatus,
   createMigrationRunner,
-} from './migrations/index.js';
+} from "./migrations/index.js";
 
 export {
   migrateJsonToSqlite,
@@ -74,4 +74,4 @@ export {
   getMigrationStatus as getJsonMigrationStatus,
   restoreFromBackup,
   type MigrationStats,
-} from './migrations/json-to-sqlite.js';
+} from "./migrations/json-to-sqlite.js";

@@ -5,32 +5,27 @@
 export function estimatePixelWidth(text: string): number {
   let width = 0;
   for (const char of text) {
-    if (char === ' ') {
+    if (char === " ") {
       width += 4;
-    } else if (char >= 'A' && char <= 'Z') {
+    } else if (char >= "A" && char <= "Z") {
       width += 9.5;
-    } else if (char >= 'a' && char <= 'z') {
+    } else if (char >= "a" && char <= "z") {
       width += 7.5;
-    } else if (char >= '0' && char <= '9') {
+    } else if (char >= "0" && char <= "9") {
       width += 7.5;
     } else if (
-      char === '.' ||
-      char === ',' ||
-      char === ':' ||
-      char === ';' ||
-      char === '!' ||
-      char === '|' ||
-      char === 'i' ||
-      char === 'l' ||
-      char === '1'
+      char === "." ||
+      char === "," ||
+      char === ":" ||
+      char === ";" ||
+      char === "!" ||
+      char === "|" ||
+      char === "i" ||
+      char === "l" ||
+      char === "1"
     ) {
       width += 4;
-    } else if (
-      char === 'm' ||
-      char === 'w' ||
-      char === 'M' ||
-      char === 'W'
-    ) {
+    } else if (char === "m" || char === "w" || char === "M" || char === "W") {
       width += 11;
     } else {
       width += 7.5;

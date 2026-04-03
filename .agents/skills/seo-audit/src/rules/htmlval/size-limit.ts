@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Rule: Check HTML document size
@@ -21,35 +21,34 @@ function formatBytes(bytes: number): string {
 }
 
 export const sizeLimitRule = defineRule({
-  id: 'htmlval-size-limit',
-  name: 'HTML Document Size',
-  description: 'Checks that the HTML document size is within reasonable limits',
-  category: 'htmlval',
+  id: "htmlval-size-limit",
+  name: "HTML Document Size",
+  description: "Checks that the HTML document size is within reasonable limits",
+  category: "htmlval",
   weight: 8,
   run: async (context: AuditContext) => {
-    const sizeBytes = Buffer.byteLength(context.html, 'utf8');
+    const sizeBytes = Buffer.byteLength(context.html, "utf8");
     const sizeFormatted = formatBytes(sizeBytes);
 
     if (sizeBytes > FAIL_THRESHOLD_BYTES) {
       return fail(
-        'htmlval-size-limit',
+        "htmlval-size-limit",
         `HTML document is ${sizeFormatted}, which exceeds the 500 KB limit. Consider reducing inline styles, scripts, or splitting content`,
-        { sizeBytes, sizeFormatted, threshold: '500 KB' }
+        { sizeBytes, sizeFormatted, threshold: "500 KB" },
       );
     }
 
     if (sizeBytes > WARN_THRESHOLD_BYTES) {
       return warn(
-        'htmlval-size-limit',
+        "htmlval-size-limit",
         `HTML document is ${sizeFormatted}. Consider keeping it under 250 KB for optimal performance`,
-        { sizeBytes, sizeFormatted, threshold: '250 KB' }
+        { sizeBytes, sizeFormatted, threshold: "250 KB" },
       );
     }
 
-    return pass(
-      'htmlval-size-limit',
-      `HTML document size is ${sizeFormatted}`,
-      { sizeBytes, sizeFormatted }
-    );
+    return pass("htmlval-size-limit", `HTML document size is ${sizeFormatted}`, {
+      sizeBytes,
+      sizeFormatted,
+    });
   },
 });

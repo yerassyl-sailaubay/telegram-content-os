@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 interface HeadingSkip {
   /** Previous heading level */
@@ -25,10 +25,10 @@ interface HeadingSkip {
  * Invalid: H1 → H3 (skipped H2)
  */
 export const headingOrderRule = defineRule({
-  id: 'a11y-heading-order',
-  name: 'Heading Order',
-  description: 'Checks that heading levels do not skip',
-  category: 'a11y',
+  id: "a11y-heading-order",
+  name: "Heading Order",
+  description: "Checks that heading levels do not skip",
+  category: "a11y",
   weight: 8,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -37,8 +37,8 @@ export const headingOrderRule = defineRule({
     const skips: HeadingSkip[] = [];
 
     // Collect all headings in document order
-    $('h1, h2, h3, h4, h5, h6').each((_, el) => {
-      const tag = el.tagName?.toLowerCase() || 'h1';
+    $("h1, h2, h3, h4, h5, h6").each((_, el) => {
+      const tag = el.tagName?.toLowerCase() || "h1";
       const level = parseInt(tag.charAt(1), 10);
       const text = $(el).text().trim().slice(0, 50);
 
@@ -46,8 +46,8 @@ export const headingOrderRule = defineRule({
     });
 
     if (headings.length === 0) {
-      return warn('a11y-heading-order', 'No headings found on page', {
-        recommendation: 'Add heading structure for accessibility and SEO',
+      return warn("a11y-heading-order", "No headings found on page", {
+        recommendation: "Add heading structure for accessibility and SEO",
       });
     }
 
@@ -80,9 +80,9 @@ export const headingOrderRule = defineRule({
     const firstHeadingNotH1 = headings.length > 0 && headings[0].level !== 1;
 
     if (skips.length === 0 && !firstHeadingNotH1) {
-      return pass('a11y-heading-order', 'Heading hierarchy is correct', {
+      return pass("a11y-heading-order", "Heading hierarchy is correct", {
         totalHeadings: headings.length,
-        levels: [...new Set(headings.map((h) => `H${h.level}`))].join(', '),
+        levels: [...new Set(headings.map((h) => `H${h.level}`))].join(", "),
       });
     }
 
@@ -97,14 +97,14 @@ export const headingOrderRule = defineRule({
     }
 
     if (skips.length > 3 || (skips.length > 0 && firstHeadingNotH1)) {
-      return fail('a11y-heading-order', `Found ${issues.length} heading hierarchy issue(s)`, {
+      return fail("a11y-heading-order", `Found ${issues.length} heading hierarchy issue(s)`, {
         issues: issues.slice(0, 10),
         totalHeadings: headings.length,
         skips: skips.slice(0, 5),
       });
     }
 
-    return warn('a11y-heading-order', `Found ${issues.length} heading hierarchy issue(s)`, {
+    return warn("a11y-heading-order", `Found ${issues.length} heading hierarchy issue(s)`, {
       issues,
       totalHeadings: headings.length,
       skips,

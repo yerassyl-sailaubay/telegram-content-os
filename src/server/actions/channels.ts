@@ -2,10 +2,16 @@
 
 import { db } from "@/server/db";
 import { telegramChannels, telegramPosts } from "@/server/db/schema";
-import { createClient } from "@/lib/supabase/server";
 import { getTelegramClient } from "@/lib/telegram/client";
-import { eq, and, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, sql, getTableColumns } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
+import {
+  elapsedMs,
+  logHotRoutePerf,
+  measurePerfStep,
+  type PerfTimings,
+} from "@/lib/perf/hot-routes";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -25,65 +31,94 @@ export type ActionResult<T = void> = { success: true; data: T } | { success: fal
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function getCurrentUserId(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  return user.id;
-}
-
 function normalizeUsername(username: string): string {
   return username.trim().replace(/^@/, "");
+}
+
+function resolveWebhookRegistrationConfig(): { url: string; secretToken: string } {
+  const webhookBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!webhookBaseUrl) {
+    throw new Error("NEXT_PUBLIC_APP_URL is not configured");
+  }
+
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
+  if (!webhookSecret) {
+    throw new Error("TELEGRAM_WEBHOOK_SECRET is not configured");
+  }
+
+  return {
+    url: `${webhookBaseUrl}/api/telegram/webhook`,
+    secretToken: webhookSecret,
+  };
+}
+
+async function registerTelegramWebhook(client: ReturnType<typeof getTelegramClient>): Promise<void> {
+  const { url, secretToken } = resolveWebhookRegistrationConfig();
+  const registered = await client.setWebhook(url, {
+    allowed_updates: ["message", "channel_post", "edited_channel_post"],
+    secret_token: secretToken,
+  });
+
+  if (!registered) {
+    throw new Error("Telegram API returned unsuccessful webhook registration");
+  }
 }
 
 // ─── Server Actions ──────────────────────────────────────────────────────────
 
 export async function listChannels(): Promise<ActionResult<ChannelWithPostCount[]>> {
+  const startedAt = performance.now();
+  const timings: PerfTimings = {};
+
   try {
-    const userId = await getCurrentUserId();
+    const userId = await measurePerfStep(timings, "authMs", () => getCurrentUserId());
 
-    const channels = await db
-      .select()
-      .from(telegramChannels)
-      .where(eq(telegramChannels.userId, userId))
-      .orderBy(desc(telegramChannels.connectedAt));
+    const channelColumns = getTableColumns(telegramChannels);
 
-    if (channels.length === 0) {
+    const channelsWithCounts = await measurePerfStep(timings, "channelsWithStatsMs", () =>
+      db
+        .select({
+          ...channelColumns,
+          postCount: sql<number>`(
+            select count(*)::int
+            from ${telegramPosts}
+            where ${telegramPosts.channelId} = ${telegramChannels.id}
+          )`,
+          lastPostAt: sql<Date | null>`(
+            select max(${telegramPosts.postedAt})
+            from ${telegramPosts}
+            where ${telegramPosts.channelId} = ${telegramChannels.id}
+          )`,
+        })
+        .from(telegramChannels)
+        .where(eq(telegramChannels.userId, userId))
+        .orderBy(desc(telegramChannels.connectedAt)),
+    );
+
+    if (channelsWithCounts.length === 0) {
+      logHotRoutePerf("channels-data", {
+        totalMs: elapsedMs(startedAt),
+        timings,
+        channels: 0,
+      });
       return { success: true, data: [] };
     }
 
-    const channelIds = channels.map((channel) => channel.id);
-
-    const postStatsRows = await db
-      .select({
-        channelId: telegramPosts.channelId,
-        count: sql<number>`count(*)::int`,
-        lastPostAt: sql<Date | null>`max(${telegramPosts.postedAt})`,
-      })
-      .from(telegramPosts)
-      .where(inArray(telegramPosts.channelId, channelIds))
-      .groupBy(telegramPosts.channelId);
-
-    const postStatsByChannelId = new Map(postStatsRows.map((row) => [row.channelId, row] as const));
-
-    const channelsWithCounts = channels.map((channel) => {
-      const postStats = postStatsByChannelId.get(channel.id);
-
-      return {
-        ...channel,
-        postCount: postStats?.count ?? 0,
-        lastPostAt: postStats?.lastPostAt ?? null,
-      };
+    logHotRoutePerf("channels-data", {
+      totalMs: elapsedMs(startedAt),
+      timings,
+      channels: channelsWithCounts.length,
+      channelsWithPosts: channelsWithCounts.filter((channel) => channel.postCount > 0).length,
     });
 
     return { success: true, data: channelsWithCounts };
   } catch (error) {
+    logHotRoutePerf("channels-data", {
+      totalMs: elapsedMs(startedAt),
+      timings,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+
     const message = error instanceof Error ? error.message : "Failed to list channels";
     return { success: false, error: message };
   }
@@ -174,6 +209,16 @@ export async function connectChannel(input: ConnectChannelInput): Promise<Action
       };
     }
 
+    try {
+      await registerTelegramWebhook(tgClient);
+    } catch (error) {
+      const details = error instanceof Error ? error.message : "Unknown Telegram API error";
+      return {
+        success: false,
+        error: `Failed to register Telegram webhook. ${details}`,
+      };
+    }
+
     const telegramChatId = String(chatInfo.id);
 
     // Check if channel is already connected by this user
@@ -196,19 +241,6 @@ export async function connectChannel(input: ConnectChannelInput): Promise<Action
         memberCount = await tgClient.getChatMemberCount(`@${username}`);
       } catch {
         // Non-critical
-      }
-
-      // Re-register webhook
-      const webhookBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-      if (webhookBaseUrl) {
-        try {
-          await tgClient.setWebhook(`${webhookBaseUrl}/api/telegram/webhook`, {
-            allowed_updates: ["message", "channel_post", "edited_channel_post"],
-            secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
-          });
-        } catch {
-          // Non-critical
-        }
       }
 
       const [updated] = await db
@@ -237,19 +269,6 @@ export async function connectChannel(input: ConnectChannelInput): Promise<Action
       memberCount = await tgClient.getChatMemberCount(`@${username}`);
     } catch {
       // Non-critical — proceed with 0
-    }
-
-    // Set webhook with secret token for verification
-    const webhookBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-    if (webhookBaseUrl) {
-      try {
-        await tgClient.setWebhook(`${webhookBaseUrl}/api/telegram/webhook`, {
-          allowed_updates: ["message", "channel_post", "edited_channel_post"],
-          secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
-        });
-      } catch {
-        // Non-critical — channel will still be stored
-      }
     }
 
     // Store channel in DB

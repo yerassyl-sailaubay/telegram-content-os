@@ -5,11 +5,11 @@
  * Progress events stream in from the main process via IPC.
  */
 
-import { create } from 'zustand';
-import type { AuditResult, CategoryResult } from '../../../src/types.js';
-import type { RuleMetadataIpc } from '../../shared/ipc-types.js';
+import { create } from "zustand";
+import type { AuditResult, CategoryResult } from "../../../src/types.js";
+import type { RuleMetadataIpc } from "../../shared/ipc-types.js";
 
-export type AuditStatus = 'idle' | 'running' | 'complete' | 'error';
+export type AuditStatus = "idle" | "running" | "complete" | "error";
 
 export interface CompletedCategory {
   categoryId: string;
@@ -42,7 +42,11 @@ interface AuditState {
   setPageComplete: (page: number, total: number) => void;
   setComplete: (result: AuditResult, ruleMetadata: Record<string, RuleMetadataIpc>) => void;
   setError: (message: string) => void;
-  loadHistorical: (url: string, result: AuditResult, ruleMetadata: Record<string, RuleMetadataIpc>) => void;
+  loadHistorical: (
+    url: string,
+    result: AuditResult,
+    ruleMetadata: Record<string, RuleMetadataIpc>,
+  ) => void;
   reset: () => void;
 }
 
@@ -56,7 +60,7 @@ const initialProgress: AuditProgress = {
 };
 
 export const useAuditStore = create<AuditState>((set) => ({
-  status: 'idle',
+  status: "idle",
   url: null,
   progress: { ...initialProgress },
   result: null,
@@ -65,7 +69,7 @@ export const useAuditStore = create<AuditState>((set) => ({
 
   startAudit: (url) =>
     set({
-      status: 'running',
+      status: "running",
       url,
       progress: { ...initialProgress },
       result: null,
@@ -113,20 +117,20 @@ export const useAuditStore = create<AuditState>((set) => ({
 
   setComplete: (result, ruleMetadata) =>
     set({
-      status: 'complete',
+      status: "complete",
       result,
       ruleMetadata,
     }),
 
   setError: (message) =>
     set({
-      status: 'error',
+      status: "error",
       error: message,
     }),
 
   loadHistorical: (url, result, ruleMetadata) =>
     set({
-      status: 'complete',
+      status: "complete",
       url,
       progress: { ...initialProgress },
       result,
@@ -136,7 +140,7 @@ export const useAuditStore = create<AuditState>((set) => ({
 
   reset: () =>
     set({
-      status: 'idle',
+      status: "idle",
       url: null,
       progress: { ...initialProgress },
       result: null,

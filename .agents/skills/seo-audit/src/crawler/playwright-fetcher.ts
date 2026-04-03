@@ -1,5 +1,5 @@
-import { chromium, type Browser, type Page } from 'playwright';
-import type { CoreWebVitals } from '../types.js';
+import { chromium, type Browser, type Page } from "playwright";
+import type { CoreWebVitals } from "../types.js";
 
 let browserPromise: Promise<Browser> | null = null;
 
@@ -20,15 +20,15 @@ export async function initBrowser(): Promise<Browser> {
   if (!browserPromise) {
     browserPromise = (async () => {
       const baseArgs = [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gpu',
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
       ];
 
       // Try system Chrome first (no download needed)
-      const channels = ['chrome', 'chromium', 'msedge'] as const;
+      const channels = ["chrome", "chromium", "msedge"] as const;
       for (const channel of channels) {
         try {
           return await tryLaunch({
@@ -85,7 +85,7 @@ export interface PlaywrightFetchResult {
  */
 export async function fetchPageWithPlaywright(
   url: string,
-  timeout = 30000
+  timeout = 30000,
 ): Promise<PlaywrightFetchResult> {
   const browser = await initBrowser();
   const page = await browser.newPage();
@@ -95,7 +95,7 @@ export async function fetchPageWithPlaywright(
 
     // Navigate and wait for load
     const response = await page.goto(url, {
-      waitUntil: 'load',
+      waitUntil: "load",
       timeout,
     });
 
@@ -132,15 +132,17 @@ export async function measureCoreWebVitals(page: Page): Promise<CoreWebVitals> {
       const metrics: CoreWebVitals = {};
 
       // Get TTFB from Navigation Timing API
-      const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+      const navEntry = performance.getEntriesByType("navigation")[0] as
+        | PerformanceNavigationTiming
+        | undefined;
       if (navEntry) {
         metrics.ttfb = Math.round(navEntry.responseStart - navEntry.requestStart);
       }
 
       // Get FCP from Paint Timing API
-      const paintEntries = performance.getEntriesByType('paint');
+      const paintEntries = performance.getEntriesByType("paint");
       for (const entry of paintEntries) {
-        if (entry.name === 'first-contentful-paint') {
+        if (entry.name === "first-contentful-paint") {
           metrics.fcp = Math.round(entry.startTime);
         }
       }
@@ -156,7 +158,7 @@ export async function measureCoreWebVitals(page: Page): Promise<CoreWebVitals> {
             lcpValue = Math.round(lastEntry.startTime);
           }
         });
-        lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+        lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
       } catch {
         // LCP observer not supported
       }
@@ -174,7 +176,7 @@ export async function measureCoreWebVitals(page: Page): Promise<CoreWebVitals> {
             }
           }
         });
-        clsObserver.observe({ type: 'layout-shift', buffered: true });
+        clsObserver.observe({ type: "layout-shift", buffered: true });
       } catch {
         // CLS observer not supported
       }

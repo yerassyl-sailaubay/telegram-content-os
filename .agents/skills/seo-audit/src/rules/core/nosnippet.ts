@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Detect nosnippet directive that blocks search engine snippets
@@ -8,10 +8,10 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * in search results, which severely harms click-through rates.
  */
 export const nosnippetRule = defineRule({
-  id: 'core-nosnippet',
-  name: 'Nosnippet Directive',
-  description: 'Detects pages preventing search engine snippets',
-  category: 'core',
+  id: "core-nosnippet",
+  name: "Nosnippet Directive",
+  description: "Detects pages preventing search engine snippets",
+  category: "core",
   weight: 7,
   run: async (context: AuditContext) => {
     const { $, headers } = context;
@@ -22,10 +22,10 @@ export const nosnippetRule = defineRule({
     // Check meta robots tags
     const robotsMeta = $('meta[name="robots"]');
     robotsMeta.each((_, el) => {
-      const content = $(el).attr('content')?.toLowerCase() || '';
+      const content = $(el).attr("content")?.toLowerCase() || "";
       directives.push(content);
 
-      if (content.includes('nosnippet')) {
+      if (content.includes("nosnippet")) {
         issues.push('Meta robots contains "nosnippet"');
       }
 
@@ -39,52 +39,52 @@ export const nosnippetRule = defineRule({
     // Check googlebot-specific meta tag
     const googlebotMeta = $('meta[name="googlebot"]');
     googlebotMeta.each((_, el) => {
-      const content = $(el).attr('content')?.toLowerCase() || '';
+      const content = $(el).attr("content")?.toLowerCase() || "";
       directives.push(`googlebot: ${content}`);
 
-      if (content.includes('nosnippet')) {
+      if (content.includes("nosnippet")) {
         issues.push('Meta googlebot contains "nosnippet"');
       }
 
       const maxSnippetMatch = content.match(/max-snippet\s*:\s*(-?\d+)/);
       if (maxSnippetMatch && parseInt(maxSnippetMatch[1], 10) <= 0) {
-        issues.push(`Meta googlebot contains "max-snippet:${maxSnippetMatch[1]}" (blocks snippets)`);
+        issues.push(
+          `Meta googlebot contains "max-snippet:${maxSnippetMatch[1]}" (blocks snippets)`,
+        );
       }
     });
 
     // Check X-Robots-Tag header
-    const xRobotsTag = headers['x-robots-tag'] || headers['X-Robots-Tag'] || '';
+    const xRobotsTag = headers["x-robots-tag"] || headers["X-Robots-Tag"] || "";
     if (xRobotsTag) {
       const lowerTag = xRobotsTag.toLowerCase();
       directives.push(`X-Robots-Tag: ${xRobotsTag}`);
 
-      if (lowerTag.includes('nosnippet')) {
+      if (lowerTag.includes("nosnippet")) {
         issues.push('X-Robots-Tag header contains "nosnippet"');
       }
 
       const maxSnippetMatch = lowerTag.match(/max-snippet\s*:\s*(-?\d+)/);
       if (maxSnippetMatch && parseInt(maxSnippetMatch[1], 10) <= 0) {
-        issues.push(`X-Robots-Tag header contains "max-snippet:${maxSnippetMatch[1]}" (blocks snippets)`);
+        issues.push(
+          `X-Robots-Tag header contains "max-snippet:${maxSnippetMatch[1]}" (blocks snippets)`,
+        );
       }
     }
 
     if (issues.length > 0) {
-      return warn(
-        'core-nosnippet',
-        `Page blocks search snippets: ${issues.join('; ')}`,
-        {
-          issues,
-          directives,
-          impact: 'Prevents search engines from showing descriptions in search results, severely harming click-through rates',
-          recommendation: 'Remove nosnippet directive unless specifically needed for sensitive content (login, legal pages)',
-        }
-      );
+      return warn("core-nosnippet", `Page blocks search snippets: ${issues.join("; ")}`, {
+        issues,
+        directives,
+        impact:
+          "Prevents search engines from showing descriptions in search results, severely harming click-through rates",
+        recommendation:
+          "Remove nosnippet directive unless specifically needed for sensitive content (login, legal pages)",
+      });
     }
 
-    return pass(
-      'core-nosnippet',
-      'Page allows search engine snippets',
-      { directives: directives.length > 0 ? directives : ['none found'] }
-    );
+    return pass("core-nosnippet", "Page allows search engine snippets", {
+      directives: directives.length > 0 ? directives : ["none found"],
+    });
   },
 });

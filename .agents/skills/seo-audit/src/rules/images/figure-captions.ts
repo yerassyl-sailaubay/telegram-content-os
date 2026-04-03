@@ -1,20 +1,20 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Check for proper use of figure and figcaption elements
  */
 export const figureCaptionsRule = defineRule({
-  id: 'images-figure-captions',
-  name: 'Figure Captions',
-  description: 'Checks for proper use of figure and figcaption elements',
-  category: 'images',
+  id: "images-figure-captions",
+  name: "Figure Captions",
+  description: "Checks for proper use of figure and figcaption elements",
+  category: "images",
   weight: 5,
   run: (context: AuditContext) => {
     const { figures } = context;
 
     if (figures.length === 0) {
-      return pass('images-figure-captions', 'No figure elements found on page', {
+      return pass("images-figure-captions", "No figure elements found on page", {
         figureCount: 0,
       });
     }
@@ -31,19 +31,18 @@ export const figureCaptionsRule = defineRule({
     }
 
     if (issues.length > 0) {
-      return warn('images-figure-captions', issues.join('; '), {
+      return warn("images-figure-captions", issues.join("; "), {
         totalFigures: figures.length,
         withoutCaptions: withoutCaptions.length,
         emptyFigures: emptyFigures.length,
-        suggestion:
-          'Add figcaption elements to describe figure content for accessibility',
+        suggestion: "Add figcaption elements to describe figure content for accessibility",
       });
     }
 
     return pass(
-      'images-figure-captions',
+      "images-figure-captions",
       `All ${figures.length} figure element(s) have proper figcaption`,
-      { totalFigures: figures.length }
+      { totalFigures: figures.length },
     );
   },
 });

@@ -1,4 +1,4 @@
-import type { PartialSeomatorConfig, SeomatorConfig } from './schema.js';
+import type { PartialSeomatorConfig, SeomatorConfig } from "./schema.js";
 
 /**
  * Validation error/warning details
@@ -27,33 +27,33 @@ export interface ValidationResult {
 /**
  * Valid output formats
  */
-const VALID_OUTPUT_FORMATS = ['console', 'text', 'json', 'html', 'markdown', 'llm'] as const;
+const VALID_OUTPUT_FORMATS = ["console", "text", "json", "html", "markdown", "llm"] as const;
 
 /**
  * Validation rules with ranges
  */
 const VALIDATION_RULES = {
-  'crawler.max_pages': { min: 1, max: 10000, warnAbove: 5000 },
-  'crawler.concurrency': { min: 1, max: 20, warnAbove: 10 },
-  'crawler.per_host_concurrency': { min: 1, max: 5 },
-  'crawler.per_host_delay_ms': { min: 0, max: 60000 },
-  'crawler.timeout_ms': { min: 1000, max: 300000 },
-  'crawler.delay_ms': { min: 0, max: 60000 },
-  'crawler.max_prefix_budget': { min: 0, max: 1 },
-  'external_links.cache_ttl_days': { min: 0, max: 365 },
-  'external_links.timeout_ms': { min: 1000, max: 60000 },
-  'external_links.concurrency': { min: 1, max: 20 },
+  "crawler.max_pages": { min: 1, max: 10000, warnAbove: 5000 },
+  "crawler.concurrency": { min: 1, max: 20, warnAbove: 10 },
+  "crawler.per_host_concurrency": { min: 1, max: 5 },
+  "crawler.per_host_delay_ms": { min: 0, max: 60000 },
+  "crawler.timeout_ms": { min: 1000, max: 300000 },
+  "crawler.delay_ms": { min: 0, max: 60000 },
+  "crawler.max_prefix_budget": { min: 0, max: 1 },
+  "external_links.cache_ttl_days": { min: 0, max: 365 },
+  "external_links.timeout_ms": { min: 1000, max: 60000 },
+  "external_links.concurrency": { min: 1, max: 20 },
 } as const;
 
 /**
  * Get nested value from object by dot-separated path
  */
 function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  const parts = path.split('.');
+  const parts = path.split(".");
   let current: unknown = obj;
 
   for (const part of parts) {
-    if (current === null || typeof current !== 'object') {
+    if (current === null || typeof current !== "object") {
       return undefined;
     }
     current = (current as Record<string, unknown>)[part];
@@ -70,13 +70,13 @@ function validateNumber(
   path: string,
   rules: { min: number; max: number; warnAbove?: number },
   errors: ValidationError[],
-  warnings: ValidationError[]
+  warnings: ValidationError[],
 ): void {
   if (value === undefined) {
     return; // Optional field, skip validation
   }
 
-  if (typeof value !== 'number' || isNaN(value)) {
+  if (typeof value !== "number" || isNaN(value)) {
     errors.push({
       path,
       message: `${path} must be a number`,
@@ -106,11 +106,7 @@ function validateNumber(
 /**
  * Validate array of strings
  */
-function validateStringArray(
-  value: unknown,
-  path: string,
-  errors: ValidationError[]
-): void {
+function validateStringArray(value: unknown, path: string, errors: ValidationError[]): void {
   if (value === undefined) {
     return; // Optional field
   }
@@ -125,7 +121,7 @@ function validateStringArray(
   }
 
   for (let i = 0; i < value.length; i++) {
-    if (typeof value[i] !== 'string') {
+    if (typeof value[i] !== "string") {
       errors.push({
         path: `${path}[${i}]`,
         message: `${path}[${i}] must be a string`,
@@ -138,27 +134,24 @@ function validateStringArray(
 /**
  * Validate output format
  */
-function validateOutputFormat(
-  value: unknown,
-  errors: ValidationError[]
-): void {
+function validateOutputFormat(value: unknown, errors: ValidationError[]): void {
   if (value === undefined) {
     return;
   }
 
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     errors.push({
-      path: 'output.format',
-      message: 'output.format must be a string',
+      path: "output.format",
+      message: "output.format must be a string",
       value,
     });
     return;
   }
 
-  if (!VALID_OUTPUT_FORMATS.includes(value as typeof VALID_OUTPUT_FORMATS[number])) {
+  if (!VALID_OUTPUT_FORMATS.includes(value as (typeof VALID_OUTPUT_FORMATS)[number])) {
     errors.push({
-      path: 'output.format',
-      message: `output.format must be one of: ${VALID_OUTPUT_FORMATS.join(', ')}`,
+      path: "output.format",
+      message: `output.format must be one of: ${VALID_OUTPUT_FORMATS.join(", ")}`,
       value,
     });
   }
@@ -170,7 +163,7 @@ function validateOutputFormat(
 function validateDomains(
   value: unknown,
   errors: ValidationError[],
-  warnings: ValidationError[]
+  warnings: ValidationError[],
 ): void {
   if (value === undefined) {
     return;
@@ -178,18 +171,19 @@ function validateDomains(
 
   if (!Array.isArray(value)) {
     errors.push({
-      path: 'project.domains',
-      message: 'project.domains must be an array',
+      path: "project.domains",
+      message: "project.domains must be an array",
       value,
     });
     return;
   }
 
-  const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$/;
+  const domainPattern =
+    /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$/;
 
   for (let i = 0; i < value.length; i++) {
     const domain = value[i];
-    if (typeof domain !== 'string') {
+    if (typeof domain !== "string") {
       errors.push({
         path: `project.domains[${i}]`,
         message: `project.domains[${i}] must be a string`,
@@ -208,16 +202,12 @@ function validateDomains(
 /**
  * Validate boolean fields
  */
-function validateBoolean(
-  value: unknown,
-  path: string,
-  errors: ValidationError[]
-): void {
+function validateBoolean(value: unknown, path: string, errors: ValidationError[]): void {
   if (value === undefined) {
     return;
   }
 
-  if (typeof value !== 'boolean') {
+  if (typeof value !== "boolean") {
     errors.push({
       path,
       message: `${path} must be a boolean`,
@@ -245,12 +235,12 @@ export function validateConfig(config: PartialSeomatorConfig | SeomatorConfig): 
 
   // Validate string arrays
   const stringArrayPaths = [
-    'crawler.include',
-    'crawler.exclude',
-    'crawler.allow_query_params',
-    'crawler.drop_query_prefixes',
-    'rules.enable',
-    'rules.disable',
+    "crawler.include",
+    "crawler.exclude",
+    "crawler.allow_query_params",
+    "crawler.drop_query_prefixes",
+    "rules.enable",
+    "rules.disable",
   ];
 
   for (const path of stringArrayPaths) {
@@ -260,10 +250,10 @@ export function validateConfig(config: PartialSeomatorConfig | SeomatorConfig): 
 
   // Validate boolean fields
   const booleanPaths = [
-    'crawler.respect_robots',
-    'crawler.breadth_first',
-    'crawler.follow_redirects',
-    'external_links.enabled',
+    "crawler.respect_robots",
+    "crawler.breadth_first",
+    "crawler.follow_redirects",
+    "external_links.enabled",
   ];
 
   for (const path of booleanPaths) {
@@ -272,49 +262,52 @@ export function validateConfig(config: PartialSeomatorConfig | SeomatorConfig): 
   }
 
   // Validate output format
-  const outputFormat = getNestedValue(configObj, 'output.format');
+  const outputFormat = getNestedValue(configObj, "output.format");
   validateOutputFormat(outputFormat, errors);
 
   // Validate output path
-  const outputPath = getNestedValue(configObj, 'output.path');
-  if (outputPath !== undefined && typeof outputPath !== 'string') {
+  const outputPath = getNestedValue(configObj, "output.path");
+  if (outputPath !== undefined && typeof outputPath !== "string") {
     errors.push({
-      path: 'output.path',
-      message: 'output.path must be a string',
+      path: "output.path",
+      message: "output.path must be a string",
       value: outputPath,
     });
   }
 
   // Validate project name
-  const projectName = getNestedValue(configObj, 'project.name');
-  if (projectName !== undefined && typeof projectName !== 'string') {
+  const projectName = getNestedValue(configObj, "project.name");
+  if (projectName !== undefined && typeof projectName !== "string") {
     errors.push({
-      path: 'project.name',
-      message: 'project.name must be a string',
+      path: "project.name",
+      message: "project.name must be a string",
       value: projectName,
     });
   }
 
   // Validate user_agent (optional string)
-  const userAgent = getNestedValue(configObj, 'crawler.user_agent');
-  if (userAgent !== undefined && typeof userAgent !== 'string') {
+  const userAgent = getNestedValue(configObj, "crawler.user_agent");
+  if (userAgent !== undefined && typeof userAgent !== "string") {
     errors.push({
-      path: 'crawler.user_agent',
-      message: 'crawler.user_agent must be a string',
+      path: "crawler.user_agent",
+      message: "crawler.user_agent must be a string",
       value: userAgent,
     });
   }
 
   // Validate domains
-  const domains = getNestedValue(configObj, 'project.domains');
+  const domains = getNestedValue(configObj, "project.domains");
   validateDomains(domains, errors, warnings);
 
   // Validate rule_options is an object
-  const ruleOptions = getNestedValue(configObj, 'rule_options');
-  if (ruleOptions !== undefined && (typeof ruleOptions !== 'object' || ruleOptions === null || Array.isArray(ruleOptions))) {
+  const ruleOptions = getNestedValue(configObj, "rule_options");
+  if (
+    ruleOptions !== undefined &&
+    (typeof ruleOptions !== "object" || ruleOptions === null || Array.isArray(ruleOptions))
+  ) {
     errors.push({
-      path: 'rule_options',
-      message: 'rule_options must be an object',
+      path: "rule_options",
+      message: "rule_options must be an object",
       value: ruleOptions,
     });
   }
@@ -333,8 +326,8 @@ export function formatValidationResult(result: ValidationResult): string {
   const lines: string[] = [];
 
   if (result.valid && result.warnings.length === 0) {
-    lines.push('Configuration is valid.');
-    return lines.join('\n');
+    lines.push("Configuration is valid.");
+    return lines.join("\n");
   }
 
   if (result.errors.length > 0) {
@@ -348,7 +341,7 @@ export function formatValidationResult(result: ValidationResult): string {
   }
 
   if (result.warnings.length > 0) {
-    if (lines.length > 0) lines.push('');
+    if (lines.length > 0) lines.push("");
     lines.push(`Warnings (${result.warnings.length}):`);
     for (const warning of result.warnings) {
       lines.push(`  - ${warning.path}: ${warning.message}`);
@@ -358,5 +351,5 @@ export function formatValidationResult(result: ValidationResult): string {
     }
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

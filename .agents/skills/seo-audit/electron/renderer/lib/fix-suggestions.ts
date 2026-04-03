@@ -16,7 +16,7 @@ let loaded = false;
  * Falls back to a generic message if the rule ID is not found.
  */
 export function getFixSuggestion(ruleId: string): string {
-  return FIX_SUGGESTIONS[ruleId] || 'Review and fix this issue based on SEO best practices.';
+  return FIX_SUGGESTIONS[ruleId] || "Review and fix this issue based on SEO best practices.";
 }
 
 /**

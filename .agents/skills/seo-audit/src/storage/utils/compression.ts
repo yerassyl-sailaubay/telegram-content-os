@@ -1,4 +1,4 @@
-import * as zlib from 'zlib';
+import * as zlib from "zlib";
 
 /**
  * Compression threshold in bytes (10KB)
@@ -35,7 +35,7 @@ export interface CompressionResult {
  * @returns Compression result with data and metadata
  */
 export function compressHtml(html: string): CompressionResult {
-  const originalBuffer = Buffer.from(html, 'utf-8');
+  const originalBuffer = Buffer.from(html, "utf-8");
   const originalSize = originalBuffer.length;
 
   // Don't compress small content
@@ -80,11 +80,11 @@ export function compressHtml(html: string): CompressionResult {
  */
 export function decompressHtml(data: Buffer, isCompressed: boolean): string {
   if (!isCompressed) {
-    return data.toString('utf-8');
+    return data.toString("utf-8");
   }
 
   const decompressed = zlib.inflateSync(data);
-  return decompressed.toString('utf-8');
+  return decompressed.toString("utf-8");
 }
 
 /**
@@ -94,10 +94,7 @@ export function decompressHtml(data: Buffer, isCompressed: boolean): string {
  * @param compressedSize - Compressed size in bytes
  * @returns Compression ratio as percentage (e.g., 75 means 75% reduction)
  */
-export function compressionRatio(
-  originalSize: number,
-  compressedSize: number
-): number {
+export function compressionRatio(originalSize: number, compressedSize: number): number {
   if (originalSize === 0) return 0;
   return Math.round((1 - compressedSize / originalSize) * 100);
 }

@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Module-level registry storing content hashes mapped to their first-seen URL.
@@ -36,38 +36,37 @@ export function getDuplicateContentRegistryStats(): {
  * to track content hashes across pages within a crawl session.
  */
 export const duplicateExactRule = defineRule({
-  id: 'content-duplicate-exact',
-  name: 'Exact Duplicate Content',
-  description:
-    'Detects exact duplicate content across crawled pages using content hashing',
-  category: 'content',
+  id: "content-duplicate-exact",
+  name: "Exact Duplicate Content",
+  description: "Detects exact duplicate content across crawled pages using content hashing",
+  category: "content",
   weight: 8,
   run: async (context: AuditContext) => {
     const { $, url } = context;
 
-    const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
+    const bodyText = $("body").text().replace(/\s+/g, " ").trim();
 
     if (!bodyText || bodyText.length < 50) {
       return pass(
-        'content-duplicate-exact',
-        'Page has insufficient content for duplicate detection',
+        "content-duplicate-exact",
+        "Page has insufficient content for duplicate detection",
         {
           url,
           textLength: bodyText.length,
-          reason: 'skipped',
-        }
+          reason: "skipped",
+        },
       );
     }
 
     // Use Node.js crypto to create an MD5 hash of the body text
-    const crypto = await import('node:crypto');
-    const hash = crypto.createHash('md5').update(bodyText).digest('hex');
+    const crypto = await import("node:crypto");
+    const hash = crypto.createHash("md5").update(bodyText).digest("hex");
 
     const existingUrl = contentHashRegistry.get(hash);
 
     if (existingUrl) {
       return fail(
-        'content-duplicate-exact',
+        "content-duplicate-exact",
         `Exact duplicate content detected (matches ${existingUrl})`,
         {
           url,
@@ -75,24 +74,20 @@ export const duplicateExactRule = defineRule({
           contentHash: hash,
           textLength: bodyText.length,
           impact:
-            'Exact duplicate content confuses search engines about which page to rank and dilutes link equity',
+            "Exact duplicate content confuses search engines about which page to rank and dilutes link equity",
           recommendation:
-            'Consolidate duplicate pages using canonical tags, 301 redirects, or by removing the duplicate. Ensure each URL serves unique content.',
-        }
+            "Consolidate duplicate pages using canonical tags, 301 redirects, or by removing the duplicate. Ensure each URL serves unique content.",
+        },
       );
     }
 
     // First occurrence of this content hash - register it
     contentHashRegistry.set(hash, url);
 
-    return pass(
-      'content-duplicate-exact',
-      'Content is unique (no exact duplicates detected)',
-      {
-        url,
-        contentHash: hash,
-        textLength: bodyText.length,
-      }
-    );
+    return pass("content-duplicate-exact", "Content is unique (no exact duplicates detected)", {
+      url,
+      contentHash: hash,
+      textLength: bodyText.length,
+    });
   },
 });

@@ -1,31 +1,31 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Semantic HTML5 elements that help AI systems understand content structure.
  * Ordered roughly by importance for machine comprehension.
  */
 const SEMANTIC_ELEMENTS = [
-  'article',
-  'section',
-  'nav',
-  'aside',
-  'main',
-  'header',
-  'footer',
-  'figure',
-  'figcaption',
-  'time',
-  'mark',
-  'details',
-  'summary',
+  "article",
+  "section",
+  "nav",
+  "aside",
+  "main",
+  "header",
+  "footer",
+  "figure",
+  "figcaption",
+  "time",
+  "mark",
+  "details",
+  "summary",
 ] as const;
 
 /**
  * Minimum recommended semantic elements for good AI readability.
  * These provide the structural backbone that LLMs and search engines rely on.
  */
-const RECOMMENDED_ELEMENTS = ['main', 'article', 'header', 'footer', 'nav'];
+const RECOMMENDED_ELEMENTS = ["main", "article", "header", "footer", "nav"];
 
 /**
  * Rule: Semantic HTML for AI/GEO Readiness
@@ -41,11 +41,11 @@ const RECOMMENDED_ELEMENTS = ['main', 'article', 'header', 'footer', 'nav'];
  * - 0-2 distinct semantic elements: fail
  */
 export const semanticHtmlRule = defineRule({
-  id: 'geo-semantic-html',
-  name: 'Semantic HTML Structure',
+  id: "geo-semantic-html",
+  name: "Semantic HTML Structure",
   description:
-    'Checks if the page uses semantic HTML5 elements that help AI systems understand content structure',
-  category: 'geo',
+    "Checks if the page uses semantic HTML5 elements that help AI systems understand content structure",
+  category: "geo",
   weight: 25,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -81,28 +81,28 @@ export const semanticHtmlRule = defineRule({
 
     if (distinctCount >= 5) {
       return pass(
-        'geo-semantic-html',
+        "geo-semantic-html",
         `Excellent semantic HTML structure (${distinctCount} distinct semantic elements found)`,
-        details
+        details,
       );
     }
 
     if (distinctCount >= 3) {
       return warn(
-        'geo-semantic-html',
-        `Good semantic structure (${distinctCount} elements), could improve by adding: ${missing.join(', ') || 'more semantic elements'}`,
-        details
+        "geo-semantic-html",
+        `Good semantic structure (${distinctCount} elements), could improve by adding: ${missing.join(", ") || "more semantic elements"}`,
+        details,
       );
     }
 
     return fail(
-      'geo-semantic-html',
+      "geo-semantic-html",
       `Poor semantic HTML - AI systems struggle to parse content (only ${distinctCount} semantic element(s) found)`,
       {
         ...details,
         recommendation:
-          'Add semantic elements like <main>, <article>, <header>, <footer>, and <nav> to help AI understand your content structure',
-      }
+          "Add semantic elements like <main>, <article>, <header>, <footer>, and <nav> to help AI understand your content structure",
+      },
     );
   },
 });

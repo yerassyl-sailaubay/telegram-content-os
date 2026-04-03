@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * Address pattern detection
@@ -11,7 +11,8 @@ const ADDRESS_PATTERNS = {
   // UK-style: 123 High Street, London, SW1A 1AA
   uk: /\d+\s+[\w\s]+,?\s*[\w\s]+,?\s*[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}/gi,
   // Generic: number + street name + city/region pattern
-  generic: /\d+[-\s]?\d*\s+[\w\s]{3,30}(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln|way|plaza|square|park)[\s,]+[\w\s]+/gi,
+  generic:
+    /\d+[-\s]?\d*\s+[\w\s]{3,30}(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln|way|plaza|square|park)[\s,]+[\w\s]+/gi,
   // PO Box
   poBox: /p\.?o\.?\s*box\s*\d+/gi,
 };
@@ -19,25 +20,20 @@ const ADDRESS_PATTERNS = {
 /**
  * Schema.org address selectors and patterns
  */
-const SCHEMA_ADDRESS_TYPES = [
-  'PostalAddress',
-  'Place',
-  'LocalBusiness',
-  'Organization',
-];
+const SCHEMA_ADDRESS_TYPES = ["PostalAddress", "Place", "LocalBusiness", "Organization"];
 
 /**
  * Address-related selectors in HTML
  */
 const ADDRESS_SELECTORS = [
-  'address',
+  "address",
   '[itemtype*="PostalAddress"]',
   '[itemprop="address"]',
   '[class*="address"]',
   '[class*="location"]',
-  '.contact-info',
-  '.company-info',
-  '.footer-address',
+  ".contact-info",
+  ".company-info",
+  ".footer-address",
 ];
 
 /**
@@ -48,10 +44,10 @@ const ADDRESS_SELECTORS = [
  * e-commerce, local businesses, and service providers.
  */
 export const physicalAddressRule = defineRule({
-  id: 'eeat-physical-address',
-  name: 'Physical Address',
-  description: 'Checks for visible physical address information',
-  category: 'eeat',
+  id: "eeat-physical-address",
+  name: "Physical Address",
+  description: "Checks for visible physical address information",
+  category: "eeat",
   weight: 6,
 
   run(context: AuditContext): RuleResult {
@@ -65,13 +61,13 @@ export const physicalAddressRule = defineRule({
         if (content) {
           const data = JSON.parse(content);
 
-          const checkAddress = (obj: unknown, path: string = ''): void => {
-            if (!obj || typeof obj !== 'object') return;
+          const checkAddress = (obj: unknown, path: string = ""): void => {
+            if (!obj || typeof obj !== "object") return;
             const record = obj as Record<string, unknown>;
 
             // Check @type for address-related types
-            const type = record['@type'];
-            if (typeof type === 'string' && SCHEMA_ADDRESS_TYPES.some((t) => type.includes(t))) {
+            const type = record["@type"];
+            if (typeof type === "string" && SCHEMA_ADDRESS_TYPES.some((t) => type.includes(t))) {
               // Look for address property
               if (record.address) {
                 const addr = record.address as Record<string, unknown>;
@@ -85,17 +81,17 @@ export const physicalAddressRule = defineRule({
 
                 if (parts.length >= 2) {
                   foundAddresses.push({
-                    source: 'Schema.org',
-                    value: parts.join(', ').slice(0, 100),
+                    source: "Schema.org",
+                    value: parts.join(", ").slice(0, 100),
                   });
                 }
               }
             }
 
             // Check @graph array
-            if (Array.isArray(record['@graph'])) {
-              for (const item of record['@graph']) {
-                checkAddress(item, '@graph');
+            if (Array.isArray(record["@graph"])) {
+              for (const item of record["@graph"]) {
+                checkAddress(item, "@graph");
               }
             }
           };
@@ -134,7 +130,7 @@ export const physicalAddressRule = defineRule({
         const match = footerText.match(pattern);
         if (match) {
           foundAddresses.push({
-            source: 'Footer',
+            source: "Footer",
             value: match[0].slice(0, 100),
           });
           break;
@@ -143,11 +139,12 @@ export const physicalAddressRule = defineRule({
     }
 
     // 4. Check for Google Maps embed
-    const hasGoogleMaps = $('iframe[src*="google.com/maps"], iframe[src*="maps.google"]').length > 0;
+    const hasGoogleMaps =
+      $('iframe[src*="google.com/maps"], iframe[src*="maps.google"]').length > 0;
     if (hasGoogleMaps) {
       foundAddresses.push({
-        source: 'Google Maps embed',
-        value: 'Map embedded on page',
+        source: "Google Maps embed",
+        value: "Map embedded on page",
       });
     }
 
@@ -156,33 +153,35 @@ export const physicalAddressRule = defineRule({
     const microdataCity = $('[itemprop="addressLocality"]').text().trim();
     if (microdataAddress && microdataCity) {
       foundAddresses.push({
-        source: 'Microdata',
+        source: "Microdata",
         value: `${microdataAddress}, ${microdataCity}`.slice(0, 100),
       });
     }
 
     // Determine if site likely needs an address
-    const isBusinessSite = $(
-      '[class*="cart"], [class*="shop"], [class*="store"], [class*="product"], form[action*="checkout"], [class*="booking"], [class*="appointment"]'
-    ).length > 0;
+    const isBusinessSite =
+      $(
+        '[class*="cart"], [class*="shop"], [class*="store"], [class*="product"], form[action*="checkout"], [class*="booking"], [class*="appointment"]',
+      ).length > 0;
 
-    const isLocalBusiness = $('script[type="application/ld+json"]').filter((_, el) => {
-      const content = $(el).html() || '';
-      return /LocalBusiness|Store|Restaurant|Hotel|MedicalBusiness/i.test(content);
-    }).length > 0;
+    const isLocalBusiness =
+      $('script[type="application/ld+json"]').filter((_, el) => {
+        const content = $(el).html() || "";
+        return /LocalBusiness|Store|Restaurant|Hotel|MedicalBusiness/i.test(content);
+      }).length > 0;
 
     // Deduplicate addresses
     const uniqueAddresses = foundAddresses.filter(
-      (addr, index, arr) => arr.findIndex((a) => a.value === addr.value) === index
+      (addr, index, arr) => arr.findIndex((a) => a.value === addr.value) === index,
     );
 
     if (uniqueAddresses.length > 0) {
-      const hasSchemaAddress = uniqueAddresses.some((a) => a.source === 'Schema.org');
+      const hasSchemaAddress = uniqueAddresses.some((a) => a.source === "Schema.org");
 
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: `Physical address found${hasSchemaAddress ? ' with structured data' : ''}`,
+        message: `Physical address found${hasSchemaAddress ? " with structured data" : ""}`,
         details: {
           hasAddress: true,
           hasSchemaMarkup: hasSchemaAddress,
@@ -195,25 +194,27 @@ export const physicalAddressRule = defineRule({
     // No address found
     if (isLocalBusiness || isBusinessSite) {
       return {
-        status: 'warn',
+        status: "warn",
         score: 50,
-        message: 'No physical address found - important for business trust signals',
+        message: "No physical address found - important for business trust signals",
         details: {
           hasAddress: false,
           isBusinessSite: true,
-          recommendation: 'Add your business address using Schema.org PostalAddress and display it visibly on the page',
+          recommendation:
+            "Add your business address using Schema.org PostalAddress and display it visibly on the page",
         },
       };
     }
 
     return {
-      status: 'pass',
+      status: "pass",
       score: 100,
-      message: 'No physical address found (may not be required for this site type)',
+      message: "No physical address found (may not be required for this site type)",
       details: {
         hasAddress: false,
         isBusinessSite: false,
-        recommendation: 'Consider adding a physical address if you operate a business to build trust',
+        recommendation:
+          "Consider adding a physical address if you operate a business to build trust",
       },
     };
   },

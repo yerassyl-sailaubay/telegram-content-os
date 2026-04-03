@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Similarity thresholds for near-duplicate detection
@@ -54,7 +54,7 @@ export function getNearDuplicateRegistryStats(): {
 function extractTrigrams(text: string): Set<string> {
   const words = text
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/[^a-z0-9\s]/g, "")
     .split(/\s+/)
     .filter((w) => w.length > 0)
     .slice(0, MAX_WORDS);
@@ -83,8 +83,7 @@ function jaccardSimilarity(setA: Set<string>, setB: Set<string>): number {
 
   let intersectionSize = 0;
   // Iterate over the smaller set for efficiency
-  const [smaller, larger] =
-    setA.size <= setB.size ? [setA, setB] : [setB, setA];
+  const [smaller, larger] = setA.size <= setB.size ? [setA, setB] : [setB, setA];
 
   for (const item of smaller) {
     if (larger.has(item)) {
@@ -108,26 +107,25 @@ function jaccardSimilarity(setA: Set<string>, setB: Set<string>): number {
  * to store trigram sets across pages within a crawl session.
  */
 export const duplicateNearRule = defineRule({
-  id: 'content-duplicate-near',
-  name: 'Near-Duplicate Content',
-  description:
-    'Detects near-duplicate content across crawled pages using trigram similarity',
-  category: 'content',
+  id: "content-duplicate-near",
+  name: "Near-Duplicate Content",
+  description: "Detects near-duplicate content across crawled pages using trigram similarity",
+  category: "content",
   weight: 7,
   run: async (context: AuditContext) => {
     const { $, url } = context;
 
-    const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
+    const bodyText = $("body").text().replace(/\s+/g, " ").trim();
 
     if (!bodyText || bodyText.length < 100) {
       return pass(
-        'content-duplicate-near',
-        'Page has insufficient content for near-duplicate detection',
+        "content-duplicate-near",
+        "Page has insufficient content for near-duplicate detection",
         {
           url,
           textLength: bodyText.length,
-          reason: 'skipped',
-        }
+          reason: "skipped",
+        },
       );
     }
 
@@ -137,19 +135,19 @@ export const duplicateNearRule = defineRule({
     if (trigrams.size < 5) {
       nearDuplicateRegistry.push({ url, trigrams });
       return pass(
-        'content-duplicate-near',
-        'Page has too few word trigrams for reliable comparison',
+        "content-duplicate-near",
+        "Page has too few word trigrams for reliable comparison",
         {
           url,
           trigramCount: trigrams.size,
-          reason: 'skipped',
-        }
+          reason: "skipped",
+        },
       );
     }
 
     // Compare with all stored pages
     let highestSimilarity = 0;
-    let mostSimilarUrl = '';
+    let mostSimilarUrl = "";
 
     for (const stored of nearDuplicateRegistry) {
       const similarity = jaccardSimilarity(trigrams, stored.trigrams);
@@ -177,38 +175,37 @@ export const duplicateNearRule = defineRule({
 
     if (highestSimilarity > DUPLICATE_THRESHOLD) {
       return fail(
-        'content-duplicate-near',
+        "content-duplicate-near",
         `Near-duplicate content detected: ${Math.round(highestSimilarity * 100)}% similar to ${mostSimilarUrl}`,
         {
           ...details,
           impact:
-            'Near-duplicate pages cause keyword cannibalization and confuse search engines about which page to rank',
+            "Near-duplicate pages cause keyword cannibalization and confuse search engines about which page to rank",
           recommendation:
-            'Consolidate similar pages, differentiate their content significantly, or use canonical tags to indicate the preferred version.',
-        }
+            "Consolidate similar pages, differentiate their content significantly, or use canonical tags to indicate the preferred version.",
+        },
       );
     }
 
     if (highestSimilarity > SIMILAR_THRESHOLD) {
       return warn(
-        'content-duplicate-near',
+        "content-duplicate-near",
         `Similar content detected: ${Math.round(highestSimilarity * 100)}% similar to ${mostSimilarUrl}`,
         {
           ...details,
-          impact:
-            'Highly similar content may compete with itself in search rankings',
+          impact: "Highly similar content may compete with itself in search rankings",
           recommendation:
-            'Review both pages and differentiate their content, titles, and meta descriptions to target different search intents.',
-        }
+            "Review both pages and differentiate their content, titles, and meta descriptions to target different search intents.",
+        },
       );
     }
 
     return pass(
-      'content-duplicate-near',
+      "content-duplicate-near",
       mostSimilarUrl
         ? `Content is sufficiently unique (highest similarity: ${Math.round(highestSimilarity * 100)}%)`
-        : 'First page analyzed (no comparison available yet)',
-      details
+        : "First page analyzed (no comparison available yet)",
+      details,
     );
   },
 });

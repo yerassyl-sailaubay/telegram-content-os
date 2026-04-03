@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchPage } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchPage } from "../../crawler/fetcher.js";
 
 /**
  * Generates a random non-existent path for testing 404 responses
@@ -27,22 +27,22 @@ function getBaseUrl(url: string): string {
  */
 const DEFAULT_ERROR_SIGNATURES = [
   // Apache
-  'apache',
-  'not found',
-  'the requested url',
-  'was not found on this server',
+  "apache",
+  "not found",
+  "the requested url",
+  "was not found on this server",
   // Nginx
-  'nginx',
+  "nginx",
   // IIS
-  'internet information services',
-  'iis',
+  "internet information services",
+  "iis",
   // Generic
-  'error 404',
-  '404 error',
-  '404 not found',
-  'page not found',
-  'file not found',
-  'not found',
+  "error 404",
+  "404 error",
+  "404 not found",
+  "page not found",
+  "file not found",
+  "not found",
 ];
 
 /**
@@ -50,23 +50,23 @@ const DEFAULT_ERROR_SIGNATURES = [
  */
 const CUSTOM_404_INDICATORS = [
   // Navigation elements
-  'nav',
-  'menu',
-  'header',
-  'footer',
+  "nav",
+  "menu",
+  "header",
+  "footer",
   // Search functionality
-  'search',
+  "search",
   // Links back to site
-  'home',
-  'homepage',
-  'go back',
-  'return',
+  "home",
+  "homepage",
+  "go back",
+  "return",
   // Helpful content
-  'sorry',
-  'oops',
-  'looking for',
-  'help',
-  'contact',
+  "sorry",
+  "oops",
+  "looking for",
+  "help",
+  "contact",
 ];
 
 /**
@@ -74,7 +74,7 @@ const CUSTOM_404_INDICATORS = [
  */
 function analyze404Page(
   html: string,
-  statusCode: number
+  statusCode: number,
 ): {
   isCustom: boolean;
   hasNavigation: boolean;
@@ -88,12 +88,12 @@ function analyze404Page(
 
   // Check for default error signatures (strong indicator of default page)
   const hasDefaultSignatures = DEFAULT_ERROR_SIGNATURES.filter((sig) =>
-    lowerHtml.includes(sig.toLowerCase())
+    lowerHtml.includes(sig.toLowerCase()),
   );
 
   // Check for custom page indicators
   const hasCustomIndicators = CUSTOM_404_INDICATORS.filter((ind) =>
-    lowerHtml.includes(ind.toLowerCase())
+    lowerHtml.includes(ind.toLowerCase()),
   );
 
   // Check for navigation elements (usually present in custom pages)
@@ -105,7 +105,10 @@ function analyze404Page(
     /class=["'][^"']*menu/i.test(html);
 
   // Check for substantial content (custom pages usually have more content)
-  const textContent = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const textContent = html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   const hasSubstantialContent = textContent.length > 500;
 
   // Check for brand/site name consistency
@@ -115,12 +118,12 @@ function analyze404Page(
   let isCustom = false;
 
   if (hasNavigation) {
-    indicators.push('Has navigation elements');
+    indicators.push("Has navigation elements");
     isCustom = true;
   }
 
   if (hasSubstantialContent) {
-    indicators.push('Has substantial content');
+    indicators.push("Has substantial content");
     isCustom = true;
   }
 
@@ -130,26 +133,26 @@ function analyze404Page(
   }
 
   if (hasTitle) {
-    indicators.push('Has title tag');
+    indicators.push("Has title tag");
   }
 
   // Check for issues
   if (!hasNavigation) {
-    issues.push('Missing navigation elements');
+    issues.push("Missing navigation elements");
   }
 
   if (!hasSubstantialContent) {
-    issues.push('Limited content on error page');
+    issues.push("Limited content on error page");
   }
 
   if (hasDefaultSignatures.length > 0 && !hasNavigation && !hasSubstantialContent) {
-    issues.push('Appears to be a default server error page');
+    issues.push("Appears to be a default server error page");
     isCustom = false;
   }
 
   const hasHelpfulContent = hasCustomIndicators.length >= 2;
   if (!hasHelpfulContent) {
-    issues.push('Missing helpful content (search, suggestions, contact info)');
+    issues.push("Missing helpful content (search, suggestions, contact info)");
   }
 
   return {
@@ -165,11 +168,10 @@ function analyze404Page(
  * Rule: Check that site has a custom 404 page
  */
 export const fourOhFourPageRule = defineRule({
-  id: 'technical-404-page',
-  name: 'Custom 404 Page',
-  description:
-    'Checks that the site has a custom 404 page (not a default server error)',
-  category: 'technical',
+  id: "technical-404-page",
+  name: "Custom 404 Page",
+  description: "Checks that the site has a custom 404 page (not a default server error)",
+  category: "technical",
   weight: 1,
   run: async (context: AuditContext) => {
     const baseUrl = getBaseUrl(context.url);
@@ -184,35 +186,35 @@ export const fourOhFourPageRule = defineRule({
       if (statusCode !== 404) {
         if (statusCode === 200) {
           return fail(
-            'technical-404-page',
+            "technical-404-page",
             `Non-existent page returned 200 instead of 404 (soft 404 issue)`,
             {
               testUrl,
               statusCode,
-              issue: 'Soft 404 - returns 200 for non-existent pages',
-            }
+              issue: "Soft 404 - returns 200 for non-existent pages",
+            },
           );
         }
 
         if (statusCode >= 300 && statusCode < 400) {
           return warn(
-            'technical-404-page',
+            "technical-404-page",
             `Non-existent page redirects (${statusCode}) instead of returning 404`,
             {
               testUrl,
               statusCode,
-              issue: 'Redirect on 404 - may cause crawl issues',
-            }
+              issue: "Redirect on 404 - may cause crawl issues",
+            },
           );
         }
 
         return warn(
-          'technical-404-page',
+          "technical-404-page",
           `Non-existent page returned ${statusCode} instead of 404`,
           {
             testUrl,
             statusCode,
-          }
+          },
         );
       }
 
@@ -231,32 +233,27 @@ export const fourOhFourPageRule = defineRule({
 
       if (analysis.isCustom) {
         return pass(
-          'technical-404-page',
-          'Site has a custom 404 page with proper navigation and content',
-          details
+          "technical-404-page",
+          "Site has a custom 404 page with proper navigation and content",
+          details,
         );
       }
 
       if (analysis.hasNavigation || analysis.hasHelpfulContent) {
-        return warn(
-          'technical-404-page',
-          '404 page exists but could be improved',
-          details
-        );
+        return warn("technical-404-page", "404 page exists but could be improved", details);
       }
 
       return fail(
-        'technical-404-page',
-        '404 page appears to be a default server error page',
-        details
+        "technical-404-page",
+        "404 page appears to be a default server error page",
+        details,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      return fail(
-        'technical-404-page',
-        `Failed to test 404 page: ${message}`,
-        { testUrl, error: message }
-      );
+      return fail("technical-404-page", `Failed to test 404 page: ${message}`, {
+        testUrl,
+        error: message,
+      });
     }
   },
 });

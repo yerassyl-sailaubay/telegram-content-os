@@ -1,12 +1,12 @@
-import Database from 'better-sqlite3';
-import * as fs from 'fs';
-import * as path from 'path';
-import { getAuditsDbPath, getGlobalDir } from '../paths.js';
-import { initializeAuditsSchema, getAuditsDbStats } from './schema.js';
-import * as audits from './audits.js';
-import * as results from './results.js';
-import * as issues from './issues.js';
-import * as comparisons from './comparisons.js';
+import Database from "better-sqlite3";
+import * as fs from "fs";
+import * as path from "path";
+import { getAuditsDbPath, getGlobalDir } from "../paths.js";
+import { initializeAuditsSchema, getAuditsDbStats } from "./schema.js";
+import * as audits from "./audits.js";
+import * as results from "./results.js";
+import * as issues from "./issues.js";
+import * as comparisons from "./comparisons.js";
 import type {
   HydratedAudit,
   HydratedAuditCategory,
@@ -24,7 +24,7 @@ import type {
   RuleResultStatus,
   IssueSeverity,
   CategoryDelta,
-} from '../types.js';
+} from "../types.js";
 
 /**
  * Centralized SQLite database for storing audit results
@@ -162,7 +162,7 @@ export class AuditsDatabase {
       warningCount: number;
       failedCount: number;
       pagesAudited: number;
-    }
+    },
   ): HydratedAudit | null {
     return audits.completeAudit(this.db, auditId, stats);
   }
@@ -322,7 +322,12 @@ export class AuditsDatabase {
   /**
    * Get issue counts
    */
-  getIssueCounts(auditId: number): { critical: number; warning: number; info: number; total: number } {
+  getIssueCounts(auditId: number): {
+    critical: number;
+    warning: number;
+    info: number;
+    total: number;
+  } {
     return issues.getIssueCounts(this.db, auditId);
   }
 
@@ -361,7 +366,10 @@ export class AuditsDatabase {
   /**
    * Get score trend for a domain
    */
-  getScoreTrend(domain: string, limit?: number): Array<{ auditId: string; score: number; date: Date }> {
+  getScoreTrend(
+    domain: string,
+    limit?: number,
+  ): Array<{ auditId: string; score: number; date: Date }> {
     return comparisons.getScoreTrend(this.db, domain, limit);
   }
 }

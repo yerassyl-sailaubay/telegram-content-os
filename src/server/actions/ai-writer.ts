@@ -7,6 +7,11 @@ import { GoogleClient } from "@/lib/ai/google";
 import { AI_MODELS } from "@/lib/ai/types";
 import { ChannelProfiler } from "@/lib/ai/channel-profiler";
 import { recordAiTelemetry } from "@/lib/ai/telemetry";
+import {
+  PROMPT_INJECTION_GUARDRAILS,
+  formatUntrustedPromptSection,
+  sanitizeUntrustedPromptInput,
+} from "@/lib/ai/prompt-security";
 import { eq, and, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -188,15 +193,24 @@ export async function generatePostWithAI(
     const aiProvider = new GoogleClient();
 
     const profileContext = profile
-      ? `Niche: ${profile.niche ?? "general"}
-Tone: ${profile.tone ?? "neutral"}
-Top topics: ${Array.isArray(profile.topTopics) ? profile.topTopics.join(", ") : "N/A"}
-Language: ${profile.language || "ru"}`
+      ? `Niche: ${sanitizeUntrustedPromptInput(profile.niche ?? "general", 200)}
+Tone: ${sanitizeUntrustedPromptInput(profile.tone ?? "neutral", 200)}
+Top topics: ${
+          Array.isArray(profile.topTopics)
+            ? profile.topTopics.map((topic) => sanitizeUntrustedPromptInput(topic, 120)).join(", ")
+            : "N/A"
+        }
+Language: ${sanitizeUntrustedPromptInput(profile.language || "ru", 40)}`
       : "No saved channel profile. Infer voice from examples.";
 
     const examplesContext =
       postExamples.length > 0
-        ? postExamples.map((post, index) => `Example ${index + 1}:\n${post}`).join("\n\n")
+        ? postExamples
+            .map(
+              (post, index) =>
+                `Example ${index + 1}:\n${formatUntrustedPromptSection(`example_${index + 1}`, post, 1_500)}`,
+            )
+            .join("\n\n")
         : "No examples available.";
 
     const response = await aiProvider.complete({
@@ -210,14 +224,21 @@ Return JSON only with fields: "content" (string) and "hashtags" (string array).
 Requirements:
 - Match channel style, formatting patterns, and vocabulary
 - Keep content relevant to channel niche
-- ${input.tone ? `Use ${input.tone} tone` : "Match the channel's usual tone"}
+- ${
+            input.tone
+              ? `Use ${sanitizeUntrustedPromptInput(input.tone, 120)} tone`
+              : "Match the channel's usual tone"
+          }
 - Keep "content" within ${input.maxLength || 1000} characters
 - Return 3-5 hashtags in "hashtags"
-- Write in ${profile?.language || "the channel language from examples"}`,
+- Write in ${profile?.language || "the channel language from examples"}
+
+${PROMPT_INJECTION_GUARDRAILS}`,
         },
         {
           role: "user",
-          content: `Topic: ${input.topic}
+          content: `Topic:
+${formatUntrustedPromptSection("topic", input.topic, 400)}
 
 Channel profile:
 ${profileContext}

@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Maximum number of URLs allowed per sitemap file (Google specification)
@@ -18,8 +18,8 @@ function countSitemapUrls(content: string): number {
   let count = 0;
   let index = 0;
   const lowerContent = content.toLowerCase();
-  const needle = '<url>';
-  const needleAlt = '<url ';
+  const needle = "<url>";
+  const needleAlt = "<url ";
 
   while (index < lowerContent.length) {
     const pos1 = lowerContent.indexOf(needle, index);
@@ -46,20 +46,18 @@ function countSitemapUrls(content: string): number {
  * this limit will be rejected by search engines.
  */
 export const sitemapUrlLimitRule = defineRule({
-  id: 'crawl-sitemap-url-limit',
-  name: 'Sitemap URL Limit',
-  description: 'Checks if sitemap exceeds the 50,000 URL limit per file',
-  category: 'crawl',
+  id: "crawl-sitemap-url-limit",
+  name: "Sitemap URL Limit",
+  description: "Checks if sitemap exceeds the 50,000 URL limit per file",
+  category: "crawl",
   weight: 6,
   run: async (context: AuditContext) => {
     const sitemapContent = (context as any).sitemapContent as string | undefined;
 
     if (!sitemapContent) {
-      return pass(
-        'crawl-sitemap-url-limit',
-        'No sitemap content available to check',
-        { sitemapAvailable: false }
-      );
+      return pass("crawl-sitemap-url-limit", "No sitemap content available to check", {
+        sitemapAvailable: false,
+      });
     }
 
     const urlCount = countSitemapUrls(sitemapContent);
@@ -72,31 +70,31 @@ export const sitemapUrlLimitRule = defineRule({
 
     if (urlCount > MAX_URLS) {
       return fail(
-        'crawl-sitemap-url-limit',
+        "crawl-sitemap-url-limit",
         `Sitemap contains ${urlCount.toLocaleString()} URLs, exceeding the ${MAX_URLS.toLocaleString()} limit`,
         {
           ...details,
-          impact: 'Search engines will reject sitemaps exceeding 50,000 URLs',
-          recommendation: 'Split the sitemap into multiple files using a sitemap index',
-        }
+          impact: "Search engines will reject sitemaps exceeding 50,000 URLs",
+          recommendation: "Split the sitemap into multiple files using a sitemap index",
+        },
       );
     }
 
     if (urlCount > WARN_THRESHOLD) {
       return warn(
-        'crawl-sitemap-url-limit',
+        "crawl-sitemap-url-limit",
         `Sitemap contains ${urlCount.toLocaleString()} URLs, approaching the ${MAX_URLS.toLocaleString()} limit`,
         {
           ...details,
-          recommendation: 'Consider splitting into multiple sitemaps before reaching the limit',
-        }
+          recommendation: "Consider splitting into multiple sitemaps before reaching the limit",
+        },
       );
     }
 
     return pass(
-      'crawl-sitemap-url-limit',
+      "crawl-sitemap-url-limit",
       `Sitemap contains ${urlCount.toLocaleString()} URLs (within ${MAX_URLS.toLocaleString()} limit)`,
-      details
+      details,
     );
   },
 });

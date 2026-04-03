@@ -3,7 +3,7 @@
  */
 
 // Rule definition helpers
-export { defineRule, pass, warn, fail } from './define-rule.js';
+export { defineRule, pass, warn, fail } from "./define-rule.js";
 
 // Rule registry
 export {
@@ -13,10 +13,10 @@ export {
   getRuleById,
   clearRegistry,
   getRuleCount,
-} from './registry.js';
+} from "./registry.js";
 
 // Rule loader
-export { loadAllRules, CATEGORY_MODULES } from './loader.js';
+export { loadAllRules, CATEGORY_MODULES } from "./loader.js";
 
 // Pattern matcher for enable/disable rules
 export {
@@ -25,4 +25,4 @@ export {
   isRuleEnabled,
   filterRules,
   getRuleCategory,
-} from './pattern-matcher.js';
+} from "./pattern-matcher.js";

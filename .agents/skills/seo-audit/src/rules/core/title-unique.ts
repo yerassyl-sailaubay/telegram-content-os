@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 // Global store for tracking titles across pages during a crawl
 // This is reset at the start of each audit run
@@ -35,7 +35,7 @@ export function getTitleRegistryStats(): { totalTitles: number; duplicateGroups:
  * - Collapse multiple spaces
  */
 function normalizeTitle(title: string): string {
-  return title.toLowerCase().trim().replace(/\s+/g, ' ');
+  return title.toLowerCase().trim().replace(/\s+/g, " ");
 }
 
 /**
@@ -45,24 +45,20 @@ function normalizeTitle(title: string): string {
  * Duplicate titles confuse search engines about which page to prioritize.
  */
 export const titleUniqueRule = defineRule({
-  id: 'core-title-unique',
-  name: 'Title Uniqueness',
-  description: 'Checks that page titles are unique across the site',
-  category: 'core',
+  id: "core-title-unique",
+  name: "Title Uniqueness",
+  description: "Checks that page titles are unique across the site",
+  category: "core",
   weight: 5,
   run: async (context: AuditContext) => {
     const { $, url } = context;
 
     // Get the page title
-    const titleElement = $('title');
+    const titleElement = $("title");
     const title = titleElement.first().text()?.trim();
 
     if (!title) {
-      return fail(
-        'core-title-unique',
-        'Page has no title tag',
-        { title: null, url }
-      );
+      return fail("core-title-unique", "Page has no title tag", { title: null, url });
     }
 
     const normalizedTitle = normalizeTitle(title);
@@ -74,26 +70,19 @@ export const titleUniqueRule = defineRule({
       // Title already seen - add this URL to the list
       existingUrls.push(url);
 
-      return warn(
-        'core-title-unique',
-        `Duplicate title found on ${existingUrls.length} pages`,
-        {
-          title,
-          normalizedTitle,
-          duplicateUrls: existingUrls,
-          impact: 'Duplicate titles confuse search engines about which page to prioritize',
-          recommendation: 'Create unique, descriptive titles for each page (e.g., "Page Topic | Brand Name")',
-        }
-      );
+      return warn("core-title-unique", `Duplicate title found on ${existingUrls.length} pages`, {
+        title,
+        normalizedTitle,
+        duplicateUrls: existingUrls,
+        impact: "Duplicate titles confuse search engines about which page to prioritize",
+        recommendation:
+          'Create unique, descriptive titles for each page (e.g., "Page Topic | Brand Name")',
+      });
     }
 
     // New title - register it
     titleRegistry.set(normalizedTitle, [url]);
 
-    return pass(
-      'core-title-unique',
-      'Page title is unique',
-      { title, normalizedTitle, url }
-    );
+    return pass("core-title-unique", "Page title is unique", { title, normalizedTitle, url });
   },
 });

@@ -5,18 +5,18 @@
  * Covers language declarations, hreflang validation, and multi-region support.
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
-import { langAttributeRule } from './lang-attribute.js';
-import { hreflangRule } from './hreflang.js';
-import { hreflangReturnLinksRule } from './hreflang-return-links.js';
-import { hreflangToNoindexRule } from './hreflang-to-noindex.js';
-import { hreflangToNonCanonicalRule } from './hreflang-to-non-canonical.js';
-import { hreflangToBrokenRule } from './hreflang-to-broken.js';
-import { hreflangToRedirectRule } from './hreflang-to-redirect.js';
-import { hreflangConflictingRule } from './hreflang-conflicting.js';
-import { hreflangLangMismatchRule } from './hreflang-lang-mismatch.js';
-import { hreflangMultipleMethodsRule } from './hreflang-multiple-methods.js';
+import { langAttributeRule } from "./lang-attribute.js";
+import { hreflangRule } from "./hreflang.js";
+import { hreflangReturnLinksRule } from "./hreflang-return-links.js";
+import { hreflangToNoindexRule } from "./hreflang-to-noindex.js";
+import { hreflangToNonCanonicalRule } from "./hreflang-to-non-canonical.js";
+import { hreflangToBrokenRule } from "./hreflang-to-broken.js";
+import { hreflangToRedirectRule } from "./hreflang-to-redirect.js";
+import { hreflangConflictingRule } from "./hreflang-conflicting.js";
+import { hreflangLangMismatchRule } from "./hreflang-lang-mismatch.js";
+import { hreflangMultipleMethodsRule } from "./hreflang-multiple-methods.js";
 
 // Export all rules
 export {

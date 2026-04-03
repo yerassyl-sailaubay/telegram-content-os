@@ -1,10 +1,10 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Common root element selectors used by client-side rendering frameworks.
  */
-const CSR_ROOT_SELECTORS = ['#root', '#app', '#__next', '#__nuxt', '#__svelte'];
+const CSR_ROOT_SELECTORS = ["#root", "#app", "#__next", "#__nuxt", "#__svelte"];
 
 /**
  * Patterns in <noscript> content that indicate JS-only rendering.
@@ -28,15 +28,15 @@ const NOSCRIPT_JS_PATTERNS = [
  * is delayed or fails.
  */
 export const ssrCheckRule = defineRule({
-  id: 'js-ssr-check',
-  name: 'Server-Side Rendering Check',
-  description: 'Checks if the page uses SSR or relies on client-side rendering only',
-  category: 'js',
+  id: "js-ssr-check",
+  name: "Server-Side Rendering Check",
+  description: "Checks if the page uses SSR or relies on client-side rendering only",
+  category: "js",
   weight: 10,
   run: async (context: AuditContext) => {
     const { $ } = context;
 
-    const bodyText = $('body').text().trim();
+    const bodyText = $("body").text().trim();
     const bodyTextLength = bodyText.length;
 
     // Check for CSR root elements
@@ -61,7 +61,7 @@ export const ssrCheckRule = defineRule({
     let hasJsRequiredNoscript = false;
     let noscriptMessage: string | null = null;
 
-    $('noscript').each((_, el) => {
+    $("noscript").each((_, el) => {
       const text = $(el).text().trim();
       for (const pattern of NOSCRIPT_JS_PATTERNS) {
         if (pattern.test(text)) {
@@ -73,7 +73,7 @@ export const ssrCheckRule = defineRule({
     });
 
     // Count script tags for context
-    const scriptCount = $('script').length;
+    const scriptCount = $("script").length;
 
     const details: Record<string, unknown> = {
       bodyTextLength,
@@ -86,46 +86,49 @@ export const ssrCheckRule = defineRule({
     // Client-side only: empty root div, very little content, JS-required noscript
     if (bodyTextLength < 200 && hasEmptyRoot) {
       return fail(
-        'js-ssr-check',
-        'Page appears to be client-side rendered only: empty root element with minimal HTML content',
+        "js-ssr-check",
+        "Page appears to be client-side rendered only: empty root element with minimal HTML content",
         {
           ...details,
           ...(noscriptMessage && { noscriptMessage }),
-          impact: 'Search engines may see an empty page if JavaScript execution fails or is delayed',
-          recommendation: 'Implement server-side rendering (SSR) or static site generation (SSG) to include content in initial HTML',
-        }
+          impact:
+            "Search engines may see an empty page if JavaScript execution fails or is delayed",
+          recommendation:
+            "Implement server-side rendering (SSR) or static site generation (SSG) to include content in initial HTML",
+        },
       );
     }
 
     // Warning: signs of CSR dependency
     if (hasEmptyRoot && bodyTextLength < 500) {
       return warn(
-        'js-ssr-check',
-        'Page may rely on client-side rendering: root element has minimal content',
+        "js-ssr-check",
+        "Page may rely on client-side rendering: root element has minimal content",
         {
           ...details,
           ...(noscriptMessage && { noscriptMessage }),
-          recommendation: 'Consider implementing SSR to ensure content is available in the initial HTML response',
-        }
+          recommendation:
+            "Consider implementing SSR to ensure content is available in the initial HTML response",
+        },
       );
     }
 
     if (hasJsRequiredNoscript && bodyTextLength < 500) {
       return warn(
-        'js-ssr-check',
-        'Page indicates JavaScript is required and has minimal HTML content',
+        "js-ssr-check",
+        "Page indicates JavaScript is required and has minimal HTML content",
         {
           ...details,
           noscriptMessage,
-          recommendation: 'Implement SSR so search engines can access content without JavaScript',
-        }
+          recommendation: "Implement SSR so search engines can access content without JavaScript",
+        },
       );
     }
 
     return pass(
-      'js-ssr-check',
-      'Page appears to be server-side rendered with content in the initial HTML',
-      details
+      "js-ssr-check",
+      "Page appears to be server-side rendered with content in the initial HTML",
+      details,
     );
   },
 });

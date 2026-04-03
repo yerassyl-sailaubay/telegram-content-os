@@ -5,10 +5,10 @@ import type {
   RuleResult,
   CategoryDefinition,
   CoreWebVitals,
-} from './types.js';
-import { categories, getCategoryById } from './categories/index.js';
-import { getRulesByCategory } from './rules/registry.js';
-import { loadAllRules } from './rules/loader.js';
+} from "./types.js";
+import { categories, getCategoryById } from "./categories/index.js";
+import { getRulesByCategory } from "./rules/registry.js";
+import { loadAllRules } from "./rules/loader.js";
 import {
   fetchPage,
   createAuditContext,
@@ -17,11 +17,8 @@ import {
   Crawler,
   type CrawledPage,
   type PlaywrightFetchResult,
-} from './crawler/index.js';
-import {
-  buildCategoryResult,
-  buildAuditResult,
-} from './scoring.js';
+} from "./crawler/index.js";
+import { buildCategoryResult, buildAuditResult } from "./scoring.js";
 
 /**
  * Callback for when a category audit starts
@@ -34,26 +31,18 @@ export type OnCategoryStartCallback = (categoryId: string, categoryName: string)
 export type OnCategoryCompleteCallback = (
   categoryId: string,
   categoryName: string,
-  result: CategoryResult
+  result: CategoryResult,
 ) => void;
 
 /**
  * Callback for when a rule completes
  */
-export type OnRuleCompleteCallback = (
-  ruleId: string,
-  ruleName: string,
-  result: RuleResult
-) => void;
+export type OnRuleCompleteCallback = (ruleId: string, ruleName: string, result: RuleResult) => void;
 
 /**
  * Callback for when a page audit completes (in crawl mode)
  */
-export type OnPageCompleteCallback = (
-  url: string,
-  pageNumber: number,
-  totalPages: number
-) => void;
+export type OnPageCompleteCallback = (url: string, pageNumber: number, totalPages: number) => void;
 
 /**
  * Options for configuring the Auditor
@@ -81,8 +70,8 @@ export interface AuditorOptions {
  * Resolved options with defaults applied.
  * browserFetcher stays optional because it has no default.
  */
-type ResolvedAuditorOptions = Required<Omit<AuditorOptions, 'browserFetcher'>> &
-  Pick<AuditorOptions, 'browserFetcher'>;
+type ResolvedAuditorOptions = Required<Omit<AuditorOptions, "browserFetcher">> &
+  Pick<AuditorOptions, "browserFetcher">;
 
 /**
  * Main Auditor class for running SEO audits
@@ -118,9 +107,7 @@ export class Auditor {
     }
 
     // Filter to only specified categories
-    return categories.filter((cat) =>
-      this.options.categories.includes(cat.id)
-    );
+    return categories.filter((cat) => this.options.categories.includes(cat.id));
   }
 
   /**
@@ -146,7 +133,7 @@ export class Auditor {
         const response = await fetch(robotsUrl, {
           signal: controller.signal,
           headers: {
-            'User-Agent': 'SEOmatorBot/2.0 (+https://github.com/seo-skills/seo-audit-skill)',
+            "User-Agent": "SEOmatorBot/2.0 (+https://github.com/seo-skills/seo-audit-skill)",
           },
         });
         clearTimeout(timeoutId);
@@ -165,7 +152,10 @@ export class Auditor {
   /**
    * Fetch sitemap content and extract URLs
    */
-  private async fetchSitemap(url: string, robotsTxtContent?: string): Promise<{ content?: string; urls?: string[] }> {
+  private async fetchSitemap(
+    url: string,
+    robotsTxtContent?: string,
+  ): Promise<{ content?: string; urls?: string[] }> {
     try {
       const urlObj = new URL(url);
       // Try to find sitemap URL from robots.txt first
@@ -183,7 +173,7 @@ export class Auditor {
         const response = await fetch(sitemapUrl, {
           signal: controller.signal,
           headers: {
-            'User-Agent': 'SEOmatorBot/2.0 (+https://github.com/seo-skills/seo-audit-skill)',
+            "User-Agent": "SEOmatorBot/2.0 (+https://github.com/seo-skills/seo-audit-skill)",
           },
         });
         clearTimeout(timeoutId);
@@ -235,7 +225,7 @@ export class Auditor {
     // Get Core Web Vitals and rendered DOM if enabled
     let cwv: CoreWebVitals = {};
     let renderedHtml: string | undefined;
-    let rendered$: import('cheerio').CheerioAPI | undefined;
+    let rendered$: import("cheerio").CheerioAPI | undefined;
     if (this.options.measureCwv) {
       const fetcher = this.options.browserFetcher ?? fetchPageWithPlaywright;
       try {
@@ -244,7 +234,7 @@ export class Auditor {
         // Capture rendered HTML for JS rendering rules
         if (pwResult.html) {
           renderedHtml = pwResult.html;
-          const cheerio = await import('cheerio');
+          const cheerio = await import("cheerio");
           rendered$ = cheerio.load(renderedHtml);
         }
       } catch {
@@ -282,11 +272,7 @@ export class Auditor {
    * @param concurrency - Number of concurrent requests
    * @returns AuditResult with aggregated scores
    */
-  async auditWithCrawl(
-    url: string,
-    maxPages = 10,
-    concurrency = 3
-  ): Promise<AuditResult> {
+  async auditWithCrawl(url: string, maxPages = 10, concurrency = 3): Promise<AuditResult> {
     await this.ensureRulesLoaded();
 
     // Pre-fetch robots.txt and sitemap once for the entire crawl
@@ -338,16 +324,14 @@ export class Auditor {
       allCategoryResults,
       this.categoriesToAudit,
       timestamp,
-      crawledPages.length
+      crawledPages.length,
     );
   }
 
   /**
    * Aggregate results from multiple crawled pages
    */
-  private async aggregateCrawlResults(
-    crawledPages: CrawledPage[]
-  ): Promise<CategoryResult[]> {
+  private async aggregateCrawlResults(crawledPages: CrawledPage[]): Promise<CategoryResult[]> {
     // Collect all rule results per category across all pages
     const categoryRuleResults = new Map<string, RuleResult[]>();
 
@@ -425,8 +409,8 @@ export class Auditor {
           // Rule threw an error, treat as fail
           const errorResult: RuleResult = {
             ruleId: rule.id,
-            status: 'fail',
-            message: `Rule execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            status: "fail",
+            message: `Rule execution failed: ${error instanceof Error ? error.message : "Unknown error"}`,
             score: 0,
             details: {
               pageUrl: context.url,

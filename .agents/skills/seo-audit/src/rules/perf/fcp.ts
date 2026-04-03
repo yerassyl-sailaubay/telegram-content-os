@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * FCP thresholds in milliseconds
@@ -16,28 +16,27 @@ const FCP_POOR = 3000;
  * any part of the page's content is rendered on the screen.
  */
 export const fcpRule = defineRule({
-  id: 'cwv-fcp',
-  name: 'First Contentful Paint (FCP)',
-  description:
-    'Measures perceived load speed by checking when the first content is rendered',
-  category: 'perf',
+  id: "cwv-fcp",
+  name: "First Contentful Paint (FCP)",
+  description: "Measures perceived load speed by checking when the first content is rendered",
+  category: "perf",
   weight: 15,
   run: async (context: AuditContext) => {
     const { cwv } = context;
     const fcp = cwv.fcp;
 
     if (fcp === undefined) {
-      return warn('cwv-fcp', 'Could not measure First Contentful Paint', {
-        metric: 'FCP',
-        reason: 'Metric not available',
+      return warn("cwv-fcp", "Could not measure First Contentful Paint", {
+        metric: "FCP",
+        reason: "Metric not available",
       });
     }
 
     const fcpSeconds = (fcp / 1000).toFixed(2);
 
     if (fcp < FCP_GOOD) {
-      return pass('cwv-fcp', `FCP is ${fcpSeconds}s (good, under 1.8s)`, {
-        metric: 'FCP',
+      return pass("cwv-fcp", `FCP is ${fcpSeconds}s (good, under 1.8s)`, {
+        metric: "FCP",
         value: fcp,
         valueFormatted: `${fcpSeconds}s`,
         threshold: {
@@ -48,33 +47,25 @@ export const fcpRule = defineRule({
     }
 
     if (fcp <= FCP_POOR) {
-      return warn(
-        'cwv-fcp',
-        `FCP is ${fcpSeconds}s (needs improvement, should be under 1.8s)`,
-        {
-          metric: 'FCP',
-          value: fcp,
-          valueFormatted: `${fcpSeconds}s`,
-          threshold: {
-            good: FCP_GOOD,
-            poor: FCP_POOR,
-          },
-        }
-      );
-    }
-
-    return fail(
-      'cwv-fcp',
-      `FCP is ${fcpSeconds}s (poor, should be under 1.8s)`,
-      {
-        metric: 'FCP',
+      return warn("cwv-fcp", `FCP is ${fcpSeconds}s (needs improvement, should be under 1.8s)`, {
+        metric: "FCP",
         value: fcp,
         valueFormatted: `${fcpSeconds}s`,
         threshold: {
           good: FCP_GOOD,
           poor: FCP_POOR,
         },
-      }
-    );
+      });
+    }
+
+    return fail("cwv-fcp", `FCP is ${fcpSeconds}s (poor, should be under 1.8s)`, {
+      metric: "FCP",
+      value: fcp,
+      valueFormatted: `${fcpSeconds}s`,
+      threshold: {
+        good: FCP_GOOD,
+        poor: FCP_POOR,
+      },
+    });
   },
 });

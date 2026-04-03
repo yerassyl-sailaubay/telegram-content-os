@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * HTML document size thresholds in bytes
@@ -32,19 +32,19 @@ function formatBytes(bytes: number): string {
  * rendering bloat, or excessive DOM content.
  */
 export const pageWeightRule = defineRule({
-  id: 'perf-page-weight',
-  name: 'Page Weight',
-  description: 'Checks HTML document size against recommended thresholds',
-  category: 'perf',
+  id: "perf-page-weight",
+  name: "Page Weight",
+  description: "Checks HTML document size against recommended thresholds",
+  category: "perf",
   weight: 8,
   run: (context: AuditContext) => {
     const { $, html } = context;
-    const htmlBytes = Buffer.byteLength(html, 'utf8');
+    const htmlBytes = Buffer.byteLength(html, "utf8");
 
     // Count external resource references for informational purposes
-    const externalScripts = $('script[src]').length;
+    const externalScripts = $("script[src]").length;
     const externalStylesheets = $('link[rel="stylesheet"]').length;
-    const imageCount = $('img').length;
+    const imageCount = $("img").length;
 
     const details: Record<string, unknown> = {
       htmlBytes,
@@ -60,24 +60,24 @@ export const pageWeightRule = defineRule({
 
     if (htmlBytes > THRESHOLDS.warning) {
       return fail(
-        'perf-page-weight',
+        "perf-page-weight",
         `HTML document is ${formatBytes(htmlBytes)} (recommended: <${formatBytes(THRESHOLDS.good)}) — consider reducing inline content, splitting pages, or lazy loading`,
-        details
+        details,
       );
     }
 
     if (htmlBytes > THRESHOLDS.good) {
       return warn(
-        'perf-page-weight',
+        "perf-page-weight",
         `HTML document is ${formatBytes(htmlBytes)} (recommended: <${formatBytes(THRESHOLDS.good)}) — consider externalizing inline resources`,
-        details
+        details,
       );
     }
 
     return pass(
-      'perf-page-weight',
+      "perf-page-weight",
       `HTML document is ${formatBytes(htmlBytes)} — within optimal range`,
-      details
+      details,
     );
   },
 });

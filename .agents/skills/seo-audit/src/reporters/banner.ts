@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk from "chalk";
 
 /**
  * ASCII art banner for SEOmator CLI
@@ -15,12 +15,12 @@ const ASCII_BANNER = `
 /**
  * CLI version (should match package.json)
  */
-const VERSION = '2.1.0';
+const VERSION = "2.1.0";
 
 /**
  * Website URL
  */
-const WEBSITE_URL = 'https://seomator.com';
+const WEBSITE_URL = "https://seomator.com";
 
 export interface BannerOptions {
   url: string;
@@ -44,18 +44,18 @@ export interface LetterGradeResult {
  */
 export function getLetterGrade(score: number): LetterGradeResult {
   if (score >= 90) {
-    return { grade: 'A', color: chalk.green };
+    return { grade: "A", color: chalk.green };
   }
   if (score >= 80) {
-    return { grade: 'B', color: chalk.green };
+    return { grade: "B", color: chalk.green };
   }
   if (score >= 70) {
-    return { grade: 'C', color: chalk.yellow };
+    return { grade: "C", color: chalk.yellow };
   }
   if (score >= 50) {
-    return { grade: 'D', color: chalk.hex('#FFA500') }; // Orange
+    return { grade: "D", color: chalk.hex("#FFA500") }; // Orange
   }
-  return { grade: 'F', color: chalk.red };
+  return { grade: "F", color: chalk.red };
 }
 
 /**
@@ -73,7 +73,7 @@ export function formatScoreWithGrade(score: number): string {
  */
 function extractDomain(url: string): string {
   try {
-    const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
     return parsed.hostname;
   } catch {
     return url;
@@ -90,20 +90,20 @@ export function renderBanner(options: BannerOptions): void {
 
   // Version and website
   console.log(chalk.gray(`  v${VERSION}  •  ${WEBSITE_URL}`));
-  console.log(chalk.gray('─'.repeat(50)));
+  console.log(chalk.gray("─".repeat(50)));
 
   // Config status
   const configStatus = options.configPath
     ? chalk.white(options.configPath)
-    : chalk.gray('(none, using defaults)');
-  console.log(`${chalk.gray('Config:')} ${configStatus}`);
+    : chalk.gray("(none, using defaults)");
+  console.log(`${chalk.gray("Config:")} ${configStatus}`);
 
   // Target URL
-  console.log(`${chalk.gray('Auditing:')} ${chalk.white(extractDomain(options.url))}`);
+  console.log(`${chalk.gray("Auditing:")} ${chalk.white(extractDomain(options.url))}`);
 
   // Max pages (only in crawl mode)
   if (options.crawlMode && options.maxPages) {
-    console.log(`${chalk.gray('Max pages:')} ${chalk.white(options.maxPages.toString())}`);
+    console.log(`${chalk.gray("Max pages:")} ${chalk.white(options.maxPages.toString())}`);
   }
 
   console.log();
@@ -119,8 +119,8 @@ export function renderCompactBar(percentage: number): string {
   const filled = Math.round((percentage / 100) * width);
   const empty = width - filled;
 
-  const filledChar = '█';
-  const emptyChar = '░';
+  const filledChar = "█";
+  const emptyChar = "░";
 
   return filledChar.repeat(filled) + emptyChar.repeat(empty);
 }
@@ -131,7 +131,7 @@ export function renderCompactBar(percentage: number): string {
 export function getScoreColor(score: number): (text: string) => string {
   if (score >= 90) return chalk.green;
   if (score >= 70) return chalk.yellow;
-  if (score >= 50) return chalk.hex('#FFA500'); // Orange
+  if (score >= 50) return chalk.hex("#FFA500"); // Orange
   return chalk.red;
 }
 
@@ -139,5 +139,5 @@ export function getScoreColor(score: number): (text: string) => string {
  * Render horizontal separator line
  */
 export function renderSeparator(width = 50): string {
-  return chalk.gray('─'.repeat(width));
+  return chalk.gray("─".repeat(width));
 }

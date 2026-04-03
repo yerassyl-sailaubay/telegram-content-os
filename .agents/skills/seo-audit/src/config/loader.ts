@@ -1,10 +1,10 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import * as TOML from '@iarna/toml';
-import type { SeomatorConfig, PartialSeomatorConfig } from './schema.js';
-import { getDefaultConfig } from './defaults.js';
-import { getGlobalSettingsPath, getProjectSettingsPath } from '../storage/paths.js';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import * as TOML from "@iarna/toml";
+import type { SeomatorConfig, PartialSeomatorConfig } from "./schema.js";
+import { getDefaultConfig } from "./defaults.js";
+import { getGlobalSettingsPath, getProjectSettingsPath } from "../storage/paths.js";
 
 /**
  * Deep merge two objects
@@ -15,16 +15,16 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial
   for (const key in source) {
     if (source[key] !== undefined) {
       if (
-        typeof source[key] === 'object' &&
+        typeof source[key] === "object" &&
         source[key] !== null &&
         !Array.isArray(source[key]) &&
-        typeof target[key] === 'object' &&
+        typeof target[key] === "object" &&
         target[key] !== null &&
         !Array.isArray(target[key])
       ) {
         (result as Record<string, unknown>)[key] = deepMerge(
           target[key] as Record<string, unknown>,
-          source[key] as Record<string, unknown>
+          source[key] as Record<string, unknown>,
         );
       } else {
         (result as Record<string, unknown>)[key] = source[key];
@@ -38,10 +38,7 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial
 /**
  * Merge partial config with base config
  */
-export function mergeConfigs(
-  base: SeomatorConfig,
-  partial: PartialSeomatorConfig
-): SeomatorConfig {
+export function mergeConfigs(base: SeomatorConfig, partial: PartialSeomatorConfig): SeomatorConfig {
   return deepMerge(base, partial as Partial<SeomatorConfig>);
 }
 
@@ -54,7 +51,7 @@ export function findConfigFile(startDir: string): string | null {
   const root = path.parse(currentDir).root;
 
   while (currentDir !== root) {
-    const configPath = path.join(currentDir, 'seomator.toml');
+    const configPath = path.join(currentDir, "seomator.toml");
 
     if (fs.existsSync(configPath)) {
       return configPath;
@@ -76,10 +73,12 @@ export function findConfigFile(startDir: string): string | null {
  */
 export function parseConfigFile(filePath: string): PartialSeomatorConfig {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     return TOML.parse(content) as PartialSeomatorConfig;
   } catch (error) {
-    throw new Error(`Failed to parse ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to parse ${filePath}: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -92,7 +91,7 @@ function loadJsonSettings(filePath: string): PartialSeomatorConfig {
   }
 
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(content);
   } catch {
     return {};
@@ -109,7 +108,7 @@ function loadJsonSettings(filePath: string): PartialSeomatorConfig {
  */
 export function loadConfig(
   startDir: string = process.cwd(),
-  cliOverrides: PartialSeomatorConfig = {}
+  cliOverrides: PartialSeomatorConfig = {},
 ): { config: SeomatorConfig; configPath: string | null } {
   // Start with defaults
   let config = getDefaultConfig();

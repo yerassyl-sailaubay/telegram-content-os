@@ -18,22 +18,22 @@
  * - YMYL content detection
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
-import { aboutPageRule } from './about-page.js';
-import { affiliateDisclosureRule } from './affiliate-disclosure.js';
-import { authorBylineRule } from './author-byline.js';
-import { authorExpertiseRule } from './author-expertise.js';
-import { citationsRule } from './citations.js';
-import { contactPageRule } from './contact-page.js';
-import { contentDatesRule } from './content-dates.js';
-import { disclaimersRule } from './disclaimers.js';
-import { editorialPolicyRule } from './editorial-policy.js';
-import { physicalAddressRule } from './physical-address.js';
-import { privacyPolicyRule } from './privacy-policy.js';
-import { termsOfServiceRule } from './terms-of-service.js';
-import { trustSignalsRule } from './trust-signals.js';
-import { ymylDetectionRule, detectYMYL, YMYL_CATEGORIES } from './ymyl-detection.js';
+import { aboutPageRule } from "./about-page.js";
+import { affiliateDisclosureRule } from "./affiliate-disclosure.js";
+import { authorBylineRule } from "./author-byline.js";
+import { authorExpertiseRule } from "./author-expertise.js";
+import { citationsRule } from "./citations.js";
+import { contactPageRule } from "./contact-page.js";
+import { contentDatesRule } from "./content-dates.js";
+import { disclaimersRule } from "./disclaimers.js";
+import { editorialPolicyRule } from "./editorial-policy.js";
+import { physicalAddressRule } from "./physical-address.js";
+import { privacyPolicyRule } from "./privacy-policy.js";
+import { termsOfServiceRule } from "./terms-of-service.js";
+import { trustSignalsRule } from "./trust-signals.js";
+import { ymylDetectionRule, detectYMYL, YMYL_CATEGORIES } from "./ymyl-detection.js";
 
 // Export all rules
 export {
@@ -55,7 +55,7 @@ export {
 
 // Export YMYL detection utility for use by other rules
 export { detectYMYL, YMYL_CATEGORIES };
-export type { YMYLDetectionResult } from './ymyl-detection.js';
+export type { YMYLDetectionResult } from "./ymyl-detection.js";
 
 // Register all rules
 registerRule(aboutPageRule);

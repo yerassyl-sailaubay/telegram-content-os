@@ -1,26 +1,22 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
-import { fetchUrl } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
+import { fetchUrl } from "../../crawler/fetcher.js";
 
 /**
  * Rule: Check that external links are reachable (warn if unreachable)
  */
 export const externalValidRule = defineRule({
-  id: 'links-external-valid',
-  name: 'External Links Valid',
-  description: 'Checks that external links are reachable and return valid responses',
-  category: 'links',
+  id: "links-external-valid",
+  name: "External Links Valid",
+  description: "Checks that external links are reachable and return valid responses",
+  category: "links",
   weight: 1,
   run: async (context: AuditContext) => {
     const { links } = context;
     const externalLinks = links.filter((link) => !link.isInternal);
 
     if (externalLinks.length === 0) {
-      return pass(
-        'links-external-valid',
-        'No external links found to check',
-        { totalLinks: 0 }
-      );
+      return pass("links-external-valid", "No external links found to check", { totalLinks: 0 });
     }
 
     const unreachableLinks: Array<{ href: string; statusCode: number }> = [];
@@ -49,24 +45,24 @@ export const externalValidRule = defineRule({
 
     if (unreachableLinks.length > 0) {
       return warn(
-        'links-external-valid',
+        "links-external-valid",
         `Found ${unreachableLinks.length} unreachable external link(s) out of ${linksToCheck.length} checked`,
         {
           unreachableCount: unreachableLinks.length,
           totalChecked: linksToCheck.length,
           totalExternal: externalLinks.length,
           unreachableLinks: unreachableLinks.slice(0, 10), // Limit to first 10
-        }
+        },
       );
     }
 
     return pass(
-      'links-external-valid',
+      "links-external-valid",
       `All ${linksToCheck.length} checked external link(s) are reachable`,
       {
         totalChecked: linksToCheck.length,
         totalExternal: externalLinks.length,
-      }
+      },
     );
   },
 });

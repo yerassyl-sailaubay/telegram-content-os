@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Check for dead-end pages (no outgoing internal links)
@@ -8,10 +8,10 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * pages on the site, which hurts both user experience and crawlability.
  */
 export const deadEndPagesRule = defineRule({
-  id: 'links-dead-end-pages',
-  name: 'No Dead-End Pages',
-  description: 'Checks that pages have at least one outgoing internal link for navigation',
-  category: 'links',
+  id: "links-dead-end-pages",
+  name: "No Dead-End Pages",
+  description: "Checks that pages have at least one outgoing internal link for navigation",
+  category: "links",
   weight: 1,
   run: (context: AuditContext) => {
     const { links, url } = context;
@@ -38,20 +38,16 @@ export const deadEndPagesRule = defineRule({
     });
 
     if (outgoingInternalLinks.length === 0) {
-      return warn(
-        'links-dead-end-pages',
-        'Page is a dead-end with no outgoing internal links',
-        {
-          internalLinkCount: 0,
-          recommendation: 'Add navigation links, related content links, or breadcrumbs',
-        }
-      );
+      return warn("links-dead-end-pages", "Page is a dead-end with no outgoing internal links", {
+        internalLinkCount: 0,
+        recommendation: "Add navigation links, related content links, or breadcrumbs",
+      });
     }
 
     return pass(
-      'links-dead-end-pages',
+      "links-dead-end-pages",
       `Page has ${outgoingInternalLinks.length} outgoing internal link(s)`,
-      { internalLinkCount: outgoingInternalLinks.length }
+      { internalLinkCount: outgoingInternalLinks.length },
     );
   },
 });

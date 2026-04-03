@@ -1,7 +1,7 @@
-import Database from 'better-sqlite3';
-import * as fs from 'fs';
-import * as path from 'path';
-import { getLinkCachePath } from './paths.js';
+import Database from "better-sqlite3";
+import * as fs from "fs";
+import * as path from "path";
+import { getLinkCachePath } from "./paths.js";
 
 /**
  * Cached link check result
@@ -52,22 +52,30 @@ export class LinkCache {
     this.db = new Database(dbPath);
 
     // Enable WAL mode for better concurrent performance
-    this.db.pragma('journal_mode = WAL');
+    this.db.pragma("journal_mode = WAL");
 
     // Create table if not exists
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       CREATE TABLE IF NOT EXISTS link_cache (
         url TEXT PRIMARY KEY,
         status_code INTEGER NOT NULL,
         error TEXT,
         checked_at TEXT NOT NULL
       )
-    `).run();
+    `,
+      )
+      .run();
 
     // Create index on checked_at for cleanup
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       CREATE INDEX IF NOT EXISTS idx_checked_at ON link_cache(checked_at)
-    `).run();
+    `,
+      )
+      .run();
   }
 
   /**
@@ -82,12 +90,14 @@ export class LinkCache {
       WHERE url = ?
     `);
 
-    const row = stmt.get(url) as {
-      url: string;
-      status_code: number;
-      error: string | null;
-      checked_at: string;
-    } | undefined;
+    const row = stmt.get(url) as
+      | {
+          url: string;
+          status_code: number;
+          error: string | null;
+          checked_at: string;
+        }
+      | undefined;
 
     if (!row) {
       return null;
@@ -95,7 +105,7 @@ export class LinkCache {
 
     const checkedAt = new Date(row.checked_at).getTime();
     const now = Date.now();
-    const isValid = (now - checkedAt) < this.ttlMs;
+    const isValid = now - checkedAt < this.ttlMs;
 
     return {
       url: row.url,
@@ -117,7 +127,7 @@ export class LinkCache {
     }
 
     // Use a single query with IN clause for efficiency
-    const placeholders = urls.map(() => '?').join(',');
+    const placeholders = urls.map(() => "?").join(",");
     const stmt = this.db.prepare(`
       SELECT url, status_code, error, checked_at
       FROM link_cache
@@ -136,7 +146,7 @@ export class LinkCache {
 
     for (const row of rows) {
       const checkedAt = new Date(row.checked_at).getTime();
-      const isValid = (now - checkedAt) < this.ttlMs;
+      const isValid = now - checkedAt < this.ttlMs;
 
       results.set(row.url, {
         url: row.url,
@@ -207,8 +217,10 @@ export class LinkCache {
   getStats(): { totalEntries: number; validEntries: number; expiredEntries: number } {
     const cutoffDate = new Date(Date.now() - this.ttlMs).toISOString();
 
-    const totalStmt = this.db.prepare('SELECT COUNT(*) as count FROM link_cache');
-    const validStmt = this.db.prepare('SELECT COUNT(*) as count FROM link_cache WHERE checked_at >= ?');
+    const totalStmt = this.db.prepare("SELECT COUNT(*) as count FROM link_cache");
+    const validStmt = this.db.prepare(
+      "SELECT COUNT(*) as count FROM link_cache WHERE checked_at >= ?",
+    );
 
     const total = (totalStmt.get() as { count: number }).count;
     const valid = (validStmt.get(cutoffDate) as { count: number }).count;
@@ -224,7 +236,7 @@ export class LinkCache {
    * Clear all cache entries
    */
   clear(): void {
-    this.db.prepare('DELETE FROM link_cache').run();
+    this.db.prepare("DELETE FROM link_cache").run();
   }
 
   /**

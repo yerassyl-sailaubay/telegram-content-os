@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Rule: HTTP Refresh Header
@@ -10,18 +10,19 @@ import { defineRule, pass, fail } from '../define-rule.js';
  * should be replaced with proper 301/302 status codes.
  */
 export const httpRefreshRule = defineRule({
-  id: 'redirect-http-refresh',
-  name: 'No HTTP Refresh Header',
-  description: 'Checks for the non-standard Refresh HTTP header that should use 301/302 status codes',
-  category: 'redirect',
+  id: "redirect-http-refresh",
+  name: "No HTTP Refresh Header",
+  description:
+    "Checks for the non-standard Refresh HTTP header that should use 301/302 status codes",
+  category: "redirect",
   weight: 10,
   run: (context: AuditContext) => {
     const { headers } = context;
 
-    const refreshHeader = headers['refresh'];
+    const refreshHeader = headers["refresh"];
 
     if (!refreshHeader) {
-      return pass('redirect-http-refresh', 'No Refresh HTTP header present');
+      return pass("redirect-http-refresh", "No Refresh HTTP header present");
     }
 
     // Parse the header value: "delay;url=destination" or just "delay"
@@ -31,13 +32,13 @@ export const httpRefreshRule = defineRule({
     const targetUrl = urlMatch ? urlMatch[1] : undefined;
 
     return fail(
-      'redirect-http-refresh',
-      'Refresh HTTP header detected; use proper 301/302 status codes for redirects',
+      "redirect-http-refresh",
+      "Refresh HTTP header detected; use proper 301/302 status codes for redirects",
       {
         refreshHeader,
         delay,
         ...(targetUrl && { targetUrl }),
-      }
+      },
     );
   },
 });

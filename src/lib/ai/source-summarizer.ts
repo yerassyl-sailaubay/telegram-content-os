@@ -1,5 +1,10 @@
 import type { GoogleClient } from "./google";
 import { AI_MODELS, type TokenUsage } from "./types";
+import {
+  PROMPT_INJECTION_GUARDRAILS,
+  formatUntrustedPromptSection,
+  sanitizeUntrustedPromptInput,
+} from "./prompt-security";
 
 interface SummarizeSourceInput {
   sourceContent: string;
@@ -28,8 +33,8 @@ export async function summarizeSourceForGeneration(
   const maxChars = input.maxChars ?? DEFAULT_MAX_SUMMARY_CHARS;
   const sourceInfo = input.sourceMetadata
     ? `Source metadata:
-- Title: ${input.sourceMetadata.title ?? "Unknown"}
-- Author: ${input.sourceMetadata.author ?? "Unknown"}${
+- Title: ${sanitizeUntrustedPromptInput(input.sourceMetadata.title ?? "Unknown", 300)}
+- Author: ${sanitizeUntrustedPromptInput(input.sourceMetadata.author ?? "Unknown", 300)}${
         input.sourceMetadata.duration
           ? `\n- Duration: ${Math.round(input.sourceMetadata.duration / 60)} minutes`
           : ""
@@ -51,7 +56,9 @@ Rules:
 - Keep concrete facts, names, numbers, and actionable insights
 - Remove filler, repetition, ads, and off-topic tangents
 - Keep language as ${input.language ?? "the original language"}
-- Return plain text only`,
+- Return plain text only
+
+${PROMPT_INJECTION_GUARDRAILS}`,
       },
       {
         role: "user",
@@ -59,7 +66,7 @@ Rules:
 ${sourceInfo}
 
 Source content:
-${input.sourceContent}`,
+${formatUntrustedPromptSection("source_content", input.sourceContent, 25_000)}`,
       },
     ],
   });

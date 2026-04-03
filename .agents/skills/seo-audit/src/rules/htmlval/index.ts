@@ -14,17 +14,17 @@
  * - Multiple meta description elements
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
-import { missingDoctypeRule } from './missing-doctype.js';
-import { missingCharsetRule } from './missing-charset.js';
-import { invalidHeadRule } from './invalid-head.js';
-import { noscriptInHeadRule } from './noscript-in-head.js';
-import { multipleHeadsRule } from './multiple-heads.js';
-import { sizeLimitRule } from './size-limit.js';
-import { loremIpsumRule } from './lorem-ipsum.js';
-import { multipleTitlesRule } from './multiple-titles.js';
-import { multipleDescriptionsRule } from './multiple-descriptions.js';
+import { missingDoctypeRule } from "./missing-doctype.js";
+import { missingCharsetRule } from "./missing-charset.js";
+import { invalidHeadRule } from "./invalid-head.js";
+import { noscriptInHeadRule } from "./noscript-in-head.js";
+import { multipleHeadsRule } from "./multiple-heads.js";
+import { sizeLimitRule } from "./size-limit.js";
+import { loremIpsumRule } from "./lorem-ipsum.js";
+import { multipleTitlesRule } from "./multiple-titles.js";
+import { multipleDescriptionsRule } from "./multiple-descriptions.js";
 
 // Export all rules
 export {

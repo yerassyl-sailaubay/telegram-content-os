@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchPage } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchPage } from "../../crawler/fetcher.js";
 
 /**
  * Extracts the base URL (origin) from a full URL
@@ -19,12 +19,12 @@ function getBaseUrl(url: string): string {
  */
 function extractSitemapUrlsFromRobotsTxt(content: string): string[] {
   const sitemapUrls: string[] = [];
-  const lines = content.split('\n');
+  const lines = content.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim().toLowerCase();
-    if (trimmed.startsWith('sitemap:')) {
-      const url = line.substring(line.indexOf(':') + 1).trim();
+    if (trimmed.startsWith("sitemap:")) {
+      const url = line.substring(line.indexOf(":") + 1).trim();
       if (url) {
         sitemapUrls.push(url);
       }
@@ -51,8 +51,8 @@ function validateSitemapXml(content: string): {
   const trimmedContent = content.trim();
 
   // Check if it looks like XML
-  if (!trimmedContent.startsWith('<?xml') && !trimmedContent.startsWith('<')) {
-    issues.push('Content does not appear to be valid XML');
+  if (!trimmedContent.startsWith("<?xml") && !trimmedContent.startsWith("<")) {
+    issues.push("Content does not appear to be valid XML");
     return { isValid: false, isSitemapIndex: false, urlCount: 0, issues };
   }
 
@@ -61,7 +61,7 @@ function validateSitemapXml(content: string): {
   const hasSitemapindexTag = /<sitemapindex[\s>]/i.test(content);
 
   if (!hasUrlsetTag && !hasSitemapindexTag) {
-    issues.push('Missing <urlset> or <sitemapindex> root element');
+    issues.push("Missing <urlset> or <sitemapindex> root element");
     return { isValid: false, isSitemapIndex: false, urlCount: 0, issues };
   }
 
@@ -76,7 +76,7 @@ function validateSitemapXml(content: string): {
     // Check for <loc> tags
     const locMatches = content.match(/<loc>/gi);
     if (!locMatches || locMatches.length === 0) {
-      issues.push('Sitemap index contains no <loc> tags');
+      issues.push("Sitemap index contains no <loc> tags");
     }
   } else {
     // Count <url> entries in regular sitemap
@@ -86,31 +86,30 @@ function validateSitemapXml(content: string): {
     // Check for <loc> tags
     const locMatches = content.match(/<loc>/gi);
     if (!locMatches || locMatches.length === 0) {
-      issues.push('Sitemap contains no <loc> tags');
+      issues.push("Sitemap contains no <loc> tags");
     }
 
     // Warn if sitemap has no URLs
     if (urlCount === 0) {
-      issues.push('Sitemap contains no <url> entries');
+      issues.push("Sitemap contains no <url> entries");
     }
   }
 
   // Check for proper closing tags
   if (hasUrlsetTag && !/<\/urlset>/i.test(content)) {
-    issues.push('Missing closing </urlset> tag');
+    issues.push("Missing closing </urlset> tag");
   }
 
   if (hasSitemapindexTag && !/<\/sitemapindex>/i.test(content)) {
-    issues.push('Missing closing </sitemapindex> tag');
+    issues.push("Missing closing </sitemapindex> tag");
   }
 
   // Check for sitemap namespace (recommended)
-  const hasSitemapNamespace =
-    /xmlns\s*=\s*["']http:\/\/www\.sitemaps\.org\/schemas\/sitemap/i.test(content);
+  const hasSitemapNamespace = /xmlns\s*=\s*["']http:\/\/www\.sitemaps\.org\/schemas\/sitemap/i.test(
+    content,
+  );
   if (!hasSitemapNamespace) {
-    issues.push(
-      'Missing sitemap namespace (xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")'
-    );
+    issues.push('Missing sitemap namespace (xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")');
   }
 
   return {
@@ -125,11 +124,10 @@ function validateSitemapXml(content: string): {
  * Rule: Check that sitemap has valid XML structure
  */
 export const sitemapValidRule = defineRule({
-  id: 'technical-sitemap-valid',
-  name: 'Sitemap Valid Structure',
-  description:
-    'Checks that the sitemap has valid XML structure with proper elements',
-  category: 'technical',
+  id: "technical-sitemap-valid",
+  name: "Sitemap Valid Structure",
+  description: "Checks that the sitemap has valid XML structure with proper elements",
+  category: "technical",
   weight: 1,
   run: async (context: AuditContext) => {
     const baseUrl = getBaseUrl(context.url);
@@ -170,48 +168,42 @@ export const sitemapValidRule = defineRule({
     }
 
     if (!sitemapContent) {
-      return warn(
-        'technical-sitemap-valid',
-        'Could not find sitemap to validate',
-        { checkedUrls: [sitemapUrl, robotsTxtUrl] }
-      );
+      return warn("technical-sitemap-valid", "Could not find sitemap to validate", {
+        checkedUrls: [sitemapUrl, robotsTxtUrl],
+      });
     }
 
     const validation = validateSitemapXml(sitemapContent);
 
     if (validation.isValid) {
       return pass(
-        'technical-sitemap-valid',
-        `Sitemap has valid XML structure (${validation.urlCount} ${validation.isSitemapIndex ? 'sitemaps' : 'URLs'})`,
+        "technical-sitemap-valid",
+        `Sitemap has valid XML structure (${validation.urlCount} ${validation.isSitemapIndex ? "sitemaps" : "URLs"})`,
         {
           url: validatedUrl,
           isSitemapIndex: validation.isSitemapIndex,
           urlCount: validation.urlCount,
-        }
+        },
       );
     }
 
     // Has issues but might still be functional
     if (validation.urlCount > 0) {
       return warn(
-        'technical-sitemap-valid',
+        "technical-sitemap-valid",
         `Sitemap has ${validation.issues.length} validation issue(s) but contains ${validation.urlCount} entries`,
         {
           url: validatedUrl,
           isSitemapIndex: validation.isSitemapIndex,
           urlCount: validation.urlCount,
           issues: validation.issues,
-        }
+        },
       );
     }
 
-    return fail(
-      'technical-sitemap-valid',
-      'Sitemap has invalid XML structure',
-      {
-        url: validatedUrl,
-        issues: validation.issues,
-      }
-    );
+    return fail("technical-sitemap-valid", "Sitemap has invalid XML structure", {
+      url: validatedUrl,
+      issues: validation.issues,
+    });
   },
 });

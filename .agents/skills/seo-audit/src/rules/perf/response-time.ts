@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Response time thresholds in milliseconds
@@ -18,10 +18,10 @@ const THRESHOLDS = {
  * network latency.
  */
 export const responseTimeRule = defineRule({
-  id: 'perf-response-time',
-  name: 'Response Time',
-  description: 'Checks page response time against performance thresholds',
-  category: 'perf',
+  id: "perf-response-time",
+  name: "Response Time",
+  description: "Checks page response time against performance thresholds",
+  category: "perf",
   weight: 7,
   run: (context: AuditContext) => {
     const responseTime = context.responseTime;
@@ -33,24 +33,24 @@ export const responseTimeRule = defineRule({
 
     if (responseTime > THRESHOLDS.warning) {
       return fail(
-        'perf-response-time',
+        "perf-response-time",
         `Response time is ${responseTime}ms (threshold: ${THRESHOLDS.warning}ms) — consider server-side optimizations, caching, or a CDN`,
-        details
+        details,
       );
     }
 
     if (responseTime > THRESHOLDS.good) {
       return warn(
-        'perf-response-time',
+        "perf-response-time",
         `Response time is ${responseTime}ms (recommended: <${THRESHOLDS.good}ms) — may impact user experience`,
-        details
+        details,
       );
     }
 
     return pass(
-      'perf-response-time',
+      "perf-response-time",
       `Response time is ${responseTime}ms — within optimal range`,
-      details
+      details,
     );
   },
 });

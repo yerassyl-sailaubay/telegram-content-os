@@ -6,7 +6,7 @@
  * - db:*     — database queries (invoke/handle pattern)
  */
 
-import type { AuditResult, CategoryResult, RuleResult } from '../../src/types.js';
+import type { AuditResult, CategoryResult, RuleResult } from "../../src/types.js";
 
 // ─── Audit Runner Channels ──────────────────────────────────────────────────
 
@@ -105,20 +105,20 @@ export interface AuditDetailIpc {
 
 export const IPC_CHANNELS = {
   // Renderer -> Main (one-way sends)
-  AUDIT_RUN: 'audit:run',
-  AUDIT_CANCEL: 'audit:cancel',
+  AUDIT_RUN: "audit:run",
+  AUDIT_CANCEL: "audit:cancel",
 
   // Main -> Renderer (streaming events)
-  AUDIT_CATEGORY_START: 'audit:progress:category-start',
-  AUDIT_CATEGORY_COMPLETE: 'audit:progress:category-complete',
-  AUDIT_RULE_COMPLETE: 'audit:progress:rule-complete',
-  AUDIT_PAGE_COMPLETE: 'audit:progress:page-complete',
-  AUDIT_COMPLETE: 'audit:complete',
-  AUDIT_ERROR: 'audit:error',
+  AUDIT_CATEGORY_START: "audit:progress:category-start",
+  AUDIT_CATEGORY_COMPLETE: "audit:progress:category-complete",
+  AUDIT_RULE_COMPLETE: "audit:progress:rule-complete",
+  AUDIT_PAGE_COMPLETE: "audit:progress:page-complete",
+  AUDIT_COMPLETE: "audit:complete",
+  AUDIT_ERROR: "audit:error",
 
   // Renderer <-> Main (invoke/handle)
-  DB_LIST_AUDITS: 'db:list-audits',
-  DB_GET_SCORE_TREND: 'db:get-score-trend',
-  DB_GET_AUDITED_DOMAINS: 'db:get-audited-domains',
-  DB_GET_AUDIT_DETAIL: 'db:get-audit-detail',
+  DB_LIST_AUDITS: "db:list-audits",
+  DB_GET_SCORE_TREND: "db:get-score-trend",
+  DB_GET_AUDITED_DOMAINS: "db:get-audited-domains",
+  DB_GET_AUDIT_DETAIL: "db:get-audit-detail",
 } as const;

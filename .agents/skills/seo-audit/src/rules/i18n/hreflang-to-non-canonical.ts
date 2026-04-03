@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Hreflang to Non-Canonical URL
@@ -15,24 +15,28 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * - Diluted ranking signals across URL variants
  */
 export const hreflangToNonCanonicalRule = defineRule({
-  id: 'i18n-hreflang-to-non-canonical',
-  name: 'Hreflang to Non-Canonical URL',
-  description: 'Checks if hreflang annotations point to non-canonical URLs',
-  category: 'i18n',
+  id: "i18n-hreflang-to-non-canonical",
+  name: "Hreflang to Non-Canonical URL",
+  description: "Checks if hreflang annotations point to non-canonical URLs",
+  category: "i18n",
   weight: 10,
   run: (context: AuditContext) => {
     const { $, url } = context;
 
     const hreflangElements = $('link[rel="alternate"][hreflang]');
     if (hreflangElements.length === 0) {
-      return pass('i18n-hreflang-to-non-canonical', 'No hreflang tags found, no conflict possible', {
-        hasHreflang: false,
-      });
+      return pass(
+        "i18n-hreflang-to-non-canonical",
+        "No hreflang tags found, no conflict possible",
+        {
+          hasHreflang: false,
+        },
+      );
     }
 
-    const canonicalHref = $('link[rel="canonical"]').attr('href');
+    const canonicalHref = $('link[rel="canonical"]').attr("href");
     if (!canonicalHref) {
-      return pass('i18n-hreflang-to-non-canonical', 'No canonical URL specified, cannot compare', {
+      return pass("i18n-hreflang-to-non-canonical", "No canonical URL specified, cannot compare", {
         hasHreflang: true,
         hasCanonical: false,
       });
@@ -42,7 +46,7 @@ export const hreflangToNonCanonicalRule = defineRule({
     try {
       canonicalUrl = new URL(canonicalHref, url);
     } catch {
-      return pass('i18n-hreflang-to-non-canonical', 'Cannot parse canonical URL for comparison', {
+      return pass("i18n-hreflang-to-non-canonical", "Cannot parse canonical URL for comparison", {
         hasHreflang: true,
         canonicalHref,
       });
@@ -52,7 +56,7 @@ export const hreflangToNonCanonicalRule = defineRule({
     try {
       currentUrl = new URL(url);
     } catch {
-      return pass('i18n-hreflang-to-non-canonical', 'Cannot parse current URL for comparison', {
+      return pass("i18n-hreflang-to-non-canonical", "Cannot parse current URL for comparison", {
         url,
       });
     }
@@ -62,8 +66,8 @@ export const hreflangToNonCanonicalRule = defineRule({
 
     hreflangElements.each((_, el) => {
       const $el = $(el);
-      const hreflang = $el.attr('hreflang') || '';
-      const href = $el.attr('href') || '';
+      const hreflang = $el.attr("hreflang") || "";
+      const href = $el.attr("href") || "";
 
       if (!href) return;
 
@@ -71,10 +75,7 @@ export const hreflangToNonCanonicalRule = defineRule({
         const hrefUrl = new URL(href, url);
 
         // Check if this hreflang entry points to the current page
-        if (
-          hrefUrl.host === currentUrl.host &&
-          hrefUrl.pathname === currentUrl.pathname
-        ) {
+        if (hrefUrl.host === currentUrl.host && hrefUrl.pathname === currentUrl.pathname) {
           // This is a self-reference -- check if it matches canonical
           const normalizedHref = hrefUrl.origin + hrefUrl.pathname;
           const normalizedCanonical = canonicalUrl.origin + canonicalUrl.pathname;
@@ -90,25 +91,24 @@ export const hreflangToNonCanonicalRule = defineRule({
 
     if (mismatches.length === 0) {
       return pass(
-        'i18n-hreflang-to-non-canonical',
-        'Hreflang self-reference matches canonical URL',
+        "i18n-hreflang-to-non-canonical",
+        "Hreflang self-reference matches canonical URL",
         {
           hasHreflang: true,
           hasCanonical: true,
           canonicalUrl: canonicalUrl.href,
-        }
+        },
       );
     }
 
     return warn(
-      'i18n-hreflang-to-non-canonical',
-      'Hreflang self-reference URL differs from canonical URL',
+      "i18n-hreflang-to-non-canonical",
+      "Hreflang self-reference URL differs from canonical URL",
       {
         mismatches,
         canonicalUrl: canonicalUrl.href,
-        recommendation:
-          'Ensure hreflang URLs point to the canonical version of each page',
-      }
+        recommendation: "Ensure hreflang URLs point to the canonical version of each page",
+      },
     );
   },
 });

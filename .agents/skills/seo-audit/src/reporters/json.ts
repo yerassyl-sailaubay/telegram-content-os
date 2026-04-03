@@ -1,4 +1,4 @@
-import type { AuditResult } from '../types.js';
+import type { AuditResult } from "../types.js";
 
 /**
  * Custom JSON replacer function to handle Date objects

@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Patterns that indicate JavaScript-based redirects.
@@ -23,16 +23,16 @@ const JS_REDIRECT_PATTERNS = [
  * redirects are the recommended approach.
  */
 export const javascriptRedirectRule = defineRule({
-  id: 'redirect-javascript',
-  name: 'No JavaScript Redirects',
-  description: 'Checks for JavaScript-based redirects that search engines may not follow',
-  category: 'redirect',
+  id: "redirect-javascript",
+  name: "No JavaScript Redirects",
+  description: "Checks for JavaScript-based redirects that search engines may not follow",
+  category: "redirect",
   weight: 12,
   run: (context: AuditContext) => {
     const { $ } = context;
 
     const inlineScripts: string[] = [];
-    $('script:not([src])').each((_, el) => {
+    $("script:not([src])").each((_, el) => {
       const text = $(el).text();
       if (text.trim()) {
         inlineScripts.push(text);
@@ -40,7 +40,7 @@ export const javascriptRedirectRule = defineRule({
     });
 
     if (inlineScripts.length === 0) {
-      return pass('redirect-javascript', 'No inline scripts found');
+      return pass("redirect-javascript", "No inline scripts found");
     }
 
     const detectedPatterns: string[] = [];
@@ -57,16 +57,16 @@ export const javascriptRedirectRule = defineRule({
     const uniquePatterns = [...new Set(detectedPatterns)];
 
     if (uniquePatterns.length === 0) {
-      return pass('redirect-javascript', 'No JavaScript redirects detected in inline scripts');
+      return pass("redirect-javascript", "No JavaScript redirects detected in inline scripts");
     }
 
     return warn(
-      'redirect-javascript',
+      "redirect-javascript",
       `JavaScript redirect detected (${uniquePatterns.length} pattern(s) found); search engines may not follow`,
       {
         matchedPatterns: uniquePatterns,
         inlineScriptCount: inlineScripts.length,
-      }
+      },
     );
   },
 });

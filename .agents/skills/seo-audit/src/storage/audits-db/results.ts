@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 import type {
   DbAuditResult,
   DbAuditCategory,
@@ -8,8 +8,8 @@ import type {
   InsertResultInput,
   InsertCategoryInput,
   RuleResultStatus,
-} from '../types.js';
-import { hashUrl } from '../utils/hash.js';
+} from "../types.js";
+import { hashUrl } from "../utils/hash.js";
 
 /**
  * Hydrate a category result record
@@ -63,7 +63,7 @@ function hydrateResult(row: DbAuditResult): HydratedAuditResult {
 export function insertCategory(
   db: Database.Database,
   auditId: number,
-  input: InsertCategoryInput
+  input: InsertCategoryInput,
 ): HydratedAuditCategory {
   const result = db
     .prepare(
@@ -73,7 +73,7 @@ export function insertCategory(
       pass_count, warn_count, fail_count
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       auditId,
@@ -83,7 +83,7 @@ export function insertCategory(
       input.weight,
       input.passCount,
       input.warnCount,
-      input.failCount
+      input.failCount,
     ) as DbAuditCategory;
 
   return hydrateCategory(result);
@@ -100,7 +100,7 @@ export function insertCategory(
 export function insertCategories(
   db: Database.Database,
   auditId: number,
-  categories: InsertCategoryInput[]
+  categories: InsertCategoryInput[],
 ): number {
   if (categories.length === 0) return 0;
 
@@ -122,7 +122,7 @@ export function insertCategories(
         input.weight,
         input.passCount,
         input.warnCount,
-        input.failCount
+        input.failCount,
       );
       count++;
     }
@@ -139,12 +139,9 @@ export function insertCategories(
  * @param auditId - Database audit ID
  * @returns Array of category results
  */
-export function getCategories(
-  db: Database.Database,
-  auditId: number
-): HydratedAuditCategory[] {
+export function getCategories(db: Database.Database, auditId: number): HydratedAuditCategory[] {
   const rows = db
-    .prepare('SELECT * FROM audit_categories WHERE audit_id = ? ORDER BY weight DESC')
+    .prepare("SELECT * FROM audit_categories WHERE audit_id = ? ORDER BY weight DESC")
     .all(auditId) as DbAuditCategory[];
 
   return rows.map(hydrateCategory);
@@ -161,10 +158,10 @@ export function getCategories(
 export function getCategory(
   db: Database.Database,
   auditId: number,
-  categoryId: string
+  categoryId: string,
 ): HydratedAuditCategory | null {
   const row = db
-    .prepare('SELECT * FROM audit_categories WHERE audit_id = ? AND category_id = ?')
+    .prepare("SELECT * FROM audit_categories WHERE audit_id = ? AND category_id = ?")
     .get(auditId, categoryId) as DbAuditCategory | undefined;
 
   return row ? hydrateCategory(row) : null;
@@ -185,7 +182,7 @@ export function getCategory(
 export function insertResult(
   db: Database.Database,
   auditId: number,
-  input: InsertResultInput
+  input: InsertResultInput,
 ): HydratedAuditResult {
   const pageUrlHash = hashUrl(input.pageUrl);
 
@@ -197,7 +194,7 @@ export function insertResult(
       page_url, page_url_hash, status, score, message, details_json
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       auditId,
@@ -209,7 +206,7 @@ export function insertResult(
       input.status,
       input.score,
       input.message,
-      input.details ? JSON.stringify(input.details) : null
+      input.details ? JSON.stringify(input.details) : null,
     ) as DbAuditResult;
 
   return hydrateResult(result);
@@ -226,7 +223,7 @@ export function insertResult(
 export function insertResults(
   db: Database.Database,
   auditId: number,
-  results: InsertResultInput[]
+  results: InsertResultInput[],
 ): number {
   if (results.length === 0) return 0;
 
@@ -251,7 +248,7 @@ export function insertResults(
         input.status,
         input.score,
         input.message,
-        input.details ? JSON.stringify(input.details) : null
+        input.details ? JSON.stringify(input.details) : null,
       );
       count++;
     }
@@ -272,28 +269,28 @@ export function insertResults(
 export function getResults(
   db: Database.Database,
   auditId: number,
-  options: RuleResultQueryOptions = {}
+  options: RuleResultQueryOptions = {},
 ): HydratedAuditResult[] {
-  const conditions: string[] = ['audit_id = ?'];
+  const conditions: string[] = ["audit_id = ?"];
   const params: unknown[] = [auditId];
 
   if (options.categoryId) {
-    conditions.push('category_id = ?');
+    conditions.push("category_id = ?");
     params.push(options.categoryId);
   }
 
   if (options.ruleId) {
-    conditions.push('rule_id = ?');
+    conditions.push("rule_id = ?");
     params.push(options.ruleId);
   }
 
   if (options.status) {
-    conditions.push('status = ?');
+    conditions.push("status = ?");
     params.push(options.status);
   }
 
   if (options.pageUrl) {
-    conditions.push('page_url_hash = ?');
+    conditions.push("page_url_hash = ?");
     params.push(hashUrl(options.pageUrl));
   }
 
@@ -304,10 +301,10 @@ export function getResults(
     .prepare(
       `
     SELECT * FROM audit_results
-    WHERE ${conditions.join(' AND ')}
+    WHERE ${conditions.join(" AND ")}
     ORDER BY id
     LIMIT ? OFFSET ?
-  `
+  `,
     )
     .all(...params, limit, offset) as DbAuditResult[];
 
@@ -325,7 +322,7 @@ export function getResults(
 export function getResultsByRule(
   db: Database.Database,
   auditId: number,
-  ruleId: string
+  ruleId: string,
 ): HydratedAuditResult[] {
   return getResults(db, auditId, { ruleId });
 }
@@ -341,7 +338,7 @@ export function getResultsByRule(
 export function getResultsByStatus(
   db: Database.Database,
   auditId: number,
-  status: RuleResultStatus
+  status: RuleResultStatus,
 ): HydratedAuditResult[] {
   return getResults(db, auditId, { status });
 }
@@ -357,7 +354,7 @@ export function getResultsByStatus(
 export function getResultsByPage(
   db: Database.Database,
   auditId: number,
-  pageUrl: string
+  pageUrl: string,
 ): HydratedAuditResult[] {
   return getResults(db, auditId, { pageUrl });
 }
@@ -369,11 +366,8 @@ export function getResultsByPage(
  * @param auditId - Database audit ID
  * @returns Array of failed results
  */
-export function getFailedResults(
-  db: Database.Database,
-  auditId: number
-): HydratedAuditResult[] {
-  return getResults(db, auditId, { status: 'fail' });
+export function getFailedResults(db: Database.Database, auditId: number): HydratedAuditResult[] {
+  return getResults(db, auditId, { status: "fail" });
 }
 
 /**
@@ -381,7 +375,7 @@ export function getFailedResults(
  */
 export function getResultCounts(
   db: Database.Database,
-  auditId: number
+  auditId: number,
 ): { pass: number; warn: number; fail: number; total: number } {
   const result = db
     .prepare(
@@ -393,7 +387,7 @@ export function getResultCounts(
       COUNT(*) as total
     FROM audit_results
     WHERE audit_id = ?
-  `
+  `,
     )
     .get(auditId) as { pass: number; warn: number; fail: number; total: number };
 
@@ -405,7 +399,7 @@ export function getResultCounts(
  */
 export function getFailedRules(
   db: Database.Database,
-  auditId: number
+  auditId: number,
 ): Array<{ ruleId: string; ruleName: string; failCount: number }> {
   const rows = db
     .prepare(
@@ -415,7 +409,7 @@ export function getFailedRules(
     WHERE audit_id = ? AND status = 'fail'
     GROUP BY rule_id, rule_name
     ORDER BY fail_count DESC
-  `
+  `,
     )
     .all(auditId) as Array<{ rule_id: string; rule_name: string; fail_count: number }>;
 

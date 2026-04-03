@@ -7,7 +7,7 @@
  * - *Options: Query/filter options for list operations
  */
 
-import type { PartialSeomatorConfig } from '../config/schema.js';
+import type { PartialSeomatorConfig } from "../config/schema.js";
 
 // =============================================================================
 // Project Database Types (per-domain at ~/.seomator/projects/<domain>/project.db)
@@ -40,7 +40,7 @@ export interface HydratedProject {
 /**
  * Crawl status values
  */
-export type CrawlStatus = 'running' | 'completed' | 'failed' | 'cancelled';
+export type CrawlStatus = "running" | "completed" | "failed" | "cancelled";
 
 /**
  * Crawl record - represents a single crawl session
@@ -235,7 +235,7 @@ export interface HydratedImage {
 /**
  * Frontier status for resumable crawling
  */
-export type FrontierStatus = 'pending' | 'processing' | 'completed' | 'skipped';
+export type FrontierStatus = "pending" | "processing" | "completed" | "skipped";
 
 /**
  * Frontier record - queue item for resumable crawling
@@ -258,7 +258,7 @@ export interface DbFrontier {
 /**
  * Audit status values
  */
-export type AuditStatus = 'running' | 'completed' | 'failed';
+export type AuditStatus = "running" | "completed" | "failed";
 
 /**
  * Audit record - represents a complete SEO audit
@@ -356,7 +356,7 @@ export interface HydratedAuditCategory {
 /**
  * Rule result status
  */
-export type RuleResultStatus = 'pass' | 'warn' | 'fail';
+export type RuleResultStatus = "pass" | "warn" | "fail";
 
 /**
  * Per-rule, per-page audit result record
@@ -397,7 +397,7 @@ export interface HydratedAuditResult {
 /**
  * Issue severity levels
  */
-export type IssueSeverity = 'critical' | 'warning' | 'info';
+export type IssueSeverity = "critical" | "warning" | "info";
 
 /**
  * Aggregated issue record

@@ -5,6 +5,7 @@ Technical documentation for SEOmator's SQLite-based storage system.
 ## Overview
 
 SEOmator uses a split-database architecture:
+
 - **Per-project databases** for crawl data (isolates projects, enables easy cleanup)
 - **Centralized audits database** for audit results (enables cross-project analytics)
 
@@ -34,6 +35,7 @@ Located at `~/.seomator/projects/<domain>/project.db`
 ### Tables
 
 #### `projects`
+
 Represents a single domain/website.
 
 ```sql
@@ -48,6 +50,7 @@ CREATE TABLE projects (
 ```
 
 #### `crawls`
+
 Represents a single crawl session.
 
 ```sql
@@ -66,6 +69,7 @@ CREATE TABLE crawls (
 ```
 
 #### `pages`
+
 Stores crawled page data with optional compressed HTML.
 
 ```sql
@@ -95,6 +99,7 @@ CREATE TABLE pages (
 ```
 
 #### `links`
+
 Stores links found on pages.
 
 ```sql
@@ -113,6 +118,7 @@ CREATE TABLE links (
 ```
 
 #### `images`
+
 Stores images found on pages.
 
 ```sql
@@ -134,6 +140,7 @@ CREATE TABLE images (
 ```
 
 #### `frontier`
+
 Queue for resumable crawling (future use).
 
 ```sql
@@ -157,6 +164,7 @@ Located at `~/.seomator/audits.db`
 ### Tables
 
 #### `audits`
+
 Main audit records.
 
 ```sql
@@ -181,6 +189,7 @@ CREATE TABLE audits (
 ```
 
 #### `audit_categories`
+
 Category-level results.
 
 ```sql
@@ -199,6 +208,7 @@ CREATE TABLE audit_categories (
 ```
 
 #### `audit_results`
+
 Per-rule, per-page audit results.
 
 ```sql
@@ -219,6 +229,7 @@ CREATE TABLE audit_results (
 ```
 
 #### `issues`
+
 Aggregated issues for reporting.
 
 ```sql
@@ -238,6 +249,7 @@ CREATE TABLE issues (
 ```
 
 #### `audit_comparisons`
+
 Stores audit-to-audit comparisons.
 
 ```sql
@@ -261,10 +273,10 @@ CREATE TABLE audit_comparisons (
 Uses SHA-256 truncated to 16 characters (64 bits) for compact, deterministic hashing.
 
 ```typescript
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
 
 function hashUrl(url: string): string {
-  return crypto.createHash('sha256').update(url).digest('hex').slice(0, 16);
+  return crypto.createHash("sha256").update(url).digest("hex").slice(0, 16);
 }
 ```
 
@@ -273,12 +285,12 @@ function hashUrl(url: string): string {
 Compresses HTML pages larger than 10KB using zlib deflate (level 6).
 
 ```typescript
-import * as zlib from 'zlib';
+import * as zlib from "zlib";
 
 const THRESHOLD = 10 * 1024; // 10KB
 
 function compressHtml(html: string): { data: Buffer; compressed: boolean } {
-  const buf = Buffer.from(html, 'utf-8');
+  const buf = Buffer.from(html, "utf-8");
 
   if (buf.length < THRESHOLD) {
     return { data: buf, compressed: false };
@@ -313,31 +325,33 @@ function calculatePriorityScore(severity: string, affectedPages: number): number
 ### Opening a Project Database
 
 ```typescript
-import { ProjectDatabase } from '../storage/project-db/index.js';
+import { ProjectDatabase } from "../storage/project-db/index.js";
 
 // Open/create database for a domain
-const db = new ProjectDatabase('example.com');
+const db = new ProjectDatabase("example.com");
 
 // Or from a full URL (domain is extracted)
-const db2 = new ProjectDatabase('https://www.example.com/path');
+const db2 = new ProjectDatabase("https://www.example.com/path");
 
 // Get or create project
-const project = db.getOrCreateProject('My Website');
+const project = db.getOrCreateProject("My Website");
 
 // Create a crawl
 const crawl = db.createCrawl({
-  crawlId: '2024-01-23-abc123',
-  startUrl: 'https://example.com',
-  config: { /* ... */ },
+  crawlId: "2024-01-23-abc123",
+  startUrl: "https://example.com",
+  config: {
+    /* ... */
+  },
 });
 
 // Insert pages with automatic HTML compression
 db.insertPage(crawl.id, {
-  url: 'https://example.com/page',
+  url: "https://example.com/page",
   statusCode: 200,
   depth: 1,
-  html: '<html>...</html>',  // Auto-compressed if > 10KB
-  headers: { 'content-type': 'text/html' },
+  html: "<html>...</html>", // Auto-compressed if > 10KB
+  headers: { "content-type": "text/html" },
   loadTimeMs: 250,
 });
 
@@ -355,29 +369,29 @@ db.close();
 ### Using the Audits Database
 
 ```typescript
-import { getAuditsDatabase, closeAuditsDatabase } from '../storage/audits-db/index.js';
+import { getAuditsDatabase, closeAuditsDatabase } from "../storage/audits-db/index.js";
 
 // Get singleton instance
 const auditsDb = getAuditsDatabase();
 
 // Create an audit
 const audit = auditsDb.createAudit({
-  auditId: '2024-01-23-xyz789',
-  domain: 'example.com',
-  projectName: 'My Website',
-  startUrl: 'https://example.com',
+  auditId: "2024-01-23-xyz789",
+  domain: "example.com",
+  projectName: "My Website",
+  startUrl: "https://example.com",
 });
 
 // Insert results
 auditsDb.insertResults(audit.id, [
   {
-    categoryId: 'meta-tags',
-    ruleId: 'title-present',
-    ruleName: 'Page Title Present',
-    pageUrl: 'https://example.com',
-    status: 'pass',
+    categoryId: "meta-tags",
+    ruleId: "title-present",
+    ruleName: "Page Title Present",
+    pageUrl: "https://example.com",
+    status: "pass",
     score: 100,
-    message: 'Title tag found',
+    message: "Title tag found",
   },
   // ... more results
 ]);
@@ -399,7 +413,7 @@ auditsDb.generateIssuesFromResults(audit.id);
 const issues = auditsDb.getTopPriorityIssues(audit.id, 10);
 
 // Compare with previous audit
-const previousAudit = auditsDb.getPreviousAudit('example.com', audit.auditId);
+const previousAudit = auditsDb.getPreviousAudit("example.com", audit.auditId);
 if (previousAudit) {
   const comparison = auditsDb.compareAudits(audit.id, previousAudit.id);
   console.log(`Score delta: ${comparison.scoreDelta}`);
@@ -413,19 +427,19 @@ closeAuditsDatabase();
 
 ```typescript
 // Get all failed results
-const failures = auditsDb.getResultsByStatus(audit.id, 'fail');
+const failures = auditsDb.getResultsByStatus(audit.id, "fail");
 
 // Get results for a specific rule
-const titleResults = auditsDb.getResultsByRule(audit.id, 'title-present');
+const titleResults = auditsDb.getResultsByRule(audit.id, "title-present");
 
 // Get results for a specific page
-const pageResults = auditsDb.getResultsByPage(audit.id, 'https://example.com/contact');
+const pageResults = auditsDb.getResultsByPage(audit.id, "https://example.com/contact");
 
 // Get issues by severity
-const criticalIssues = auditsDb.getIssuesBySeverity(audit.id, 'critical');
+const criticalIssues = auditsDb.getIssuesBySeverity(audit.id, "critical");
 
 // Get score trend for a domain
-const trend = auditsDb.getScoreTrend('example.com', 10);
+const trend = auditsDb.getScoreTrend("example.com", 10);
 ```
 
 ## Performance Considerations
@@ -433,6 +447,7 @@ const trend = auditsDb.getScoreTrend('example.com', 10);
 ### WAL Mode
 
 All databases use WAL (Write-Ahead Logging) mode for:
+
 - Concurrent reads during writes
 - Better performance for write-heavy workloads
 - Crash recovery
@@ -473,10 +488,10 @@ Use transactions for bulk inserts:
 
 ```typescript
 // Insert multiple pages efficiently
-db.insertPages(crawlId, pagesArray);  // Uses single transaction
+db.insertPages(crawlId, pagesArray); // Uses single transaction
 
 // Insert multiple results
-auditsDb.insertResults(auditId, resultsArray);  // Uses single transaction
+auditsDb.insertResults(auditId, resultsArray); // Uses single transaction
 ```
 
 ## Migration from JSON
@@ -495,6 +510,7 @@ seomator db restore
 ```
 
 The migration process:
+
 1. Detects `.seomator/crawls/*.json` and `.seomator/reports/*.json`
 2. Creates appropriate project databases and audits entries
 3. Backs up original files to `.bak` directories
@@ -504,10 +520,10 @@ The migration process:
 
 All database records have corresponding TypeScript types in `src/storage/types.ts`:
 
-- **Db*** prefix: Raw database records (match SQLite column names)
-- **Hydrated***: Enriched records with parsed JSON fields and Date objects
-- ***Options**: Query/filter options for list operations
-- **Insert*Input**: Input types for creating records
+- **Db\*** prefix: Raw database records (match SQLite column names)
+- **Hydrated\***: Enriched records with parsed JSON fields and Date objects
+- **\*Options**: Query/filter options for list operations
+- **Insert\*Input**: Input types for creating records
 
 Example:
 
@@ -517,17 +533,17 @@ interface DbPage {
   id: number;
   crawl_id: number;
   url: string;
-  html_compressed: number;  // 0 or 1
+  html_compressed: number; // 0 or 1
   // ...
 }
 
 // Hydrated for application use
 interface HydratedPage {
   id: number;
-  crawlId: number;         // camelCase
+  crawlId: number; // camelCase
   url: string;
   htmlCompressed: boolean; // boolean, not 0/1
-  crawledAt: Date;         // Date, not string
+  crawledAt: Date; // Date, not string
   // ...
 }
 ```

@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * LCP thresholds in milliseconds
@@ -16,28 +16,28 @@ const LCP_POOR = 4000;
  * content element to become visible in the viewport.
  */
 export const lcpRule = defineRule({
-  id: 'cwv-lcp',
-  name: 'Largest Contentful Paint (LCP)',
+  id: "cwv-lcp",
+  name: "Largest Contentful Paint (LCP)",
   description:
-    'Measures loading performance by checking when the largest content element becomes visible',
-  category: 'perf',
+    "Measures loading performance by checking when the largest content element becomes visible",
+  category: "perf",
   weight: 25,
   run: async (context: AuditContext) => {
     const { cwv } = context;
     const lcp = cwv.lcp;
 
     if (lcp === undefined) {
-      return warn('cwv-lcp', 'Could not measure Largest Contentful Paint', {
-        metric: 'LCP',
-        reason: 'Metric not available',
+      return warn("cwv-lcp", "Could not measure Largest Contentful Paint", {
+        metric: "LCP",
+        reason: "Metric not available",
       });
     }
 
     const lcpSeconds = (lcp / 1000).toFixed(2);
 
     if (lcp < LCP_GOOD) {
-      return pass('cwv-lcp', `LCP is ${lcpSeconds}s (good, under 2.5s)`, {
-        metric: 'LCP',
+      return pass("cwv-lcp", `LCP is ${lcpSeconds}s (good, under 2.5s)`, {
+        metric: "LCP",
         value: lcp,
         valueFormatted: `${lcpSeconds}s`,
         threshold: {
@@ -48,33 +48,25 @@ export const lcpRule = defineRule({
     }
 
     if (lcp <= LCP_POOR) {
-      return warn(
-        'cwv-lcp',
-        `LCP is ${lcpSeconds}s (needs improvement, should be under 2.5s)`,
-        {
-          metric: 'LCP',
-          value: lcp,
-          valueFormatted: `${lcpSeconds}s`,
-          threshold: {
-            good: LCP_GOOD,
-            poor: LCP_POOR,
-          },
-        }
-      );
-    }
-
-    return fail(
-      'cwv-lcp',
-      `LCP is ${lcpSeconds}s (poor, should be under 2.5s)`,
-      {
-        metric: 'LCP',
+      return warn("cwv-lcp", `LCP is ${lcpSeconds}s (needs improvement, should be under 2.5s)`, {
+        metric: "LCP",
         value: lcp,
         valueFormatted: `${lcpSeconds}s`,
         threshold: {
           good: LCP_GOOD,
           poor: LCP_POOR,
         },
-      }
-    );
+      });
+    }
+
+    return fail("cwv-lcp", `LCP is ${lcpSeconds}s (poor, should be under 2.5s)`, {
+      metric: "LCP",
+      value: lcp,
+      valueFormatted: `${lcpSeconds}s`,
+      threshold: {
+        good: LCP_GOOD,
+        poor: LCP_POOR,
+      },
+    });
   },
 });

@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass } from "../define-rule.js";
 
 /**
  * Rule: Check for orphan pages (no incoming internal links)
@@ -16,10 +16,11 @@ import { defineRule, pass } from '../define-rule.js';
  * which pages have zero incoming internal links.
  */
 export const orphanPagesRule = defineRule({
-  id: 'links-orphan-pages',
-  name: 'No Orphan Pages',
-  description: 'Checks that pages have incoming internal links (requires crawl mode for full detection)',
-  category: 'links',
+  id: "links-orphan-pages",
+  name: "No Orphan Pages",
+  description:
+    "Checks that pages have incoming internal links (requires crawl mode for full detection)",
+  category: "links",
   weight: 1,
   run: (context: AuditContext) => {
     const { links } = context;
@@ -30,13 +31,13 @@ export const orphanPagesRule = defineRule({
     // In single-page mode, we can only report what this page links to
     // Full orphan detection requires crawl-wide analysis
     return pass(
-      'links-orphan-pages',
+      "links-orphan-pages",
       `Page provides ${outgoingInternalLinks.length} internal link(s) to other pages. Full orphan detection requires crawl mode.`,
       {
         outgoingInternalLinkCount: outgoingInternalLinks.length,
-        note: 'Orphan page detection requires analyzing all pages in crawl mode to build a complete link graph',
-        recommendation: 'Use --crawl flag to enable full orphan page detection across the site',
-      }
+        note: "Orphan page detection requires analyzing all pages in crawl mode to build a complete link graph",
+        recommendation: "Use --crawl flag to enable full orphan page detection across the site",
+      },
     );
   },
 });

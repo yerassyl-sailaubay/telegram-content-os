@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 
 /**
  * Initialize the audits database schema
@@ -7,11 +7,12 @@ import type Database from 'better-sqlite3';
  */
 export function initializeAuditsSchema(db: Database.Database): void {
   // Set pragmas
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
 
   // Audits table - main audit records
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS audits (
       id INTEGER PRIMARY KEY,
       audit_id TEXT NOT NULL UNIQUE,
@@ -30,10 +31,12 @@ export function initializeAuditsSchema(db: Database.Database): void {
       completed_at TEXT,
       status TEXT DEFAULT 'running'
     )
-  `).run();
+  `,
+  ).run();
 
   // Category results table
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS audit_categories (
       id INTEGER PRIMARY KEY,
       audit_id INTEGER NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
@@ -46,10 +49,12 @@ export function initializeAuditsSchema(db: Database.Database): void {
       fail_count INTEGER DEFAULT 0,
       UNIQUE(audit_id, category_id)
     )
-  `).run();
+  `,
+  ).run();
 
   // Per-rule, per-page audit results
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS audit_results (
       id INTEGER PRIMARY KEY,
       audit_id INTEGER NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
@@ -64,10 +69,12 @@ export function initializeAuditsSchema(db: Database.Database): void {
       details_json TEXT,
       executed_at TEXT DEFAULT (datetime('now'))
     )
-  `).run();
+  `,
+  ).run();
 
   // Aggregated issues table
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS issues (
       id INTEGER PRIMARY KEY,
       audit_id INTEGER NOT NULL REFERENCES audits(id) ON DELETE CASCADE,
@@ -81,10 +88,12 @@ export function initializeAuditsSchema(db: Database.Database): void {
       fix_suggestion TEXT,
       priority_score INTEGER DEFAULT 0
     )
-  `).run();
+  `,
+  ).run();
 
   // Audit comparisons table
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS audit_comparisons (
       id INTEGER PRIMARY KEY,
       current_audit_id INTEGER REFERENCES audits(id) ON DELETE CASCADE,
@@ -96,24 +105,25 @@ export function initializeAuditsSchema(db: Database.Database): void {
       fixed_issues_count INTEGER DEFAULT 0,
       compared_at TEXT DEFAULT (datetime('now'))
     )
-  `).run();
+  `,
+  ).run();
 
   // Create indexes
   const indexes = [
-    'CREATE INDEX IF NOT EXISTS idx_audits_domain ON audits(domain)',
-    'CREATE INDEX IF NOT EXISTS idx_audits_started ON audits(started_at DESC)',
-    'CREATE INDEX IF NOT EXISTS idx_audits_score ON audits(overall_score)',
-    'CREATE INDEX IF NOT EXISTS idx_audits_status ON audits(status)',
-    'CREATE INDEX IF NOT EXISTS idx_categories_audit ON audit_categories(audit_id)',
-    'CREATE INDEX IF NOT EXISTS idx_results_audit ON audit_results(audit_id)',
-    'CREATE INDEX IF NOT EXISTS idx_results_rule ON audit_results(audit_id, rule_id)',
-    'CREATE INDEX IF NOT EXISTS idx_results_status ON audit_results(audit_id, status)',
-    'CREATE INDEX IF NOT EXISTS idx_results_page ON audit_results(audit_id, page_url_hash)',
-    'CREATE INDEX IF NOT EXISTS idx_issues_audit ON issues(audit_id)',
-    'CREATE INDEX IF NOT EXISTS idx_issues_severity ON issues(audit_id, severity)',
-    'CREATE INDEX IF NOT EXISTS idx_issues_priority ON issues(audit_id, priority_score DESC)',
-    'CREATE INDEX IF NOT EXISTS idx_comparisons_current ON audit_comparisons(current_audit_id)',
-    'CREATE INDEX IF NOT EXISTS idx_comparisons_domain ON audit_comparisons(domain)',
+    "CREATE INDEX IF NOT EXISTS idx_audits_domain ON audits(domain)",
+    "CREATE INDEX IF NOT EXISTS idx_audits_started ON audits(started_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_audits_score ON audits(overall_score)",
+    "CREATE INDEX IF NOT EXISTS idx_audits_status ON audits(status)",
+    "CREATE INDEX IF NOT EXISTS idx_categories_audit ON audit_categories(audit_id)",
+    "CREATE INDEX IF NOT EXISTS idx_results_audit ON audit_results(audit_id)",
+    "CREATE INDEX IF NOT EXISTS idx_results_rule ON audit_results(audit_id, rule_id)",
+    "CREATE INDEX IF NOT EXISTS idx_results_status ON audit_results(audit_id, status)",
+    "CREATE INDEX IF NOT EXISTS idx_results_page ON audit_results(audit_id, page_url_hash)",
+    "CREATE INDEX IF NOT EXISTS idx_issues_audit ON issues(audit_id)",
+    "CREATE INDEX IF NOT EXISTS idx_issues_severity ON issues(audit_id, severity)",
+    "CREATE INDEX IF NOT EXISTS idx_issues_priority ON issues(audit_id, priority_score DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_comparisons_current ON audit_comparisons(current_audit_id)",
+    "CREATE INDEX IF NOT EXISTS idx_comparisons_domain ON audit_comparisons(domain)",
   ];
 
   for (const idx of indexes) {
@@ -141,7 +151,7 @@ export function getAuditsDbStats(db: Database.Database): {
       (SELECT COUNT(*) FROM audit_results) as results,
       (SELECT COUNT(*) FROM issues) as issues,
       (SELECT COUNT(*) FROM audit_comparisons) as comparisons
-  `
+  `,
     )
     .get() as {
     audits: number;
@@ -152,8 +162,8 @@ export function getAuditsDbStats(db: Database.Database): {
   };
 
   // Get database file size
-  const pageCount = db.prepare('PRAGMA page_count').get() as { page_count: number };
-  const pageSize = db.prepare('PRAGMA page_size').get() as { page_size: number };
+  const pageCount = db.prepare("PRAGMA page_count").get() as { page_count: number };
+  const pageSize = db.prepare("PRAGMA page_size").get() as { page_size: number };
   const dbSizeBytes = (pageCount?.page_count ?? 0) * (pageSize?.page_size ?? 4096);
 
   return { ...counts, dbSizeBytes };

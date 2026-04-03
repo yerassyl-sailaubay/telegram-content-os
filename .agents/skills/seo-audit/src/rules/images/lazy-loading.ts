@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Number of images to consider as "above the fold"
@@ -12,20 +12,16 @@ const ABOVE_FOLD_COUNT = 3;
  * Images below the initial viewport should use loading="lazy"
  */
 export const lazyLoadingRule = defineRule({
-  id: 'images-lazy-loading',
-  name: 'Image Lazy Loading',
+  id: "images-lazy-loading",
+  name: "Image Lazy Loading",
   description: 'Checks that images below the fold use loading="lazy" for better performance',
-  category: 'images',
+  category: "images",
   weight: 10,
   run: (context: AuditContext) => {
     const { images } = context;
 
     if (images.length === 0) {
-      return pass(
-        'images-lazy-loading',
-        'No images found on page',
-        { imageCount: 0 }
-      );
+      return pass("images-lazy-loading", "No images found on page", { imageCount: 0 });
     }
 
     // Assume first few images are above fold and should not be lazy loaded
@@ -33,12 +29,12 @@ export const lazyLoadingRule = defineRule({
 
     if (belowFoldImages.length === 0) {
       return pass(
-        'images-lazy-loading',
+        "images-lazy-loading",
         `Only ${images.length} image(s) found (considered above fold)`,
         {
           totalImages: images.length,
           aboveFoldThreshold: ABOVE_FOLD_COUNT,
-        }
+        },
       );
     }
 
@@ -48,7 +44,7 @@ export const lazyLoadingRule = defineRule({
       const percentage = ((notLazyLoaded.length / belowFoldImages.length) * 100).toFixed(1);
 
       return warn(
-        'images-lazy-loading',
+        "images-lazy-loading",
         `Found ${notLazyLoaded.length} below-fold image(s) not using lazy loading (${percentage}%)`,
         {
           notLazyLoadedCount: notLazyLoaded.length,
@@ -57,18 +53,19 @@ export const lazyLoadingRule = defineRule({
           images: notLazyLoaded.slice(0, 10).map((img) => ({
             src: img.src,
           })),
-          suggestion: 'Add loading="lazy" to images below the fold to improve initial page load performance',
-        }
+          suggestion:
+            'Add loading="lazy" to images below the fold to improve initial page load performance',
+        },
       );
     }
 
     return pass(
-      'images-lazy-loading',
+      "images-lazy-loading",
       `All ${belowFoldImages.length} below-fold image(s) use lazy loading`,
       {
         belowFoldCount: belowFoldImages.length,
         totalImages: images.length,
-      }
+      },
     );
   },
 });

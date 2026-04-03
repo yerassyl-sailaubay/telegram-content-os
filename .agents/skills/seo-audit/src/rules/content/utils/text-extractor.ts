@@ -1,4 +1,4 @@
-import type { CheerioAPI } from 'cheerio';
+import type { CheerioAPI } from "cheerio";
 
 /**
  * Extract readable text content from page body
@@ -6,14 +6,14 @@ import type { CheerioAPI } from 'cheerio';
  */
 export function extractMainContent($: CheerioAPI): string {
   // Clone to avoid modifying original
-  const body = $('body').clone();
+  const body = $("body").clone();
 
   // Remove non-content elements
   body
     .find(
-      'script, style, noscript, nav, footer, header, aside, ' +
+      "script, style, noscript, nav, footer, header, aside, " +
         '[role="navigation"], [role="banner"], [role="contentinfo"], ' +
-        '[aria-hidden="true"], .nav, .navigation, .footer, .header, .sidebar'
+        '[aria-hidden="true"], .nav, .navigation, .footer, .header, .sidebar',
     )
     .remove();
 
@@ -27,7 +27,7 @@ export function extractMainContent($: CheerioAPI): string {
 export function tokenize(text: string): string[] {
   return text
     .toLowerCase()
-    .replace(/[^\w\s]/g, ' ')
+    .replace(/[^\w\s]/g, " ")
     .split(/\s+/)
     .filter((word) => word.length > 0);
 }

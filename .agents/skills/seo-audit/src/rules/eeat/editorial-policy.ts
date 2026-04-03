@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * Editorial policy page detection patterns
@@ -62,10 +62,10 @@ const EDITORIAL_SIGNALS = {
  * especially for news and YMYL content.
  */
 export const editorialPolicyRule = defineRule({
-  id: 'eeat-editorial-policy',
-  name: 'Editorial Policy',
-  description: 'Checks for editorial and content policy pages',
-  category: 'eeat',
+  id: "eeat-editorial-policy",
+  name: "Editorial Policy",
+  description: "Checks for editorial and content policy pages",
+  category: "eeat",
   weight: 4,
 
   run(context: AuditContext): RuleResult {
@@ -74,8 +74,8 @@ export const editorialPolicyRule = defineRule({
     const foundSignals: string[] = [];
 
     // Check for editorial policy links
-    $('a[href]').each((_, el) => {
-      const href = $(el).attr('href') || '';
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href") || "";
       const text = $(el).text().trim();
 
       // Check link text
@@ -89,14 +89,14 @@ export const editorialPolicyRule = defineRule({
       // Check URL path
       for (const pattern of EDITORIAL_PATTERNS.urlPaths) {
         if (pattern.test(href)) {
-          foundLinks.push({ href, text: text.slice(0, 50) || 'Editorial Policy' });
+          foundLinks.push({ href, text: text.slice(0, 50) || "Editorial Policy" });
           return;
         }
       }
     });
 
     // Check for editorial signals in page content
-    const bodyText = $('body').text();
+    const bodyText = $("body").text();
 
     for (const [signalType, patterns] of Object.entries(EDITORIAL_SIGNALS)) {
       for (const pattern of patterns) {
@@ -115,7 +115,7 @@ export const editorialPolicyRule = defineRule({
         if (content) {
           const data = JSON.parse(content);
           const checkSchema = (obj: unknown): void => {
-            if (!obj || typeof obj !== 'object') return;
+            if (!obj || typeof obj !== "object") return;
             const record = obj as Record<string, unknown>;
 
             // Check for review/correction properties
@@ -123,8 +123,8 @@ export const editorialPolicyRule = defineRule({
               hasSchemaEditorial = true;
             }
 
-            if (Array.isArray(record['@graph'])) {
-              for (const item of record['@graph']) {
+            if (Array.isArray(record["@graph"])) {
+              for (const item of record["@graph"]) {
                 checkSchema(item);
               }
             }
@@ -137,19 +137,19 @@ export const editorialPolicyRule = defineRule({
     });
 
     if (hasSchemaEditorial) {
-      foundSignals.push('schema.org editorial markup');
+      foundSignals.push("schema.org editorial markup");
     }
 
     // Determine if this is a content-heavy site that should have editorial policy
-    const isContentSite = $(
-      'article, .post, .blog-post, [class*="article"], [class*="blog"], [class*="news"]'
-    ).length > 0;
+    const isContentSite =
+      $('article, .post, .blog-post, [class*="article"], [class*="blog"], [class*="news"]').length >
+      0;
 
     if (foundLinks.length > 0) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: `Editorial policy page found${foundSignals.length > 0 ? ` with ${foundSignals.length} editorial signal${foundSignals.length > 1 ? 's' : ''}` : ''}`,
+        message: `Editorial policy page found${foundSignals.length > 0 ? ` with ${foundSignals.length} editorial signal${foundSignals.length > 1 ? "s" : ""}` : ""}`,
         details: {
           hasEditorialPolicy: true,
           links: foundLinks.slice(0, 3),
@@ -160,26 +160,28 @@ export const editorialPolicyRule = defineRule({
 
     if (foundSignals.length >= 2) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 80,
-        message: `Editorial signals found (${foundSignals.join(', ')}) but no dedicated policy page`,
+        message: `Editorial signals found (${foundSignals.join(", ")}) but no dedicated policy page`,
         details: {
           hasEditorialPolicy: false,
           signals: foundSignals,
-          recommendation: 'Consider creating a dedicated editorial policy page explaining your content standards',
+          recommendation:
+            "Consider creating a dedicated editorial policy page explaining your content standards",
         },
       };
     }
 
     if (foundSignals.length === 1) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 90,
         message: `Editorial signal found (${foundSignals[0]}) - consider adding editorial policy page`,
         details: {
           hasEditorialPolicy: false,
           signals: foundSignals,
-          recommendation: 'Create an editorial policy page to document your content quality standards',
+          recommendation:
+            "Create an editorial policy page to document your content quality standards",
         },
       };
     }
@@ -187,22 +189,23 @@ export const editorialPolicyRule = defineRule({
     // No editorial policy - warn for content sites
     if (isContentSite) {
       return {
-        status: 'warn',
+        status: "warn",
         score: 50,
-        message: 'No editorial policy found - recommended for content-focused sites',
+        message: "No editorial policy found - recommended for content-focused sites",
         details: {
           hasEditorialPolicy: false,
           signals: [],
           isContentSite: true,
-          recommendation: 'Add an editorial policy page explaining your content creation, review, and correction processes',
+          recommendation:
+            "Add an editorial policy page explaining your content creation, review, and correction processes",
         },
       };
     }
 
     return {
-      status: 'pass',
+      status: "pass",
       score: 100,
-      message: 'No editorial policy (may not be applicable for this site type)',
+      message: "No editorial policy (may not be applicable for this site type)",
       details: {
         hasEditorialPolicy: false,
         signals: [],

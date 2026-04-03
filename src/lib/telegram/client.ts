@@ -3,6 +3,7 @@ import type {
   TelegramChat,
   TelegramUser,
   TelegramSentMessage,
+  TelegramWebhookInfo,
   InputMediaPhoto,
   InputMediaVideo,
   SendPollOptions,
@@ -165,6 +166,11 @@ export class TelegramClient {
     return this.request<boolean>("deleteWebhook", {
       drop_pending_updates: dropPendingUpdates,
     });
+  }
+
+  /** Returns the currently configured webhook details. */
+  async getWebhookInfo(): Promise<TelegramWebhookInfo> {
+    return this.request<TelegramWebhookInfo>("getWebhookInfo");
   }
 
   /** Edits a message text. */

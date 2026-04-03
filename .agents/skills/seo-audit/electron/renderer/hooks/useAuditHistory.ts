@@ -2,9 +2,9 @@
  * Hook for querying audit history from the SQLite database via IPC.
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { getAPI } from '../lib/ipc-client.js';
-import type { AuditSummaryIpc, ScoreTrendPoint } from '../../shared/ipc-types.js';
+import { useState, useEffect, useCallback } from "react";
+import { getAPI } from "../lib/ipc-client.js";
+import type { AuditSummaryIpc, ScoreTrendPoint } from "../../shared/ipc-types.js";
 
 export function useAuditHistory() {
   const [audits, setAudits] = useState<AuditSummaryIpc[]>([]);

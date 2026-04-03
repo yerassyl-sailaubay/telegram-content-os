@@ -1,32 +1,32 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Generic or non-descriptive alt text patterns
  */
 const GENERIC_ALT_PATTERNS = [
-  'image',
-  'picture',
-  'photo',
-  'img',
-  'pic',
-  'graphic',
-  'icon',
-  'logo',
-  'banner',
-  'untitled',
-  'screenshot',
-  'screen shot',
-  'placeholder',
-  'test',
-  'undefined',
-  'null',
-  'none',
-  'blank',
-  'spacer',
-  '.',
-  '-',
-  '_',
+  "image",
+  "picture",
+  "photo",
+  "img",
+  "pic",
+  "graphic",
+  "icon",
+  "logo",
+  "banner",
+  "untitled",
+  "screenshot",
+  "screen shot",
+  "placeholder",
+  "test",
+  "undefined",
+  "null",
+  "none",
+  "blank",
+  "spacer",
+  ".",
+  "-",
+  "_",
 ];
 
 /**
@@ -44,10 +44,10 @@ const MAX_ALT_LENGTH = 125;
  * Warns if alt text is too short, too generic, or has issues
  */
 export const altQualityRule = defineRule({
-  id: 'images-alt-quality',
-  name: 'Image Alt Text Quality',
+  id: "images-alt-quality",
+  name: "Image Alt Text Quality",
   description: 'Checks that image alt text is descriptive and not generic like "image" or "photo"',
-  category: 'images',
+  category: "images",
   weight: 15,
   run: (context: AuditContext) => {
     const { images } = context;
@@ -56,11 +56,9 @@ export const altQualityRule = defineRule({
     const imagesWithAlt = images.filter((img) => img.hasAlt);
 
     if (imagesWithAlt.length === 0) {
-      return pass(
-        'images-alt-quality',
-        'No images with alt attributes to evaluate',
-        { imageCount: 0 }
-      );
+      return pass("images-alt-quality", "No images with alt attributes to evaluate", {
+        imageCount: 0,
+      });
     }
 
     const issues: Array<{
@@ -78,7 +76,7 @@ export const altQualityRule = defineRule({
       }
 
       // Check for very short alt text
-      if (alt.length < MIN_ALT_LENGTH && alt !== '') {
+      if (alt.length < MIN_ALT_LENGTH && alt !== "") {
         issues.push({
           src: img.src,
           alt: img.alt,
@@ -91,7 +89,7 @@ export const altQualityRule = defineRule({
       if (alt.length > MAX_ALT_LENGTH) {
         issues.push({
           src: img.src,
-          alt: img.alt.substring(0, 50) + '...',
+          alt: img.alt.substring(0, 50) + "...",
           issue: `Alt text too long (${alt.length} chars, recommended max ${MAX_ALT_LENGTH})`,
         });
         continue;
@@ -99,14 +97,14 @@ export const altQualityRule = defineRule({
 
       // Check for generic patterns
       const isGeneric = GENERIC_ALT_PATTERNS.some(
-        (pattern) => alt === pattern || alt.startsWith(pattern + ' ')
+        (pattern) => alt === pattern || alt.startsWith(pattern + " "),
       );
 
       if (isGeneric) {
         issues.push({
           src: img.src,
           alt: img.alt,
-          issue: 'Generic or non-descriptive alt text',
+          issue: "Generic or non-descriptive alt text",
         });
         continue;
       }
@@ -116,7 +114,7 @@ export const altQualityRule = defineRule({
         issues.push({
           src: img.src,
           alt: img.alt,
-          issue: 'Alt text appears to be a file name',
+          issue: "Alt text appears to be a file name",
         });
         continue;
       }
@@ -134,7 +132,7 @@ export const altQualityRule = defineRule({
         issues.push({
           src: img.src,
           alt: img.alt,
-          issue: 'Alt text may contain keyword stuffing',
+          issue: "Alt text may contain keyword stuffing",
         });
       }
     }
@@ -143,21 +141,22 @@ export const altQualityRule = defineRule({
       const percentage = ((issues.length / imagesWithAlt.length) * 100).toFixed(1);
 
       return warn(
-        'images-alt-quality',
+        "images-alt-quality",
         `Found ${issues.length} image(s) with low-quality alt text (${percentage}% of images with alt)`,
         {
           issueCount: issues.length,
           totalImagesWithAlt: imagesWithAlt.length,
           issues: issues.slice(0, 10),
-          suggestion: 'Write descriptive alt text that explains the content and context of each image',
-        }
+          suggestion:
+            "Write descriptive alt text that explains the content and context of each image",
+        },
       );
     }
 
     return pass(
-      'images-alt-quality',
+      "images-alt-quality",
       `All ${imagesWithAlt.length} image(s) have quality alt text`,
-      { totalImagesWithAlt: imagesWithAlt.length }
+      { totalImagesWithAlt: imagesWithAlt.length },
     );
   },
 });

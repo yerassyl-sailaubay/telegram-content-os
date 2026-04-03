@@ -7,24 +7,24 @@
  * alt text length, and background image SEO.
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
-import { altPresentRule } from './alt-present.js';
-import { altQualityRule } from './alt-quality.js';
-import { dimensionsRule } from './dimensions.js';
-import { lazyLoadingRule } from './lazy-loading.js';
-import { modernFormatRule } from './modern-format.js';
-import { sizeRule } from './size.js';
-import { responsiveRule } from './responsive.js';
-import { brokenRule } from './broken.js';
-import { figureCaptionsRule } from './figure-captions.js';
-import { filenameQualityRule } from './filename-quality.js';
-import { inlineSvgSizeRule } from './inline-svg-size.js';
-import { pictureElementRule } from './picture-element.js';
+import { altPresentRule } from "./alt-present.js";
+import { altQualityRule } from "./alt-quality.js";
+import { dimensionsRule } from "./dimensions.js";
+import { lazyLoadingRule } from "./lazy-loading.js";
+import { modernFormatRule } from "./modern-format.js";
+import { sizeRule } from "./size.js";
+import { responsiveRule } from "./responsive.js";
+import { brokenRule } from "./broken.js";
+import { figureCaptionsRule } from "./figure-captions.js";
+import { filenameQualityRule } from "./filename-quality.js";
+import { inlineSvgSizeRule } from "./inline-svg-size.js";
+import { pictureElementRule } from "./picture-element.js";
 
 // New image rules
-import { altLengthRule } from './alt-length.js';
-import { backgroundSeoRule } from './background-seo.js';
+import { altLengthRule } from "./alt-length.js";
+import { backgroundSeoRule } from "./background-seo.js";
 
 // Export all rules
 export {

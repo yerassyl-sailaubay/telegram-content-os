@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Rule: Canonical Protocol Mismatch
@@ -10,22 +10,22 @@ import { defineRule, pass, fail } from '../define-rule.js';
  * the non-secure version to be indexed instead.
  */
 export const canonicalHttpMismatchRule = defineRule({
-  id: 'core-canonical-http-mismatch',
-  name: 'Canonical Protocol Mismatch',
-  description: 'Checks if canonical URL protocol mismatches the page protocol (HTTP vs HTTPS)',
-  category: 'core',
+  id: "core-canonical-http-mismatch",
+  name: "Canonical Protocol Mismatch",
+  description: "Checks if canonical URL protocol mismatches the page protocol (HTTP vs HTTPS)",
+  category: "core",
   weight: 7,
   run: async (context: AuditContext) => {
     const { $, url } = context;
 
-    const canonicalHref = $('link[rel="canonical"]').first().attr('href')?.trim();
+    const canonicalHref = $('link[rel="canonical"]').first().attr("href")?.trim();
 
     // No canonical tag - nothing to check
     if (!canonicalHref) {
       return pass(
-        'core-canonical-http-mismatch',
-        'No canonical tag present; skipping protocol check',
-        { canonicalFound: false }
+        "core-canonical-http-mismatch",
+        "No canonical tag present; skipping protocol check",
+        { canonicalFound: false },
       );
     }
 
@@ -35,9 +35,9 @@ export const canonicalHttpMismatchRule = defineRule({
       canonicalUrl = new URL(canonicalHref, url);
     } catch {
       return pass(
-        'core-canonical-http-mismatch',
-        'Canonical URL could not be parsed; skipping protocol check',
-        { canonicalHref }
+        "core-canonical-http-mismatch",
+        "Canonical URL could not be parsed; skipping protocol check",
+        { canonicalHref },
       );
     }
 
@@ -47,9 +47,9 @@ export const canonicalHttpMismatchRule = defineRule({
       pageUrl = new URL(url);
     } catch {
       return pass(
-        'core-canonical-http-mismatch',
-        'Page URL could not be parsed; skipping protocol check',
-        { url }
+        "core-canonical-http-mismatch",
+        "Page URL could not be parsed; skipping protocol check",
+        { url },
       );
     }
 
@@ -58,22 +58,22 @@ export const canonicalHttpMismatchRule = defineRule({
 
     if (pageProtocol === canonicalProtocol) {
       return pass(
-        'core-canonical-http-mismatch',
-        `Page and canonical use the same protocol (${pageProtocol.replace(':', '')})`,
+        "core-canonical-http-mismatch",
+        `Page and canonical use the same protocol (${pageProtocol.replace(":", "")})`,
         {
           pageProtocol,
           canonicalProtocol,
           canonicalUrl: canonicalUrl.href,
-        }
+        },
       );
     }
 
     // Protocol mismatch detected
-    const isDowngrade = pageProtocol === 'https:' && canonicalProtocol === 'http:';
+    const isDowngrade = pageProtocol === "https:" && canonicalProtocol === "http:";
 
     return fail(
-      'core-canonical-http-mismatch',
-      `Protocol mismatch: page is ${pageProtocol.replace(':', '').toUpperCase()} but canonical points to ${canonicalProtocol.replace(':', '').toUpperCase()} ("${canonicalUrl.href}")`,
+      "core-canonical-http-mismatch",
+      `Protocol mismatch: page is ${pageProtocol.replace(":", "").toUpperCase()} but canonical points to ${canonicalProtocol.replace(":", "").toUpperCase()} ("${canonicalUrl.href}")`,
       {
         pageProtocol,
         canonicalProtocol,
@@ -81,9 +81,9 @@ export const canonicalHttpMismatchRule = defineRule({
         pageUrl: url,
         isDowngrade,
         recommendation: isDowngrade
-          ? 'Update canonical to use HTTPS to match the page protocol and avoid indexing the insecure version'
-          : 'Ensure canonical protocol matches the page protocol',
-      }
+          ? "Update canonical to use HTTPS to match the page protocol and avoid indexing the insecure version"
+          : "Ensure canonical protocol matches the page protocol",
+      },
     );
   },
 });

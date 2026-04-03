@@ -1,4 +1,4 @@
-import type { AuditRule, RuleResult } from '../types.js';
+import type { AuditRule, RuleResult } from "../types.js";
 
 /**
  * Validates that an audit rule has all required fields
@@ -7,32 +7,32 @@ import type { AuditRule, RuleResult } from '../types.js';
 function validateRule(rule: Partial<AuditRule>): asserts rule is AuditRule {
   const errors: string[] = [];
 
-  if (!rule.id || typeof rule.id !== 'string') {
+  if (!rule.id || typeof rule.id !== "string") {
     errors.push('Rule must have a string "id"');
   }
 
-  if (!rule.name || typeof rule.name !== 'string') {
+  if (!rule.name || typeof rule.name !== "string") {
     errors.push('Rule must have a string "name"');
   }
 
-  if (!rule.description || typeof rule.description !== 'string') {
+  if (!rule.description || typeof rule.description !== "string") {
     errors.push('Rule must have a string "description"');
   }
 
-  if (!rule.category || typeof rule.category !== 'string') {
+  if (!rule.category || typeof rule.category !== "string") {
     errors.push('Rule must have a string "category"');
   }
 
-  if (typeof rule.weight !== 'number' || rule.weight < 0 || rule.weight > 100) {
+  if (typeof rule.weight !== "number" || rule.weight < 0 || rule.weight > 100) {
     errors.push('Rule must have a "weight" number between 0 and 100');
   }
 
-  if (typeof rule.run !== 'function') {
+  if (typeof rule.run !== "function") {
     errors.push('Rule must have a "run" function');
   }
 
   if (errors.length > 0) {
-    throw new Error(`Invalid rule definition:\n  - ${errors.join('\n  - ')}`);
+    throw new Error(`Invalid rule definition:\n  - ${errors.join("\n  - ")}`);
   }
 }
 
@@ -57,11 +57,11 @@ export function defineRule(rule: AuditRule): AuditRule {
 export function pass(
   ruleId: string,
   message: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): RuleResult {
   return {
     ruleId,
-    status: 'pass',
+    status: "pass",
     message,
     score: 100,
     ...(details && { details }),
@@ -78,11 +78,11 @@ export function pass(
 export function warn(
   ruleId: string,
   message: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): RuleResult {
   return {
     ruleId,
-    status: 'warn',
+    status: "warn",
     message,
     score: 50,
     ...(details && { details }),
@@ -99,11 +99,11 @@ export function warn(
 export function fail(
   ruleId: string,
   message: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): RuleResult {
   return {
     ruleId,
-    status: 'fail',
+    status: "fail",
     message,
     score: 0,
     ...(details && { details }),

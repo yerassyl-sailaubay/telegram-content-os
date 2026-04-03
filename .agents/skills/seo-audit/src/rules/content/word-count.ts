@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { extractMainContent, countWords } from './utils/text-extractor.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { extractMainContent, countWords } from "./utils/text-extractor.js";
 
 /**
  * Thresholds for word count
@@ -17,10 +17,10 @@ const OPTIMAL_MAX = 2500;
  * Search engines prefer comprehensive content that thoroughly covers a topic.
  */
 export const wordCountRule = defineRule({
-  id: 'content-word-count',
-  name: 'Word Count',
-  description: 'Checks content length for thin content issues',
-  category: 'content',
+  id: "content-word-count",
+  name: "Word Count",
+  description: "Checks content length for thin content issues",
+  category: "content",
   weight: 4,
   run: async (context: AuditContext) => {
     const { $ } = context;
@@ -40,28 +40,27 @@ export const wordCountRule = defineRule({
 
     if (wordCount < EXTREMELY_THIN_THRESHOLD) {
       return fail(
-        'content-word-count',
+        "content-word-count",
         `Extremely thin content: ${wordCount} words (minimum ${EXTREMELY_THIN_THRESHOLD} recommended)`,
         {
           ...details,
-          impact: 'Pages with very little content rarely rank well and may be seen as low quality',
+          impact: "Pages with very little content rarely rank well and may be seen as low quality",
           recommendation:
-            'Expand content to at least 300 words, or consider consolidating with other pages',
-        }
+            "Expand content to at least 300 words, or consider consolidating with other pages",
+        },
       );
     }
 
     if (wordCount < THIN_CONTENT_THRESHOLD) {
       return warn(
-        'content-word-count',
+        "content-word-count",
         `Thin content detected: ${wordCount} words (${THIN_CONTENT_THRESHOLD}+ recommended)`,
         {
           ...details,
-          impact:
-            'Thin content may struggle to rank for competitive queries',
+          impact: "Thin content may struggle to rank for competitive queries",
           recommendation:
-            'Add more comprehensive content covering the topic thoroughly. Aim for 500+ words for standard pages, 1000+ for in-depth articles.',
-        }
+            "Add more comprehensive content covering the topic thoroughly. Aim for 500+ words for standard pages, 1000+ for in-depth articles.",
+        },
       );
     }
 
@@ -70,17 +69,13 @@ export const wordCountRule = defineRule({
     const lengthNote = isVeryLong
       ? ` (consider breaking into multiple focused articles for very long content)`
       : wordCount >= OPTIMAL_MIN
-        ? ' (optimal range)'
-        : '';
+        ? " (optimal range)"
+        : "";
 
-    return pass(
-      'content-word-count',
-      `Adequate content length: ${wordCount} words${lengthNote}`,
-      {
-        ...details,
-        isOptimal: wordCount >= OPTIMAL_MIN && wordCount <= OPTIMAL_MAX,
-        isVeryLong,
-      }
-    );
+    return pass("content-word-count", `Adequate content length: ${wordCount} words${lengthNote}`, {
+      ...details,
+      isOptimal: wordCount >= OPTIMAL_MIN && wordCount <= OPTIMAL_MAX,
+      isVeryLong,
+    });
   },
 });

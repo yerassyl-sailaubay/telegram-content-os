@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Font loading thresholds
@@ -20,7 +20,7 @@ interface FontAnalysis {
 /**
  * Analyze font loading on the page
  */
-function analyzeFontLoading($: AuditContext['$']): FontAnalysis {
+function analyzeFontLoading($: AuditContext["$"]): FontAnalysis {
   const preloadedFonts: string[] = [];
   const googleFontsLinks: Array<{ href: string; hasDisplaySwap: boolean }> = [];
   let fontFacesWithDisplay = 0;
@@ -28,7 +28,7 @@ function analyzeFontLoading($: AuditContext['$']): FontAnalysis {
 
   // Check for preloaded fonts
   $('link[rel="preload"][as="font"]').each((_, el) => {
-    const href = $(el).attr('href');
+    const href = $(el).attr("href");
     if (href) {
       preloadedFonts.push(href);
     }
@@ -36,16 +36,16 @@ function analyzeFontLoading($: AuditContext['$']): FontAnalysis {
 
   // Check Google Fonts links for display=swap
   $('link[rel="stylesheet"], link[rel="preconnect"]').each((_, el) => {
-    const href = $(el).attr('href') || '';
-    if (href.includes('fonts.googleapis.com') || href.includes('fonts.gstatic.com')) {
-      const hasDisplaySwap = href.includes('display=swap');
+    const href = $(el).attr("href") || "";
+    if (href.includes("fonts.googleapis.com") || href.includes("fonts.gstatic.com")) {
+      const hasDisplaySwap = href.includes("display=swap");
       googleFontsLinks.push({ href, hasDisplaySwap });
     }
   });
 
   // Check inline @font-face for font-display
-  $('style').each((_, el) => {
-    const content = $(el).html() || '';
+  $("style").each((_, el) => {
+    const content = $(el).html() || "";
     // Count @font-face declarations
     const fontFaceMatches = content.match(/@font-face\s*\{[^}]*\}/g) || [];
     for (const fontFace of fontFaceMatches) {
@@ -59,12 +59,14 @@ function analyzeFontLoading($: AuditContext['$']): FontAnalysis {
 
   // Count total font file references (woff, woff2, ttf, otf, eot)
   let totalFontLinks = 0;
-  $('link[rel="preload"][as="font"], link[href*=".woff"], link[href*=".woff2"], link[href*=".ttf"]').each(() => {
+  $(
+    'link[rel="preload"][as="font"], link[href*=".woff"], link[href*=".woff2"], link[href*=".ttf"]',
+  ).each(() => {
     totalFontLinks++;
   });
   // Also count from @font-face src in styles
-  $('style').each((_, el) => {
-    const content = $(el).html() || '';
+  $("style").each((_, el) => {
+    const content = $(el).html() || "";
     const fontSrcMatches = content.match(/url\s*\([^)]*\.(woff2?|ttf|otf|eot)/gi) || [];
     totalFontLinks += fontSrcMatches.length;
   });
@@ -95,17 +97,17 @@ function analyzeFontLoading($: AuditContext['$']): FontAnalysis {
  * - Add &display=swap to Google Fonts URLs
  */
 export const fontLoadingRule = defineRule({
-  id: 'perf-font-loading',
-  name: 'Font Loading',
-  description: 'Checks for font loading best practices (font-display, preload)',
-  category: 'perf',
+  id: "perf-font-loading",
+  name: "Font Loading",
+  description: "Checks for font loading best practices (font-display, preload)",
+  category: "perf",
   weight: 15,
   run: (context: AuditContext) => {
     const { $ } = context;
     const analysis = analyzeFontLoading($);
 
     const issues: string[] = [];
-    let severity: 'pass' | 'warn' | 'fail' = 'pass';
+    let severity: "pass" | "warn" | "fail" = "pass";
 
     // No fonts detected - pass
     if (
@@ -115,7 +117,7 @@ export const fontLoadingRule = defineRule({
       analysis.preloadedFonts.length === 0 &&
       analysis.totalFontLinks === 0
     ) {
-      return pass('perf-font-loading', 'No custom fonts detected', {
+      return pass("perf-font-loading", "No custom fonts detected", {
         preloadedFonts: [],
         googleFontsLinks: [],
         fontFacesWithDisplay: 0,
@@ -127,30 +129,30 @@ export const fontLoadingRule = defineRule({
     const googleFontsWithoutSwap = analysis.googleFontsLinks.filter((f) => !f.hasDisplaySwap);
     if (googleFontsWithoutSwap.length > 0) {
       issues.push(`${googleFontsWithoutSwap.length} Google Fonts URL(s) missing display=swap`);
-      severity = 'warn';
+      severity = "warn";
     }
 
     // Check @font-face without font-display
     if (analysis.fontFacesWithoutDisplay > 0) {
       issues.push(`${analysis.fontFacesWithoutDisplay} @font-face rule(s) missing font-display`);
-      severity = 'warn';
+      severity = "warn";
     }
 
     // Check for font preloading
     if (analysis.preloadedFonts.length === 0 && analysis.totalFontLinks > 0) {
-      issues.push('No fonts are preloaded');
-      if (severity === 'pass') severity = 'warn';
+      issues.push("No fonts are preloaded");
+      if (severity === "pass") severity = "warn";
     }
 
     // Check for too many font files
     if (analysis.totalFontLinks > THRESHOLDS.maxFontFiles) {
       issues.push(`${analysis.totalFontLinks} font files loaded (consider reducing)`);
-      if (severity === 'pass') severity = 'warn';
+      if (severity === "pass") severity = "warn";
     }
 
     // Critical: no optimization at all
     if (!analysis.hasAnyOptimization && analysis.totalFontLinks > 0) {
-      severity = 'fail';
+      severity = "fail";
     }
 
     const details = {
@@ -161,23 +163,29 @@ export const fontLoadingRule = defineRule({
       totalFontLinks: analysis.totalFontLinks,
     };
 
-    if (severity === 'fail') {
-      return fail('perf-font-loading', `Font loading not optimized: ${issues.join('; ')}`, details);
+    if (severity === "fail") {
+      return fail("perf-font-loading", `Font loading not optimized: ${issues.join("; ")}`, details);
     }
 
-    if (severity === 'warn') {
-      return warn('perf-font-loading', `Font loading could be improved: ${issues.join('; ')}`, details);
+    if (severity === "warn") {
+      return warn(
+        "perf-font-loading",
+        `Font loading could be improved: ${issues.join("; ")}`,
+        details,
+      );
     }
 
     const optimizations: string[] = [];
-    if (analysis.preloadedFonts.length > 0) optimizations.push(`${analysis.preloadedFonts.length} preloaded`);
+    if (analysis.preloadedFonts.length > 0)
+      optimizations.push(`${analysis.preloadedFonts.length} preloaded`);
     if (analysis.fontFacesWithDisplay > 0) optimizations.push(`font-display set`);
-    if (analysis.googleFontsLinks.every((f) => f.hasDisplaySwap)) optimizations.push('display=swap');
+    if (analysis.googleFontsLinks.every((f) => f.hasDisplaySwap))
+      optimizations.push("display=swap");
 
     return pass(
-      'perf-font-loading',
-      `Font loading is optimized (${optimizations.join(', ')})`,
-      details
+      "perf-font-loading",
+      `Font loading is optimized (${optimizations.join(", ")})`,
+      details,
     );
   },
 });

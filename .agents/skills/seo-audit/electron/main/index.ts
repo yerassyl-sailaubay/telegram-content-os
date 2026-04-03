@@ -5,10 +5,10 @@
  * the existing Node.js audit engine to the React renderer.
  */
 
-import { app, BrowserWindow } from 'electron';
-import { join } from 'path';
-import { registerAuditHandlers } from './audit-bridge.js';
-import { registerDbHandlers } from './db-bridge.js';
+import { app, BrowserWindow } from "electron";
+import { join } from "path";
+import { registerAuditHandlers } from "./audit-bridge.js";
+import { registerDbHandlers } from "./db-bridge.js";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -18,11 +18,11 @@ function createWindow(): void {
     height: 820,
     minWidth: 900,
     minHeight: 600,
-    title: 'SEOmator',
-    titleBarStyle: 'hiddenInset',
+    title: "SEOmator",
+    titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 16, y: 16 },
     webPreferences: {
-      preload: join(__dirname, '../preload/index.mjs'),
+      preload: join(__dirname, "../preload/index.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false, // Required for better-sqlite3 in preload chain
@@ -34,10 +34,10 @@ function createWindow(): void {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 
-  mainWindow.on('closed', () => {
+  mainWindow.on("closed", () => {
     mainWindow = null;
   });
 }
@@ -48,15 +48,15 @@ app.whenReady().then(() => {
   registerDbHandlers();
   createWindow();
 
-  app.on('activate', () => {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });

@@ -160,16 +160,16 @@ IPC channels are defined in `electron/shared/ipc-types.ts` and follow a `namespa
 
 These use the **send/on pattern** — fire-and-forget messages that stream in real time.
 
-| Direction | Channel | Payload | Purpose |
-|---|---|---|---|
-| Renderer → Main | `audit:run` | `AuditRunArgs` | Start an audit |
-| Renderer → Main | `audit:cancel` | — | Abort running audit |
-| Main → Renderer | `audit:progress:category-start` | `{ categoryId, categoryName }` | Category began |
-| Main → Renderer | `audit:progress:category-complete` | `{ categoryId, categoryName, result }` | Category finished |
-| Main → Renderer | `audit:progress:rule-complete` | `{ ruleId, ruleName, result }` | Single rule finished |
-| Main → Renderer | `audit:progress:page-complete` | `{ url, pageNumber, totalPages }` | Crawled page done |
-| Main → Renderer | `audit:complete` | `AuditCompletePayload` | Entire audit done |
-| Main → Renderer | `audit:error` | `string` | Error message |
+| Direction       | Channel                            | Payload                                | Purpose              |
+| --------------- | ---------------------------------- | -------------------------------------- | -------------------- |
+| Renderer → Main | `audit:run`                        | `AuditRunArgs`                         | Start an audit       |
+| Renderer → Main | `audit:cancel`                     | —                                      | Abort running audit  |
+| Main → Renderer | `audit:progress:category-start`    | `{ categoryId, categoryName }`         | Category began       |
+| Main → Renderer | `audit:progress:category-complete` | `{ categoryId, categoryName, result }` | Category finished    |
+| Main → Renderer | `audit:progress:rule-complete`     | `{ ruleId, ruleName, result }`         | Single rule finished |
+| Main → Renderer | `audit:progress:page-complete`     | `{ url, pageNumber, totalPages }`      | Crawled page done    |
+| Main → Renderer | `audit:complete`                   | `AuditCompletePayload`                 | Entire audit done    |
+| Main → Renderer | `audit:error`                      | `string`                               | Error message        |
 
 The `AuditCompletePayload` includes both the full `AuditResult` and a `ruleMetadata` map (`ruleId → { name, description }`) looked up from the rule registry.
 
@@ -177,11 +177,11 @@ The `AuditCompletePayload` includes both the full `AuditResult` and a `ruleMetad
 
 These use the **invoke/handle pattern** — async request-response, like an RPC call.
 
-| Channel | Args | Returns | Purpose |
-|---|---|---|---|
-| `db:list-audits` | `{ domain?, limit?, offset? }` | `AuditSummaryIpc[]` | List past audits |
-| `db:get-score-trend` | `{ domain, limit? }` | `ScoreTrendPoint[]` | Score history for charts |
-| `db:get-audited-domains` | — | `string[]` | Unique domains audited |
+| Channel                  | Args                           | Returns             | Purpose                  |
+| ------------------------ | ------------------------------ | ------------------- | ------------------------ |
+| `db:list-audits`         | `{ domain?, limit?, offset? }` | `AuditSummaryIpc[]` | List past audits         |
+| `db:get-score-trend`     | `{ domain, limit? }`           | `ScoreTrendPoint[]` | Score history for charts |
+| `db:get-audited-domains` | —                              | `string[]`          | Unique domains audited   |
 
 ### How the Audit Bridge Connects to `src/`
 
@@ -193,11 +193,11 @@ currentAuditor = new Auditor({
   measureCwv: args.options.measureCwv ?? false,
 
   onCategoryStart: (categoryId, categoryName) => {
-    win.webContents.send('audit:progress:category-start', { categoryId, categoryName });
+    win.webContents.send("audit:progress:category-start", { categoryId, categoryName });
   },
 
   onCategoryComplete: (categoryId, categoryName, result) => {
-    win.webContents.send('audit:progress:category-complete', { categoryId, categoryName, result });
+    win.webContents.send("audit:progress:category-complete", { categoryId, categoryName, result });
   },
 
   // ... same pattern for onRuleComplete, onPageComplete
@@ -228,6 +228,7 @@ idle ──[startAudit]──► running ──[setComplete]──► complete
 ```
 
 State shape:
+
 - `status`: `'idle' | 'running' | 'complete' | 'error'`
 - `url`: Target URL being audited
 - `progress`: Live streaming data (completed categories, current category, rule count)
@@ -251,11 +252,11 @@ User clicks "Run"
 
 ### Hooks
 
-| Hook | Purpose |
-|---|---|
-| `useAudit()` | Subscribes to IPC events, updates Zustand store, returns `{ run, cancel, status, result, progress }` |
-| `useAuditHistory()` | Fetches audit history + score trends from SQLite via IPC |
-| `useTheme()` | Light/dark toggle persisted in localStorage |
+| Hook                | Purpose                                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------------------- |
+| `useAudit()`        | Subscribes to IPC events, updates Zustand store, returns `{ run, cancel, status, result, progress }` |
+| `useAuditHistory()` | Fetches audit history + score trends from SQLite via IPC                                             |
+| `useTheme()`        | Light/dark toggle persisted in localStorage                                                          |
 
 ---
 
@@ -280,8 +281,12 @@ Uses the new Tailwind v4 syntax with `@theme {}` blocks for custom properties. T
 ### Electron-Specific CSS
 
 ```css
-.drag-region  { -webkit-app-region: drag; }    /* Header is draggable */
-.no-drag      { -webkit-app-region: no-drag; } /* Buttons inside header are clickable */
+.drag-region {
+  -webkit-app-region: drag;
+} /* Header is draggable */
+.no-drag {
+  -webkit-app-region: no-drag;
+} /* Buttons inside header are clickable */
 ```
 
 The macOS window uses `titleBarStyle: 'hiddenInset'` with traffic lights positioned at `(16, 16)`, which gives the native frameless look while keeping window controls.
@@ -314,21 +319,21 @@ Configuration in `electron/electron-vite.config.ts`:
 
 Packaging is handled by **electron-builder** (v26.7.0), configured in `electron-builder.yml`:
 
-| Setting | Value |
-|---|---|
-| `appId` | `com.seomator.desktop` |
-| `productName` | `SEOmator` |
-| `buildResources` | `electron/resources/` |
-| `output` | `release/` |
-| `asar` | `true` (with `.node` files unpacked) |
+| Setting          | Value                                |
+| ---------------- | ------------------------------------ |
+| `appId`          | `com.seomator.desktop`               |
+| `productName`    | `SEOmator`                           |
+| `buildResources` | `electron/resources/`                |
+| `output`         | `release/`                           |
+| `asar`           | `true` (with `.node` files unpacked) |
 
 ### Platform Targets
 
-| Platform | Format | Notes |
-|---|---|---|
-| macOS | `.dmg` + `.zip` | Universal binary (Intel + Apple Silicon) |
-| Windows | `.exe` (NSIS) | User-selectable install directory |
-| Linux | `.AppImage` | Portable, no install needed |
+| Platform | Format          | Notes                                    |
+| -------- | --------------- | ---------------------------------------- |
+| macOS    | `.dmg` + `.zip` | Universal binary (Intel + Apple Silicon) |
+| Windows  | `.exe` (NSIS)   | User-selectable install directory        |
+| Linux    | `.AppImage`     | Portable, no install needed              |
 
 ### Scripts
 
@@ -356,6 +361,7 @@ npm run electron:dist:win   # Windows .exe installer
 ### Code Signing (Production)
 
 For distribution outside your team:
+
 - **macOS**: Requires an Apple Developer ID certificate + notarization. Add `CSC_LINK` and `CSC_KEY_PASSWORD` env vars, plus `notarize` config in `electron-builder.yml`.
 - **Windows**: Requires an Authenticode code signing certificate. Add `CSC_LINK` and `CSC_KEY_PASSWORD` env vars.
 - **Without signing**: Users see "unidentified developer" warnings. On macOS, users can bypass via right-click → Open.
@@ -395,6 +401,7 @@ npm run electron:dev
 ### Why No Changes to `src/`?
 
 The Electron app is purely additive. The CLI and desktop app share the same `Auditor` class, rule registry, and scoring engine through direct imports (via the `@core` alias). This means:
+
 - Bug fixes to rules automatically apply to both CLI and desktop.
 - No sync issues between two codebases.
 - The CLI remains independently publishable to npm.

@@ -6,11 +6,11 @@ SEOmator is built for autonomous AI workflows. This guide shows you how to integ
 
 ## Three Ways to Use SEOmator
 
-| Method | Description |
-|--------|-------------|
-| **CLI for Humans** | Run audits directly from your terminal with human-readable output |
-| **Pipe to Agent** | Pipe audit reports to Claude or other AI assistants using `--format llm` |
-| **Skill Integration** | Install the SEOmator skill so agents can run audits autonomously |
+| Method                | Description                                                              |
+| --------------------- | ------------------------------------------------------------------------ |
+| **CLI for Humans**    | Run audits directly from your terminal with human-readable output        |
+| **Pipe to Agent**     | Pipe audit reports to Claude or other AI assistants using `--format llm` |
+| **Skill Integration** | Install the SEOmator skill so agents can run audits autonomously         |
 
 ## Install the Skill
 
@@ -115,6 +115,7 @@ then create a comprehensive plan to fix all high and medium severity issues.
 #### Step 2: Review the plan
 
 Claude will:
+
 - Run the audit
 - Analyze all issues
 - Group fixes by category
@@ -185,12 +186,12 @@ seomator audit https://example.com --format markdown | claude "Explain these iss
 
 ### Output Formats for AI
 
-| Format | Flag | Best For |
-|--------|------|----------|
-| `llm` | `--format llm` | Compact XML for AI agents (50-70% smaller, token-optimized) |
-| `json` | `--format json` | Custom AI processing scripts |
-| `markdown` | `--format markdown` | AI agents that prefer markdown |
-| `console` | (default) | Human-readable terminal output |
+| Format     | Flag                | Best For                                                    |
+| ---------- | ------------------- | ----------------------------------------------------------- |
+| `llm`      | `--format llm`      | Compact XML for AI agents (50-70% smaller, token-optimized) |
+| `json`     | `--format json`     | Custom AI processing scripts                                |
+| `markdown` | `--format markdown` | AI agents that prefer markdown                              |
+| `console`  | (default)           | Human-readable terminal output                              |
 
 ## Using with Other AI Coding Assistants
 
@@ -199,11 +200,13 @@ seomator audit https://example.com --format markdown | claude "Explain these iss
 Cursor supports Claude Code skills natively:
 
 1. Install the skill:
+
    ```bash
    npx skills add seo-skills/seo-audit-skill
    ```
 
 2. Run with slash command:
+
    ```
    /seo-audit
    ```

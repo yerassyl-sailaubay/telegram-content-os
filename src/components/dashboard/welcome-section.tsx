@@ -1,14 +1,14 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 type WelcomeSectionProps = {
   userName: string | null;
   userEmail: string | null;
 };
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en", {
+function formatDate(date: Date, locale: string): string {
+  return date.toLocaleDateString(locale, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -18,9 +18,10 @@ function formatDate(date: Date): string {
 
 export function WelcomeSection({ userName, userEmail }: WelcomeSectionProps) {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
 
   const displayName = userName ?? userEmail ?? t("welcomeFallbackName");
-  const today = formatDate(new Date());
+  const today = formatDate(new Date(), locale);
 
   return (
     <div data-testid="welcome-section" className="space-y-1">

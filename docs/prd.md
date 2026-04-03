@@ -2,7 +2,7 @@
 
 **Product:** Telegram Content OS  
 **Version:** V1 documentation refresh  
-**Date:** March 9, 2026  
+**Date:** March 21, 2026  
 **Status:** Functional V1 with some partial and in-progress workflows
 
 ---
@@ -110,6 +110,7 @@ The app ships with Russian and English localization and defaults to Russian.
 - welcome message template management per channel
 - billing, plan limits, and usage visibility
 - profile, timezone, language, and AI preference settings
+- landing page with Russian/English localization (separate Vite application)
 
 ### Partial or limited workflows
 
@@ -185,6 +186,13 @@ The app ships with Russian and English localization and defaults to Russian.
 - Russian and English UI
 - Russian default locale
 - locale-aware navigation and formatting
+
+### Landing Page and Marketing Site
+
+- Separate Vite application with fast static builds
+- Full Russian/English localization with locale switching
+- Dashboard mockup with translated UI elements
+- Marketing-safe positioning aligned with shipped product scope
 
 ---
 
@@ -292,6 +300,7 @@ Suggested product metrics remain reasonable, but should be interpreted against t
 - competitor channel tracking
 - comment analysis and sentiment workflows
 - viral prediction or scoring
+- branded annual creator recap / year-in-review artifact for Telegram channels
 - team workspaces and permissions
 - native mobile apps
 - additional publishing platforms

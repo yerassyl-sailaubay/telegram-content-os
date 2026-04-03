@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 interface DuplicateInfo {
   text: string;
@@ -11,19 +11,18 @@ interface DuplicateInfo {
  * Rule: Check heading text is unique (warn if duplicates)
  */
 export const contentUniqueRule = defineRule({
-  id: 'content-heading-unique',
-  name: 'Unique Heading Content',
-  description: 'Checks that heading text is unique across the document',
-  category: 'content',
+  id: "content-heading-unique",
+  name: "Unique Heading Content",
+  description: "Checks that heading text is unique across the document",
+  category: "content",
   weight: 1,
   run: async (context: AuditContext) => {
     const { $ } = context;
-    const headingTexts: Map<string, { count: number; levels: number[] }> =
-      new Map();
+    const headingTexts: Map<string, { count: number; levels: number[] }> = new Map();
 
-    $('h1, h2, h3, h4, h5, h6').each((_, el) => {
-      const tagName = el.tagName?.toLowerCase() || '';
-      const level = parseInt(tagName.replace('h', ''), 10);
+    $("h1, h2, h3, h4, h5, h6").each((_, el) => {
+      const tagName = el.tagName?.toLowerCase() || "";
+      const level = parseInt(tagName.replace("h", ""), 10);
       const text = $(el).text().trim().toLowerCase();
 
       if (text) {
@@ -38,7 +37,7 @@ export const contentUniqueRule = defineRule({
     });
 
     if (headingTexts.size === 0) {
-      return pass('content-heading-unique', 'No headings found to check', {
+      return pass("content-heading-unique", "No headings found to check", {
         headingCount: 0,
       });
     }
@@ -47,7 +46,7 @@ export const contentUniqueRule = defineRule({
     headingTexts.forEach((info, text) => {
       if (info.count > 1) {
         duplicates.push({
-          text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+          text: text.substring(0, 50) + (text.length > 50 ? "..." : ""),
           count: info.count,
           levels: info.levels,
         });
@@ -57,23 +56,19 @@ export const contentUniqueRule = defineRule({
     if (duplicates.length > 0) {
       const totalDuplicates = duplicates.reduce((sum, d) => sum + d.count, 0);
       return warn(
-        'content-heading-unique',
+        "content-heading-unique",
         `Found ${duplicates.length} duplicate heading text(s) (${totalDuplicates} total occurrences)`,
         {
           uniqueHeadings: headingTexts.size,
           duplicateCount: duplicates.length,
           duplicates,
-        }
+        },
       );
     }
 
-    return pass(
-      'content-heading-unique',
-      `All ${headingTexts.size} headings have unique content`,
-      {
-        uniqueHeadings: headingTexts.size,
-        duplicateCount: 0,
-      }
-    );
+    return pass("content-heading-unique", `All ${headingTexts.size} headings have unique content`, {
+      uniqueHeadings: headingTexts.size,
+      duplicateCount: 0,
+    });
   },
 });

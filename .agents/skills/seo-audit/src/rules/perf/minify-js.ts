@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Thresholds for inline JavaScript minification check
@@ -43,23 +43,28 @@ function countBlockCommentBytes(text: string): number {
  * are a strong signal of unminified code.
  */
 export const minifyJsRule = defineRule({
-  id: 'perf-minify-js',
-  name: 'Minify Inline JS',
-  description: 'Checks if inline JavaScript in <script> tags appears to be minified',
-  category: 'perf',
+  id: "perf-minify-js",
+  name: "Minify Inline JS",
+  description: "Checks if inline JavaScript in <script> tags appears to be minified",
+  category: "perf",
   weight: 5,
   run: (context: AuditContext) => {
     const { $ } = context;
 
-    let totalInlineJs = '';
+    let totalInlineJs = "";
     let scriptTagCount = 0;
 
     // Only check inline scripts (without src attribute)
-    $('script:not([src])').each((_, el) => {
-      const content = $(el).html() || '';
+    $("script:not([src])").each((_, el) => {
+      const content = $(el).html() || "";
       // Skip JSON-LD and other non-JS script types
-      const type = $(el).attr('type') || '';
-      if (type && type !== 'text/javascript' && type !== 'module' && type !== 'application/javascript') {
+      const type = $(el).attr("type") || "";
+      if (
+        type &&
+        type !== "text/javascript" &&
+        type !== "module" &&
+        type !== "application/javascript"
+      ) {
         return;
       }
       if (content.trim().length > 0) {
@@ -68,7 +73,7 @@ export const minifyJsRule = defineRule({
       }
     });
 
-    const totalBytes = Buffer.byteLength(totalInlineJs, 'utf8');
+    const totalBytes = Buffer.byteLength(totalInlineJs, "utf8");
 
     const details: Record<string, unknown> = {
       scriptTagCount,
@@ -79,11 +84,11 @@ export const minifyJsRule = defineRule({
     // Not enough inline JS to warrant checking
     if (totalBytes <= THRESHOLDS.minBytesToCheck) {
       return pass(
-        'perf-minify-js',
+        "perf-minify-js",
         scriptTagCount === 0
-          ? 'No inline JavaScript found'
+          ? "No inline JavaScript found"
           : `Inline JavaScript is minimal (${totalBytes} bytes across ${scriptTagCount} <script> tag(s))`,
-        details
+        details,
       );
     }
 
@@ -106,16 +111,16 @@ export const minifyJsRule = defineRule({
       }
       const estimatedSavings = Math.round(totalBytes * whitespaceRatio) + blockCommentBytes;
       return warn(
-        'perf-minify-js',
-        `Inline JavaScript appears unminified (${totalBytes} bytes, ${reasons.join(', ')}) — minification could save ~${estimatedSavings} bytes`,
-        { ...details, estimatedSavingsBytes: estimatedSavings }
+        "perf-minify-js",
+        `Inline JavaScript appears unminified (${totalBytes} bytes, ${reasons.join(", ")}) — minification could save ~${estimatedSavings} bytes`,
+        { ...details, estimatedSavingsBytes: estimatedSavings },
       );
     }
 
     return pass(
-      'perf-minify-js',
+      "perf-minify-js",
       `Inline JavaScript is minified (${totalBytes} bytes, ${Math.round(whitespaceRatio * 100)}% whitespace)`,
-      details
+      details,
     );
   },
 });

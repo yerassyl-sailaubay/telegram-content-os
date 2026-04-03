@@ -3,7 +3,7 @@
  * Shows categories with animated checkmarks/spinners as they complete.
  */
 
-import type { AuditProgress } from '../stores/audit-store.js';
+import type { AuditProgress } from "../stores/audit-store.js";
 
 interface ProgressStreamProps {
   progress: AuditProgress;
@@ -11,26 +11,26 @@ interface ProgressStreamProps {
 
 // All 20 category display names in audit order
 const ALL_CATEGORIES = [
-  { id: 'core', name: 'Core SEO' },
-  { id: 'technical', name: 'Technical SEO' },
-  { id: 'perf', name: 'Performance' },
-  { id: 'links', name: 'Links' },
-  { id: 'images', name: 'Images' },
-  { id: 'security', name: 'Security' },
-  { id: 'crawl', name: 'Crawlability' },
-  { id: 'schema', name: 'Structured Data' },
-  { id: 'a11y', name: 'Accessibility' },
-  { id: 'content', name: 'Content' },
-  { id: 'social', name: 'Social' },
-  { id: 'eeat', name: 'E-E-A-T' },
-  { id: 'url', name: 'URL Structure' },
-  { id: 'mobile', name: 'Mobile' },
-  { id: 'i18n', name: 'Internationalization' },
-  { id: 'legal', name: 'Legal' },
-  { id: 'js', name: 'JS Rendering' },
-  { id: 'redirect', name: 'Redirects' },
-  { id: 'htmlval', name: 'HTML Validation' },
-  { id: 'geo', name: 'AI/GEO' },
+  { id: "core", name: "Core SEO" },
+  { id: "technical", name: "Technical SEO" },
+  { id: "perf", name: "Performance" },
+  { id: "links", name: "Links" },
+  { id: "images", name: "Images" },
+  { id: "security", name: "Security" },
+  { id: "crawl", name: "Crawlability" },
+  { id: "schema", name: "Structured Data" },
+  { id: "a11y", name: "Accessibility" },
+  { id: "content", name: "Content" },
+  { id: "social", name: "Social" },
+  { id: "eeat", name: "E-E-A-T" },
+  { id: "url", name: "URL Structure" },
+  { id: "mobile", name: "Mobile" },
+  { id: "i18n", name: "Internationalization" },
+  { id: "legal", name: "Legal" },
+  { id: "js", name: "JS Rendering" },
+  { id: "redirect", name: "Redirects" },
+  { id: "htmlval", name: "HTML Validation" },
+  { id: "geo", name: "AI/GEO" },
 ];
 
 export function ProgressStream({ progress }: ProgressStreamProps) {
@@ -41,11 +41,11 @@ export function ProgressStream({ progress }: ProgressStreamProps) {
     <div className="space-y-4">
       {/* Progress bar */}
       <div>
-        <div className="flex justify-between mb-1">
-          <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+        <div className="mb-1 flex justify-between">
+          <span className="text-sm font-medium" style={{ color: "var(--color-text)" }}>
             Auditing...
           </span>
-          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>
             {completedCount} / {ALL_CATEGORIES.length} categories
           </span>
         </div>
@@ -54,7 +54,7 @@ export function ProgressStream({ progress }: ProgressStreamProps) {
             className="h-full rounded-full transition-all duration-300"
             style={{
               width: `${(completedCount / ALL_CATEGORIES.length) * 100}%`,
-              backgroundColor: 'var(--color-accent)',
+              backgroundColor: "var(--color-accent)",
             }}
           />
         </div>
@@ -62,7 +62,7 @@ export function ProgressStream({ progress }: ProgressStreamProps) {
 
       {/* Page progress (crawl mode) */}
       {progress.totalPages > 1 && (
-        <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+        <div className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
           Page {progress.currentPage} of {progress.totalPages}
         </div>
       )}
@@ -76,29 +76,35 @@ export function ProgressStream({ progress }: ProgressStreamProps) {
           return (
             <div key={id} className="flex items-center gap-2 py-1">
               {completed ? (
-                <span className="text-sm" style={{ color: 'var(--color-pass)' }}>{'\u2713'}</span>
+                <span className="text-sm" style={{ color: "var(--color-pass)" }}>
+                  {"\u2713"}
+                </span>
               ) : isCurrent ? (
-                <span className="inline-block w-3.5 h-3.5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }} />
+                <span
+                  className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent"
+                  style={{ borderColor: "var(--color-accent)", borderTopColor: "transparent" }}
+                />
               ) : (
-                <span className="w-3.5 h-3.5 rounded-full border border-[var(--color-border)]" />
+                <span className="h-3.5 w-3.5 rounded-full border border-[var(--color-border)]" />
               )}
               <span
                 className="text-sm"
                 style={{
                   color: completed
-                    ? 'var(--color-text)'
+                    ? "var(--color-text)"
                     : isCurrent
-                      ? 'var(--color-accent)'
-                      : 'var(--color-text-muted)',
+                      ? "var(--color-accent)"
+                      : "var(--color-text-muted)",
                   fontWeight: isCurrent ? 500 : 400,
                 }}
               >
                 {name}
               </span>
               {completed && (
-                <span className="text-xs ml-auto" style={{ color: 'var(--color-text-muted)' }}>
+                <span className="ml-auto text-xs" style={{ color: "var(--color-text-muted)" }}>
                   {Math.round(
-                    progress.completedCategories.find((c) => c.categoryId === id)?.result.score ?? 0,
+                    progress.completedCategories.find((c) => c.categoryId === id)?.result.score ??
+                      0,
                   )}
                 </span>
               )}

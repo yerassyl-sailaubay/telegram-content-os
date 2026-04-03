@@ -13,22 +13,16 @@
  * - Schema-to-content drift detection
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
-import { semanticHtmlRule } from './semantic-html.js';
-import { contentStructureRule } from './content-structure.js';
-import { aiBotAccessRule } from './ai-bot-access.js';
-import { llmsTxtRule } from './llms-txt.js';
-import { schemaDriftRule } from './schema-drift.js';
+import { semanticHtmlRule } from "./semantic-html.js";
+import { contentStructureRule } from "./content-structure.js";
+import { aiBotAccessRule } from "./ai-bot-access.js";
+import { llmsTxtRule } from "./llms-txt.js";
+import { schemaDriftRule } from "./schema-drift.js";
 
 // Export all rules
-export {
-  semanticHtmlRule,
-  contentStructureRule,
-  aiBotAccessRule,
-  llmsTxtRule,
-  schemaDriftRule,
-};
+export { semanticHtmlRule, contentStructureRule, aiBotAccessRule, llmsTxtRule, schemaDriftRule };
 
 // Register all rules
 registerRule(semanticHtmlRule);

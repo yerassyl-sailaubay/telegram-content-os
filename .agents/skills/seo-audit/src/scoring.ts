@@ -1,9 +1,4 @@
-import type {
-  RuleResult,
-  CategoryResult,
-  CategoryDefinition,
-  AuditResult,
-} from './types.js';
+import type { RuleResult, CategoryResult, CategoryDefinition, AuditResult } from "./types.js";
 
 /**
  * Score values for each rule status
@@ -54,7 +49,7 @@ export function calculateCategoryScore(results: RuleResult[]): number {
  */
 export function calculateOverallScore(
   categoryResults: CategoryResult[],
-  categories: CategoryDefinition[]
+  categories: CategoryDefinition[],
 ): number {
   if (categoryResults.length === 0) {
     return 0;
@@ -92,23 +87,20 @@ export function calculateOverallScore(
  * @param ruleResults - Array of rule results for this category
  * @returns CategoryResult with aggregated data
  */
-export function buildCategoryResult(
-  categoryId: string,
-  ruleResults: RuleResult[]
-): CategoryResult {
+export function buildCategoryResult(categoryId: string, ruleResults: RuleResult[]): CategoryResult {
   let passCount = 0;
   let warnCount = 0;
   let failCount = 0;
 
   for (const result of ruleResults) {
     switch (result.status) {
-      case 'pass':
+      case "pass":
         passCount++;
         break;
-      case 'warn':
+      case "warn":
         warnCount++;
         break;
-      case 'fail':
+      case "fail":
         failCount++;
         break;
     }
@@ -138,7 +130,7 @@ export function buildAuditResult(
   categoryResults: CategoryResult[],
   categories: CategoryDefinition[],
   timestamp: string,
-  crawledPages = 1
+  crawledPages = 1,
 ): AuditResult {
   return {
     url,

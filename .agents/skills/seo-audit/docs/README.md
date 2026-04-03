@@ -4,25 +4,25 @@
 
 ## Getting Started
 
-| Document | Description |
-|----------|-------------|
-| [Introduction](./introduction.md) | Overview, features, and why SEOmator |
-| [Quickstart](./quickstart.md) | Installation and first audit |
-| [Configuration](./configuration.md) | Config files, presets, and options |
+| Document                            | Description                          |
+| ----------------------------------- | ------------------------------------ |
+| [Introduction](./introduction.md)   | Overview, features, and why SEOmator |
+| [Quickstart](./quickstart.md)       | Installation and first audit         |
+| [Configuration](./configuration.md) | Config files, presets, and options   |
 
 ## Integration
 
-| Document | Description |
-|----------|-------------|
+| Document                                          | Description                            |
+| ------------------------------------------------- | -------------------------------------- |
 | [AI Agent Integration](./ai-agent-integration.md) | Claude Code, Cursor, and LLM workflows |
 
 ## Reference
 
-| Document | Description |
-|----------|-------------|
-| [Technical Architecture](./technical-architecture.md) | How SEOmator works under the hood |
-| [SEO Audit Rules](./SEO-AUDIT-RULES.md) | All 148 rules with examples and fixes |
-| [Storage Architecture](./STORAGE-ARCHITECTURE.md) | SQLite database schema and internals |
+| Document                                              | Description                           |
+| ----------------------------------------------------- | ------------------------------------- |
+| [Technical Architecture](./technical-architecture.md) | How SEOmator works under the hood     |
+| [SEO Audit Rules](./SEO-AUDIT-RULES.md)               | All 148 rules with examples and fixes |
+| [Storage Architecture](./STORAGE-ARCHITECTURE.md)     | SQLite database schema and internals  |
 
 ## Quick Links
 

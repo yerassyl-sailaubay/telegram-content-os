@@ -2,7 +2,7 @@
 
 import { db } from "@/server/db";
 import { contentLibrary } from "@/server/db/schema";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserId } from "@/lib/supabase/current-user";
 import { eq, and, desc, asc, sql, ilike, or } from "drizzle-orm";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -97,19 +97,6 @@ function getActionErrorMessage(error: unknown, fallback: string): string {
   }
 
   return error.message || fallback;
-}
-
-async function getCurrentUserId(): Promise<string> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error("Unauthorized");
-  }
-
-  return user.id;
 }
 
 // ─── Server Actions ──────────────────────────────────────────────────────────

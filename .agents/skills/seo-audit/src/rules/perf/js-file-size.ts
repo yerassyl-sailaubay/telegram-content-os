@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Inline JavaScript size thresholds in bytes
@@ -31,10 +31,10 @@ function formatBytes(bytes: number): string {
  * re-downloads the same code. Consider externalizing large scripts.
  */
 export const jsFileSizeRule = defineRule({
-  id: 'perf-js-file-size',
-  name: 'Inline JS Size',
-  description: 'Checks total inline JavaScript size across all <script> tags',
-  category: 'perf',
+  id: "perf-js-file-size",
+  name: "Inline JS Size",
+  description: "Checks total inline JavaScript size across all <script> tags",
+  category: "perf",
   weight: 5,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -43,15 +43,20 @@ export const jsFileSizeRule = defineRule({
     let inlineScriptCount = 0;
     let largestScriptBytes = 0;
 
-    $('script:not([src])').each((_, el) => {
-      const content = $(el).html() || '';
+    $("script:not([src])").each((_, el) => {
+      const content = $(el).html() || "";
       // Skip non-JS script types (JSON-LD, templates, etc.)
-      const type = $(el).attr('type') || '';
-      if (type && type !== 'text/javascript' && type !== 'module' && type !== 'application/javascript') {
+      const type = $(el).attr("type") || "";
+      if (
+        type &&
+        type !== "text/javascript" &&
+        type !== "module" &&
+        type !== "application/javascript"
+      ) {
         return;
       }
       if (content.trim().length > 0) {
-        const bytes = Buffer.byteLength(content, 'utf8');
+        const bytes = Buffer.byteLength(content, "utf8");
         totalBytes += bytes;
         inlineScriptCount++;
         if (bytes > largestScriptBytes) {
@@ -74,26 +79,26 @@ export const jsFileSizeRule = defineRule({
 
     if (totalBytes > THRESHOLDS.warning) {
       return fail(
-        'perf-js-file-size',
+        "perf-js-file-size",
         `Total inline JavaScript is ${formatBytes(totalBytes)} across ${inlineScriptCount} script(s) (recommended: <${formatBytes(THRESHOLDS.good)}) — externalize large scripts for caching`,
-        details
+        details,
       );
     }
 
     if (totalBytes > THRESHOLDS.good) {
       return warn(
-        'perf-js-file-size',
+        "perf-js-file-size",
         `Total inline JavaScript is ${formatBytes(totalBytes)} across ${inlineScriptCount} script(s) (recommended: <${formatBytes(THRESHOLDS.good)}) — consider externalizing`,
-        details
+        details,
       );
     }
 
     return pass(
-      'perf-js-file-size',
+      "perf-js-file-size",
       inlineScriptCount === 0
-        ? 'No inline JavaScript found'
+        ? "No inline JavaScript found"
         : `Inline JavaScript is ${formatBytes(totalBytes)} across ${inlineScriptCount} script(s) — within optimal range`,
-      details
+      details,
     );
   },
 });

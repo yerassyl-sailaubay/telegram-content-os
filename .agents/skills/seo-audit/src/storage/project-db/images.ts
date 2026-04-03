@@ -1,6 +1,6 @@
-import type Database from 'better-sqlite3';
-import type { DbImage, HydratedImage, InsertImageInput } from '../types.js';
-import { hashUrl } from '../utils/hash.js';
+import type Database from "better-sqlite3";
+import type { DbImage, HydratedImage, InsertImageInput } from "../types.js";
+import { hashUrl } from "../utils/hash.js";
 
 /**
  * Hydrate an image record
@@ -34,7 +34,7 @@ function hydrateImage(row: DbImage): HydratedImage {
 export function insertImage(
   db: Database.Database,
   pageId: number,
-  input: InsertImageInput
+  input: InsertImageInput,
 ): HydratedImage {
   const srcHash = hashUrl(input.src);
 
@@ -47,7 +47,7 @@ export function insertImage(
       srcset, file_size, format
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       pageId,
@@ -61,7 +61,7 @@ export function insertImage(
       input.loadingAttr ?? null,
       input.srcset ?? null,
       input.fileSize ?? null,
-      input.format ?? null
+      input.format ?? null,
     ) as DbImage;
 
   return hydrateImage(result);
@@ -78,7 +78,7 @@ export function insertImage(
 export function insertImages(
   db: Database.Database,
   pageId: number,
-  images: InsertImageInput[]
+  images: InsertImageInput[],
 ): number {
   if (images.length === 0) return 0;
 
@@ -106,7 +106,7 @@ export function insertImages(
         input.loadingAttr ?? null,
         input.srcset ?? null,
         input.fileSize ?? null,
-        input.format ?? null
+        input.format ?? null,
       );
       count++;
     }
@@ -123,13 +123,8 @@ export function insertImages(
  * @param pageId - Page ID
  * @returns Array of images
  */
-export function getImagesByPage(
-  db: Database.Database,
-  pageId: number
-): HydratedImage[] {
-  const rows = db
-    .prepare('SELECT * FROM images WHERE page_id = ?')
-    .all(pageId) as DbImage[];
+export function getImagesByPage(db: Database.Database, pageId: number): HydratedImage[] {
+  const rows = db.prepare("SELECT * FROM images WHERE page_id = ?").all(pageId) as DbImage[];
 
   return rows.map(hydrateImage);
 }
@@ -143,7 +138,7 @@ export function getImagesByPage(
  */
 export function getImagesWithoutAlt(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): Array<HydratedImage & { sourceUrl: string }> {
   const rows = db
     .prepare(
@@ -152,7 +147,7 @@ export function getImagesWithoutAlt(
     FROM images i
     JOIN pages p ON i.page_id = p.id
     WHERE p.crawl_id = ? AND i.has_alt = 0
-  `
+  `,
     )
     .all(crawlId) as Array<DbImage & { source_url: string }>;
 
@@ -171,7 +166,7 @@ export function getImagesWithoutAlt(
  */
 export function getImagesWithoutDimensions(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): Array<HydratedImage & { sourceUrl: string }> {
   const rows = db
     .prepare(
@@ -180,7 +175,7 @@ export function getImagesWithoutDimensions(
     FROM images i
     JOIN pages p ON i.page_id = p.id
     WHERE p.crawl_id = ? AND (i.width IS NULL OR i.height IS NULL)
-  `
+  `,
     )
     .all(crawlId) as Array<DbImage & { source_url: string }>;
 
@@ -199,7 +194,7 @@ export function getImagesWithoutDimensions(
  */
 export function getNonLazyImages(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): Array<HydratedImage & { sourceUrl: string }> {
   const rows = db
     .prepare(
@@ -208,7 +203,7 @@ export function getNonLazyImages(
     FROM images i
     JOIN pages p ON i.page_id = p.id
     WHERE p.crawl_id = ? AND i.is_lazy_loaded = 0
-  `
+  `,
     )
     .all(crawlId) as Array<DbImage & { source_url: string }>;
 
@@ -229,7 +224,7 @@ export function getNonLazyImages(
 export function getImagesByFormat(
   db: Database.Database,
   crawlId: number,
-  format: string
+  format: string,
 ): HydratedImage[] {
   const rows = db
     .prepare(
@@ -238,7 +233,7 @@ export function getImagesByFormat(
     FROM images i
     JOIN pages p ON i.page_id = p.id
     WHERE p.crawl_id = ? AND LOWER(i.format) = LOWER(?)
-  `
+  `,
     )
     .all(crawlId, format) as DbImage[];
 
@@ -250,7 +245,7 @@ export function getImagesByFormat(
  */
 export function getImageCount(db: Database.Database, pageId: number): number {
   const result = db
-    .prepare('SELECT COUNT(*) as count FROM images WHERE page_id = ?')
+    .prepare("SELECT COUNT(*) as count FROM images WHERE page_id = ?")
     .get(pageId) as { count: number };
   return result.count;
 }
@@ -260,7 +255,7 @@ export function getImageCount(db: Database.Database, pageId: number): number {
  */
 export function getImageStats(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): {
   total: number;
   withAlt: number;
@@ -282,7 +277,7 @@ export function getImageStats(
     FROM images i
     JOIN pages p ON i.page_id = p.id
     WHERE p.crawl_id = ?
-  `
+  `,
     )
     .get(crawlId) as {
     total: number;
@@ -308,7 +303,7 @@ export function getImageStats(
  */
 export function getImageFormatDistribution(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): Array<{ format: string; count: number }> {
   const rows = db
     .prepare(
@@ -319,7 +314,7 @@ export function getImageFormatDistribution(
     WHERE p.crawl_id = ?
     GROUP BY LOWER(COALESCE(i.format, 'unknown'))
     ORDER BY count DESC
-  `
+  `,
     )
     .all(crawlId) as Array<{ format: string; count: number }>;
 

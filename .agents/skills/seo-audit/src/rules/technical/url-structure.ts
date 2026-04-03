@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Maximum recommended URL path length
@@ -31,46 +31,42 @@ function analyzeUrlStructure(url: string): {
     const totalLength = url.length;
 
     // Check for underscores in path
-    const hasUnderscores = path.includes('_');
+    const hasUnderscores = path.includes("_");
     if (hasUnderscores) {
-      issues.push('URL contains underscores (use hyphens instead)');
+      issues.push("URL contains underscores (use hyphens instead)");
     }
 
     // Check for uppercase letters in path
     const hasUppercase = path !== path.toLowerCase();
     if (hasUppercase) {
-      issues.push('URL contains uppercase letters (should be lowercase)');
+      issues.push("URL contains uppercase letters (should be lowercase)");
     }
 
     // Check path length
     if (pathLength > MAX_URL_PATH_LENGTH) {
-      issues.push(
-        `URL path is ${pathLength} characters (recommended max: ${MAX_URL_PATH_LENGTH})`
-      );
+      issues.push(`URL path is ${pathLength} characters (recommended max: ${MAX_URL_PATH_LENGTH})`);
     }
 
     // Check total URL length
     if (totalLength > MAX_URL_TOTAL_LENGTH) {
-      issues.push(
-        `Total URL length is ${totalLength} characters (max: ${MAX_URL_TOTAL_LENGTH})`
-      );
+      issues.push(`Total URL length is ${totalLength} characters (max: ${MAX_URL_TOTAL_LENGTH})`);
     }
 
     // Check for multiple consecutive hyphens
     if (/--+/.test(path)) {
-      issues.push('URL contains multiple consecutive hyphens');
+      issues.push("URL contains multiple consecutive hyphens");
     }
 
     // Check for special characters (excluding common allowed ones)
     const specialChars = path.match(/[^a-zA-Z0-9\-_./]/g);
     if (specialChars && specialChars.length > 0) {
-      const uniqueChars = [...new Set(specialChars)].join(', ');
+      const uniqueChars = [...new Set(specialChars)].join(", ");
       issues.push(`URL contains special characters: ${uniqueChars}`);
     }
 
     // Check for file extensions that might indicate non-friendly URLs
     if (/\.(php|asp|aspx|jsp|cgi)\??/i.test(path)) {
-      issues.push('URL contains server-side file extension (consider clean URLs)');
+      issues.push("URL contains server-side file extension (consider clean URLs)");
     }
 
     // Check for query parameters (not inherently bad but worth noting)
@@ -95,8 +91,8 @@ function analyzeUrlStructure(url: string): {
       hasUppercase: false,
       pathLength: 0,
       totalLength: url.length,
-      issues: ['Could not parse URL'],
-      path: '',
+      issues: ["Could not parse URL"],
+      path: "",
     };
   }
 }
@@ -105,27 +101,23 @@ function analyzeUrlStructure(url: string): {
  * Rule: Check URL structure follows SEO best practices
  */
 export const urlStructureRule = defineRule({
-  id: 'technical-url-structure',
-  name: 'URL Structure',
+  id: "technical-url-structure",
+  name: "URL Structure",
   description:
-    'Checks that URL uses hyphens (not underscores), is lowercase, and has reasonable length',
-  category: 'technical',
+    "Checks that URL uses hyphens (not underscores), is lowercase, and has reasonable length",
+  category: "technical",
   weight: 1,
   run: async (context: AuditContext) => {
     const { url } = context;
     const analysis = analyzeUrlStructure(url);
 
     if (analysis.issues.length === 0) {
-      return pass(
-        'technical-url-structure',
-        'URL follows SEO best practices',
-        {
-          url,
-          path: analysis.path,
-          pathLength: analysis.pathLength,
-          totalLength: analysis.totalLength,
-        }
-      );
+      return pass("technical-url-structure", "URL follows SEO best practices", {
+        url,
+        path: analysis.path,
+        pathLength: analysis.pathLength,
+        totalLength: analysis.totalLength,
+      });
     }
 
     // Critical issues that can hurt SEO
@@ -133,29 +125,29 @@ export const urlStructureRule = defineRule({
 
     if (hasCriticalIssues) {
       return fail(
-        'technical-url-structure',
-        `URL has structural issues: ${analysis.issues.join('; ')}`,
+        "technical-url-structure",
+        `URL has structural issues: ${analysis.issues.join("; ")}`,
         {
           url,
           path: analysis.path,
           pathLength: analysis.pathLength,
           totalLength: analysis.totalLength,
           issues: analysis.issues,
-        }
+        },
       );
     }
 
     // Non-critical issues (length, query params, etc.)
     return warn(
-      'technical-url-structure',
-      `URL has minor structural issues: ${analysis.issues.join('; ')}`,
+      "technical-url-structure",
+      `URL has minor structural issues: ${analysis.issues.join("; ")}`,
       {
         url,
         path: analysis.path,
         pathLength: analysis.pathLength,
         totalLength: analysis.totalLength,
         issues: analysis.issues,
-      }
+      },
     );
   },
 });

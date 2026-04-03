@@ -1,4 +1,4 @@
-import type { SeomatorConfig } from './schema.js';
+import type { SeomatorConfig } from "./schema.js";
 
 /**
  * Get default configuration values
@@ -6,7 +6,7 @@ import type { SeomatorConfig } from './schema.js';
 export function getDefaultConfig(): SeomatorConfig {
   return {
     project: {
-      name: '',
+      name: "",
       domains: [],
     },
     crawler: {
@@ -19,15 +19,15 @@ export function getDefaultConfig(): SeomatorConfig {
       include: [],
       exclude: [],
       allow_query_params: [],
-      drop_query_prefixes: ['utm_', 'gclid', 'fbclid', 'mc_', '_ga'],
+      drop_query_prefixes: ["utm_", "gclid", "fbclid", "mc_", "_ga"],
       respect_robots: true,
       breadth_first: true,
       follow_redirects: true,
-      user_agent: '',
+      user_agent: "",
       max_prefix_budget: 0.25,
     },
     rules: {
-      enable: ['*'],
+      enable: ["*"],
       disable: [],
     },
     external_links: {
@@ -37,8 +37,8 @@ export function getDefaultConfig(): SeomatorConfig {
       concurrency: 5,
     },
     output: {
-      format: 'console',
-      path: '',
+      format: "console",
+      path: "",
     },
     rule_options: {},
   };

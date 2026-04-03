@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { fontSizeRule } from './font-size.js';
-import { horizontalScrollRule } from './horizontal-scroll.js';
-import { interstitialsRule } from './interstitials.js';
-import type { AuditContext } from '../../types.js';
-import * as cheerio from 'cheerio';
+import { describe, it, expect } from "vitest";
+import { fontSizeRule } from "./font-size.js";
+import { horizontalScrollRule } from "./horizontal-scroll.js";
+import { interstitialsRule } from "./interstitials.js";
+import type { AuditContext } from "../../types.js";
+import * as cheerio from "cheerio";
 
 // Helper to create AuditContext
-function createContext(html: string, url = 'https://example.com/'): AuditContext {
+function createContext(html: string, url = "https://example.com/"): AuditContext {
   return {
     url,
     html,
@@ -20,8 +20,8 @@ function createContext(html: string, url = 'https://example.com/'): AuditContext
   };
 }
 
-describe('fontSizeRule', () => {
-  it('should pass for normal font sizes', async () => {
+describe("fontSizeRule", () => {
+  it("should pass for normal font sizes", async () => {
     const html = `
       <html>
         <body>
@@ -32,10 +32,10 @@ describe('fontSizeRule', () => {
     `;
     const context = createContext(html);
     const result = await fontSizeRule.run(context);
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe("pass");
   });
 
-  it('should fail for font sizes below 12px', async () => {
+  it("should fail for font sizes below 12px", async () => {
     const html = `
       <html>
         <body>
@@ -45,11 +45,11 @@ describe('fontSizeRule', () => {
     `;
     const context = createContext(html);
     const result = await fontSizeRule.run(context);
-    expect(result.status).toBe('fail');
-    expect(result.message).toContain('critical');
+    expect(result.status).toBe("fail");
+    expect(result.message).toContain("critical");
   });
 
-  it('should warn for font sizes between 12-16px', async () => {
+  it("should warn for font sizes between 12-16px", async () => {
     const html = `
       <html>
         <body>
@@ -59,10 +59,10 @@ describe('fontSizeRule', () => {
     `;
     const context = createContext(html);
     const result = await fontSizeRule.run(context);
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe("warn");
   });
 
-  it('should detect small fonts in CSS', async () => {
+  it("should detect small fonts in CSS", async () => {
     const html = `
       <html>
         <head>
@@ -75,10 +75,10 @@ describe('fontSizeRule', () => {
     `;
     const context = createContext(html);
     const result = await fontSizeRule.run(context);
-    expect(result.status).toBe('fail');
+    expect(result.status).toBe("fail");
   });
 
-  it('should detect tight line-height', async () => {
+  it("should detect tight line-height", async () => {
     const html = `
       <html>
         <body>
@@ -88,11 +88,11 @@ describe('fontSizeRule', () => {
     `;
     const context = createContext(html);
     const result = await fontSizeRule.run(context);
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe("warn");
     expect(result.details?.tightLineHeightCount).toBeGreaterThan(0);
   });
 
-  it('should handle rem units correctly', async () => {
+  it("should handle rem units correctly", async () => {
     const html = `
       <html>
         <body>
@@ -102,12 +102,12 @@ describe('fontSizeRule', () => {
     `;
     const context = createContext(html);
     const result = await fontSizeRule.run(context);
-    expect(result.status).toBe('fail');
+    expect(result.status).toBe("fail");
   });
 });
 
-describe('horizontalScrollRule', () => {
-  it('should pass for responsive layouts', async () => {
+describe("horizontalScrollRule", () => {
+  it("should pass for responsive layouts", async () => {
     const html = `
       <html>
         <body>
@@ -118,10 +118,10 @@ describe('horizontalScrollRule', () => {
     `;
     const context = createContext(html);
     const result = await horizontalScrollRule.run(context);
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe("pass");
   });
 
-  it('should warn for fixed width elements exceeding mobile viewport', async () => {
+  it("should warn for fixed width elements exceeding mobile viewport", async () => {
     const html = `
       <html>
         <body>
@@ -131,10 +131,10 @@ describe('horizontalScrollRule', () => {
     `;
     const context = createContext(html);
     const result = await horizontalScrollRule.run(context);
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe("warn");
   });
 
-  it('should detect large images without responsive constraints', async () => {
+  it("should detect large images without responsive constraints", async () => {
     const html = `
       <html>
         <body>
@@ -144,10 +144,10 @@ describe('horizontalScrollRule', () => {
     `;
     const context = createContext(html);
     const result = await horizontalScrollRule.run(context);
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe("warn");
   });
 
-  it('should detect fixed width iframes', async () => {
+  it("should detect fixed width iframes", async () => {
     const html = `
       <html>
         <body>
@@ -157,10 +157,10 @@ describe('horizontalScrollRule', () => {
     `;
     const context = createContext(html);
     const result = await horizontalScrollRule.run(context);
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe("warn");
   });
 
-  it('should warn about 100vw usage', async () => {
+  it("should warn about 100vw usage", async () => {
     const html = `
       <html>
         <body>
@@ -170,11 +170,11 @@ describe('horizontalScrollRule', () => {
     `;
     const context = createContext(html);
     const result = await horizontalScrollRule.run(context);
-    expect(result.status).toBe('warn');
-    expect(result.details?.issues[0].issue).toContain('100vw');
+    expect(result.status).toBe("warn");
+    expect(result.details?.issues[0].issue).toContain("100vw");
   });
 
-  it('should fail for multiple critical issues', async () => {
+  it("should fail for multiple critical issues", async () => {
     const html = `
       <html>
         <body>
@@ -187,12 +187,12 @@ describe('horizontalScrollRule', () => {
     `;
     const context = createContext(html);
     const result = await horizontalScrollRule.run(context);
-    expect(result.status).toBe('fail');
+    expect(result.status).toBe("fail");
   });
 });
 
-describe('interstitialsRule', () => {
-  it('should pass for pages without popups', async () => {
+describe("interstitialsRule", () => {
+  it("should pass for pages without popups", async () => {
     const html = `
       <html>
         <body>
@@ -204,10 +204,10 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe("pass");
   });
 
-  it('should detect modal overlays', async () => {
+  it("should detect modal overlays", async () => {
     const html = `
       <html>
         <body>
@@ -220,11 +220,11 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('warn');
-    expect(result.details?.issues[0].type).toContain('Popup');
+    expect(result.status).toBe("warn");
+    expect(result.details?.issues[0].type).toContain("Popup");
   });
 
-  it('should detect newsletter popup forms', async () => {
+  it("should detect newsletter popup forms", async () => {
     const html = `
       <html>
         <body>
@@ -240,10 +240,10 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe("warn");
   });
 
-  it('should not flag cookie consent banners', async () => {
+  it("should not flag cookie consent banners", async () => {
     const html = `
       <html>
         <body>
@@ -256,10 +256,10 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe("pass");
   });
 
-  it('should not flag GDPR consent', async () => {
+  it("should not flag GDPR consent", async () => {
     const html = `
       <html>
         <body>
@@ -272,10 +272,10 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe("pass");
   });
 
-  it('should detect exit-intent scripts', async () => {
+  it("should detect exit-intent scripts", async () => {
     const html = `
       <html>
         <head>
@@ -292,11 +292,11 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('fail');
-    expect(result.details?.issues[0].type).toContain('Exit-intent');
+    expect(result.status).toBe("fail");
+    expect(result.details?.issues[0].type).toContain("Exit-intent");
   });
 
-  it('should detect splash screens', async () => {
+  it("should detect splash screens", async () => {
     const html = `
       <html>
         <body>
@@ -309,10 +309,10 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe("warn");
   });
 
-  it('should detect full-screen fixed elements', async () => {
+  it("should detect full-screen fixed elements", async () => {
     const html = `
       <html>
         <body>
@@ -325,6 +325,6 @@ describe('interstitialsRule', () => {
     `;
     const context = createContext(html);
     const result = await interstitialsRule.run(context);
-    expect(result.status).toBe('fail');
+    expect(result.status).toBe("fail");
   });
 });

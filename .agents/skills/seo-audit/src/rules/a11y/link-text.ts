@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 interface GenericLink {
   /** Link text */
@@ -52,10 +52,10 @@ const MIN_LINK_LENGTH = 2;
  * - Duplicate link text pointing to different destinations
  */
 export const linkTextRule = defineRule({
-  id: 'a11y-link-text',
-  name: 'Link Text',
-  description: 'Checks for descriptive link text',
-  category: 'a11y',
+  id: "a11y-link-text",
+  name: "Link Text",
+  description: "Checks for descriptive link text",
+  category: "a11y",
   weight: 8,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -64,13 +64,13 @@ export const linkTextRule = defineRule({
     const linkTextMap = new Map<string, string[]>(); // text -> hrefs
     let totalLinks = 0;
 
-    $('a[href]').each((_, el) => {
+    $("a[href]").each((_, el) => {
       const $el = $(el);
-      const href = $el.attr('href') || '';
+      const href = $el.attr("href") || "";
       const text = getAccessibleText($, $el).toLowerCase().trim();
 
       // Skip anchor links and javascript
-      if (href.startsWith('#') || href.startsWith('javascript:')) {
+      if (href.startsWith("#") || href.startsWith("javascript:")) {
         return;
       }
 
@@ -79,12 +79,12 @@ export const linkTextRule = defineRule({
       // Check for empty or very short text
       if (text.length < MIN_LINK_LENGTH) {
         // Check if it has aria-label
-        const ariaLabel = $el.attr('aria-label')?.trim();
+        const ariaLabel = $el.attr("aria-label")?.trim();
         if (!ariaLabel) {
           genericLinks.push({
-            text: text || '(empty)',
+            text: text || "(empty)",
             href: href.slice(0, 50),
-            issue: 'Link text too short or empty',
+            issue: "Link text too short or empty",
           });
         }
         return;
@@ -94,12 +94,12 @@ export const linkTextRule = defineRule({
       for (const pattern of GENERIC_PATTERNS) {
         if (pattern.test(text)) {
           // Check for aria-label that provides context
-          const ariaLabel = $el.attr('aria-label')?.trim();
+          const ariaLabel = $el.attr("aria-label")?.trim();
           if (!ariaLabel) {
             genericLinks.push({
               text,
               href: href.slice(0, 50),
-              issue: 'Generic link text - not descriptive',
+              issue: "Generic link text - not descriptive",
             });
           }
           break;
@@ -111,7 +111,7 @@ export const linkTextRule = defineRule({
         genericLinks.push({
           text: text.slice(0, 40),
           href: href.slice(0, 50),
-          issue: 'URL used as link text',
+          issue: "URL used as link text",
         });
       }
 
@@ -132,7 +132,7 @@ export const linkTextRule = defineRule({
     }
 
     if (genericLinks.length === 0 && duplicates.length === 0) {
-      return pass('a11y-link-text', 'All links have descriptive text', {
+      return pass("a11y-link-text", "All links have descriptive text", {
         totalLinks,
       });
     }
@@ -150,46 +150,35 @@ export const linkTextRule = defineRule({
     const totalIssues = genericLinks.length + duplicates.length;
 
     if (totalIssues > 5 || genericLinks.length > 3) {
-      return fail(
-        'a11y-link-text',
-        `Found ${totalIssues} link text accessibility issue(s)`,
-        {
-          genericLinks: genericLinks.slice(0, 10),
-          duplicates: duplicates.slice(0, 5),
-          totalLinks,
-          issues,
-        }
-      );
-    }
-
-    return warn(
-      'a11y-link-text',
-      `Found ${totalIssues} link text accessibility issue(s)`,
-      {
-        genericLinks,
-        duplicates,
+      return fail("a11y-link-text", `Found ${totalIssues} link text accessibility issue(s)`, {
+        genericLinks: genericLinks.slice(0, 10),
+        duplicates: duplicates.slice(0, 5),
         totalLinks,
         issues,
-      }
-    );
+      });
+    }
+
+    return warn("a11y-link-text", `Found ${totalIssues} link text accessibility issue(s)`, {
+      genericLinks,
+      duplicates,
+      totalLinks,
+      issues,
+    });
   },
 });
 
 /**
  * Get accessible text for a link, including aria-label and image alts
  */
-function getAccessibleText(
-  $: cheerio.CheerioAPI,
-  $el: cheerio.Cheerio<cheerio.Element>
-): string {
+function getAccessibleText($: cheerio.CheerioAPI, $el: cheerio.Cheerio<cheerio.Element>): string {
   // aria-label takes precedence
-  const ariaLabel = $el.attr('aria-label');
+  const ariaLabel = $el.attr("aria-label");
   if (ariaLabel) {
     return ariaLabel;
   }
 
   // aria-labelledby
-  const labelledBy = $el.attr('aria-labelledby');
+  const labelledBy = $el.attr("aria-labelledby");
   if (labelledBy) {
     const labelText = $(`#${labelledBy}`).text();
     if (labelText) {
@@ -202,7 +191,7 @@ function getAccessibleText(
 
   // If no text, check for image alt
   if (!text) {
-    const imgAlt = $el.find('img').first().attr('alt');
+    const imgAlt = $el.find("img").first().attr("alt");
     if (imgAlt) {
       text = imgAlt;
     }
@@ -210,7 +199,7 @@ function getAccessibleText(
 
   // Check for SVG title
   if (!text) {
-    const svgTitle = $el.find('svg title').first().text();
+    const svgTitle = $el.find("svg title").first().text();
     if (svgTitle) {
       text = svgTitle;
     }
@@ -224,9 +213,9 @@ function getAccessibleText(
  */
 function normalizeHref(href: string): string {
   try {
-    const url = new URL(href, 'http://example.com');
-    return url.pathname.replace(/\/$/, '');
+    const url = new URL(href, "http://example.com");
+    return url.pathname.replace(/\/$/, "");
   } catch {
-    return href.replace(/\/$/, '');
+    return href.replace(/\/$/, "");
   }
 }

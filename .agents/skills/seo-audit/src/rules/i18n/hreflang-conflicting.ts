@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Rule: Conflicting Hreflang Annotations
@@ -16,17 +16,17 @@ import { defineRule, pass, fail } from '../define-rule.js';
  *   <link rel="alternate" hreflang="en" href="https://example.com/english/">
  */
 export const hreflangConflictingRule = defineRule({
-  id: 'i18n-hreflang-conflicting',
-  name: 'Conflicting Hreflang Annotations',
-  description: 'Checks for same language code pointing to multiple different URLs',
-  category: 'i18n',
+  id: "i18n-hreflang-conflicting",
+  name: "Conflicting Hreflang Annotations",
+  description: "Checks for same language code pointing to multiple different URLs",
+  category: "i18n",
   weight: 10,
   run: (context: AuditContext) => {
     const { $, url } = context;
 
     const hreflangElements = $('link[rel="alternate"][hreflang]');
     if (hreflangElements.length === 0) {
-      return pass('i18n-hreflang-conflicting', 'No hreflang tags found', {
+      return pass("i18n-hreflang-conflicting", "No hreflang tags found", {
         count: 0,
       });
     }
@@ -36,8 +36,8 @@ export const hreflangConflictingRule = defineRule({
 
     hreflangElements.each((_, el) => {
       const $el = $(el);
-      const hreflang = ($el.attr('hreflang') || '').trim().toLowerCase();
-      const href = ($el.attr('href') || '').trim();
+      const hreflang = ($el.attr("hreflang") || "").trim().toLowerCase();
+      const href = ($el.attr("href") || "").trim();
 
       if (!hreflang || !href) return;
 
@@ -69,26 +69,22 @@ export const hreflangConflictingRule = defineRule({
     }
 
     if (conflicts.length === 0) {
-      return pass(
-        'i18n-hreflang-conflicting',
-        'No conflicting hreflang annotations found',
-        {
-          count: hreflangElements.length,
-          uniqueLanguages: langToUrls.size,
-        }
-      );
+      return pass("i18n-hreflang-conflicting", "No conflicting hreflang annotations found", {
+        count: hreflangElements.length,
+        uniqueLanguages: langToUrls.size,
+      });
     }
 
     return fail(
-      'i18n-hreflang-conflicting',
+      "i18n-hreflang-conflicting",
       `Found ${conflicts.length} language code(s) with conflicting URLs`,
       {
         totalHreflang: hreflangElements.length,
         conflictCount: conflicts.length,
         conflicts: conflicts.slice(0, 10),
         recommendation:
-          'Each language/region code should point to exactly one URL. Remove duplicate entries.',
-      }
+          "Each language/region code should point to exactly one URL. Remove duplicate entries.",
+      },
     );
   },
 });

@@ -17,12 +17,12 @@
  * - Touch targets: a11y-touch-targets
  */
 
-import { registerRule } from '../registry.js';
-import { fontSizeRule } from './font-size.js';
-import { horizontalScrollRule } from './horizontal-scroll.js';
-import { interstitialsRule } from './interstitials.js';
-import { viewportWidthRule } from './viewport-width.js';
-import { multipleViewportsRule } from './multiple-viewports.js';
+import { registerRule } from "../registry.js";
+import { fontSizeRule } from "./font-size.js";
+import { horizontalScrollRule } from "./horizontal-scroll.js";
+import { interstitialsRule } from "./interstitials.js";
+import { viewportWidthRule } from "./viewport-width.js";
+import { multipleViewportsRule } from "./multiple-viewports.js";
 
 // Export rules
 export {

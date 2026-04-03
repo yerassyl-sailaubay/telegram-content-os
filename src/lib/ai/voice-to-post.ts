@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { AI_MODELS, type TokenUsage } from "./types";
+import { PROMPT_INJECTION_GUARDRAILS, formatUntrustedPromptSection } from "./prompt-security";
 
 const DEFAULT_VOICE_MIME_TYPE = "audio/ogg";
 
@@ -76,7 +77,7 @@ function parseVoiceToPostJson(jsonText: string): VoiceToPostResponse {
 
 function buildVoicePrompt(caption?: string | null): string {
   const captionContext = caption?.trim()
-    ? `Optional user caption/context:\n${caption.trim()}\n\n`
+    ? `Optional user caption/context:\n${formatUntrustedPromptSection("voice_caption", caption.trim(), 2_000)}\n\n`
     : "";
 
   return `You are an expert Telegram editor.
@@ -87,6 +88,8 @@ Task:
 3) Preserve factual meaning. Do not invent details.
 4) Keep the final post concise and readable.
 5) Use light Telegram-friendly formatting and emoji only when natural.
+
+${PROMPT_INJECTION_GUARDRAILS}
 
 ${captionContext}Return JSON with fields:
 - transcript

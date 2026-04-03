@@ -2,7 +2,7 @@
  * Horizontal progress bar for a single category score.
  */
 
-import { getScoreColor } from '../lib/format.js';
+import { getScoreColor } from "../lib/format.js";
 
 interface CategoryBarProps {
   name: string;
@@ -28,14 +28,14 @@ export function CategoryBar({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-3 rounded-lg border transition-colors ${
+      className={`w-full rounded-lg border p-3 text-left transition-colors ${
         active
-          ? 'border-[var(--color-accent)] bg-[var(--color-accent-light)]'
-          : 'border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-hover)]'
+          ? "border-[var(--color-accent)] bg-[var(--color-accent-light)]"
+          : "border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-hover)]"
       }`}
     >
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-sm font-medium" style={{ color: "var(--color-text)" }}>
           {name}
         </span>
         <span className="text-sm font-bold" style={{ color }}>
@@ -48,14 +48,10 @@ export function CategoryBar({
           style={{ width: `${score}%`, backgroundColor: color }}
         />
       </div>
-      <div className="flex gap-3 mt-1.5 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-        {failCount > 0 && (
-          <span style={{ color: 'var(--color-fail)' }}>{failCount} fail</span>
-        )}
-        {warnCount > 0 && (
-          <span style={{ color: 'var(--color-warn)' }}>{warnCount} warn</span>
-        )}
-        <span style={{ color: 'var(--color-pass)' }}>{passCount} pass</span>
+      <div className="mt-1.5 flex gap-3 text-xs" style={{ color: "var(--color-text-muted)" }}>
+        {failCount > 0 && <span style={{ color: "var(--color-fail)" }}>{failCount} fail</span>}
+        {warnCount > 0 && <span style={{ color: "var(--color-warn)" }}>{warnCount} warn</span>}
+        <span style={{ color: "var(--color-pass)" }}>{passCount} pass</span>
       </div>
     </button>
   );

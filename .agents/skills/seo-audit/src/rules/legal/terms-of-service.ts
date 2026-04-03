@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * Terms of service link detection patterns
@@ -30,15 +30,15 @@ const TOS_PATTERNS = {
   ],
   // Common ToS URLs
   urls: [
-    'terms-of-service',
-    'terms_of_service',
-    'termsofservice',
-    'terms-of-use',
-    'terms-and-conditions',
-    'terms',
-    '/tos',
-    'legal/terms',
-    'user-agreement',
+    "terms-of-service",
+    "terms_of_service",
+    "termsofservice",
+    "terms-of-use",
+    "terms-and-conditions",
+    "terms",
+    "/tos",
+    "legal/terms",
+    "user-agreement",
   ],
 };
 
@@ -55,10 +55,10 @@ const TOS_PATTERNS = {
  * Best practice is to link from every page, typically in the footer.
  */
 export const termsOfServiceRule = defineRule({
-  id: 'legal-terms-of-service',
-  name: 'Terms of Service',
-  description: 'Checks for terms of service link presence',
-  category: 'legal',
+  id: "legal-terms-of-service",
+  name: "Terms of Service",
+  description: "Checks for terms of service link presence",
+  category: "legal",
   weight: 15,
 
   run(context: AuditContext): RuleResult {
@@ -66,11 +66,11 @@ export const termsOfServiceRule = defineRule({
     const foundLinks: Array<{ href: string; text: string; location: string }> = [];
 
     // Check all links
-    $('a[href]').each((_, el) => {
-      const href = $(el).attr('href') || '';
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href") || "";
       const text = $(el).text().trim();
-      const ariaLabel = $(el).attr('aria-label') || '';
-      const title = $(el).attr('title') || '';
+      const ariaLabel = $(el).attr("aria-label") || "";
+      const title = $(el).attr("title") || "";
       const combinedText = `${text} ${ariaLabel} ${title}`;
 
       // Check link text
@@ -103,12 +103,12 @@ export const termsOfServiceRule = defineRule({
     });
 
     if (foundLinks.length > 0) {
-      const inFooter = foundLinks.some((link) => link.location === 'footer');
+      const inFooter = foundLinks.some((link) => link.location === "footer");
 
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: `Terms of service link found${inFooter ? ' in footer' : ''} (${foundLinks.length} link${foundLinks.length > 1 ? 's' : ''})`,
+        message: `Terms of service link found${inFooter ? " in footer" : ""} (${foundLinks.length} link${foundLinks.length > 1 ? "s" : ""})`,
         details: {
           hasTermsOfService: true,
           inFooter,
@@ -122,22 +122,22 @@ export const termsOfServiceRule = defineRule({
 
     if (likelyNeedsToS) {
       return {
-        status: 'warn',
+        status: "warn",
         score: 50,
-        message: 'No terms of service link found - recommended for this site type',
+        message: "No terms of service link found - recommended for this site type",
         details: {
           hasTermsOfService: false,
           siteType: likelyNeedsToS,
-          recommendation: 'Add a link to your terms of service in the footer of every page',
+          recommendation: "Add a link to your terms of service in the footer of every page",
         },
       };
     }
 
     // No ToS link found, but may not be critical
     return {
-      status: 'pass',
+      status: "pass",
       score: 100,
-      message: 'No terms of service link found (may not be required for this site type)',
+      message: "No terms of service link found (may not be required for this site type)",
       details: {
         hasTermsOfService: false,
       },
@@ -153,39 +153,35 @@ function detectLocation($: cheerio.CheerioAPI, el: cheerio.Element): string {
 
   for (let i = 0; i < parents.length; i++) {
     const parent = parents.eq(i);
-    const tagName = parent.prop('tagName')?.toLowerCase() || '';
-    const className = parent.attr('class')?.toLowerCase() || '';
-    const id = parent.attr('id')?.toLowerCase() || '';
-    const role = parent.attr('role')?.toLowerCase() || '';
+    const tagName = parent.prop("tagName")?.toLowerCase() || "";
+    const className = parent.attr("class")?.toLowerCase() || "";
+    const id = parent.attr("id")?.toLowerCase() || "";
+    const role = parent.attr("role")?.toLowerCase() || "";
 
     if (
-      tagName === 'footer' ||
-      role === 'contentinfo' ||
-      className.includes('footer') ||
-      id.includes('footer')
+      tagName === "footer" ||
+      role === "contentinfo" ||
+      className.includes("footer") ||
+      id.includes("footer")
     ) {
-      return 'footer';
+      return "footer";
     }
 
     if (
-      tagName === 'header' ||
-      role === 'banner' ||
-      className.includes('header') ||
-      id.includes('header')
+      tagName === "header" ||
+      role === "banner" ||
+      className.includes("header") ||
+      id.includes("header")
     ) {
-      return 'header';
+      return "header";
     }
 
-    if (
-      tagName === 'nav' ||
-      role === 'navigation' ||
-      className.includes('nav')
-    ) {
-      return 'navigation';
+    if (tagName === "nav" || role === "navigation" || className.includes("nav")) {
+      return "navigation";
     }
   }
 
-  return 'body';
+  return "body";
 }
 
 /**
@@ -193,25 +189,28 @@ function detectLocation($: cheerio.CheerioAPI, el: cheerio.Element): string {
  */
 function detectSiteType($: cheerio.CheerioAPI): string | null {
   // E-commerce indicators
-  const hasEcommerce = $(
-    '[class*="cart"], [class*="checkout"], [class*="add-to-cart"], [class*="buy-now"], [class*="product-price"], form[action*="checkout"], button:contains("Add to Cart"), button:contains("Buy Now")'
-  ).length > 0;
+  const hasEcommerce =
+    $(
+      '[class*="cart"], [class*="checkout"], [class*="add-to-cart"], [class*="buy-now"], [class*="product-price"], form[action*="checkout"], button:contains("Add to Cart"), button:contains("Buy Now")',
+    ).length > 0;
 
-  if (hasEcommerce) return 'e-commerce';
+  if (hasEcommerce) return "e-commerce";
 
   // SaaS/login indicators
-  const hasSaaS = $(
-    'form[action*="login"], form[action*="signup"], form[action*="register"], [class*="login"], [class*="signup"], [class*="register"], button:contains("Sign Up"), button:contains("Log In"), a:contains("Sign Up"), a:contains("Create Account")'
-  ).length > 0;
+  const hasSaaS =
+    $(
+      'form[action*="login"], form[action*="signup"], form[action*="register"], [class*="login"], [class*="signup"], [class*="register"], button:contains("Sign Up"), button:contains("Log In"), a:contains("Sign Up"), a:contains("Create Account")',
+    ).length > 0;
 
-  if (hasSaaS) return 'SaaS/membership';
+  if (hasSaaS) return "SaaS/membership";
 
   // User-generated content indicators
-  const hasUGC = $(
-    '[class*="comment"], [class*="review"], form[action*="comment"], textarea[name*="comment"], [class*="user-content"]'
-  ).length > 0;
+  const hasUGC =
+    $(
+      '[class*="comment"], [class*="review"], form[action*="comment"], textarea[name*="comment"], [class*="user-content"]',
+    ).length > 0;
 
-  if (hasUGC) return 'user-generated content';
+  if (hasUGC) return "user-generated content";
 
   return null;
 }

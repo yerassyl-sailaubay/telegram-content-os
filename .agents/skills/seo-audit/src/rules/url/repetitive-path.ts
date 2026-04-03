@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Rule: Check for repeated segments in URL path
@@ -9,11 +9,10 @@ import { defineRule, pass, fail } from '../define-rule.js';
  * budget and create confusing, non-canonical URLs.
  */
 export const repetitivePathRule = defineRule({
-  id: 'url-repetitive-path',
-  name: 'Repetitive Path Segments',
-  description:
-    'Checks for consecutive duplicate segments in the URL path (e.g., /blog/blog/)',
-  category: 'url',
+  id: "url-repetitive-path",
+  name: "Repetitive Path Segments",
+  description: "Checks for consecutive duplicate segments in the URL path (e.g., /blog/blog/)",
+  category: "url",
   weight: 4,
   run: async (context: AuditContext) => {
     const { url } = context;
@@ -23,7 +22,7 @@ export const repetitivePathRule = defineRule({
       const pathname = urlObj.pathname;
 
       const segments = pathname
-        .split('/')
+        .split("/")
         .filter((s) => s.length > 0)
         .map((s) => s.toLowerCase());
 
@@ -36,28 +35,28 @@ export const repetitivePathRule = defineRule({
       }
 
       if (duplicates.length === 0) {
-        return pass(
-          'url-repetitive-path',
-          'URL path has no repetitive segments',
-          { url, path: pathname, segments }
-        );
+        return pass("url-repetitive-path", "URL path has no repetitive segments", {
+          url,
+          path: pathname,
+          segments,
+        });
       }
 
       const uniqueDuplicates = [...new Set(duplicates)];
 
       return fail(
-        'url-repetitive-path',
-        `URL path contains repetitive segments: ${uniqueDuplicates.map((d) => `/${d}/${d}/`).join(', ')}`,
+        "url-repetitive-path",
+        `URL path contains repetitive segments: ${uniqueDuplicates.map((d) => `/${d}/${d}/`).join(", ")}`,
         {
           url,
           path: pathname,
           segments,
           repeatedSegments: uniqueDuplicates,
-          fix: 'Remove duplicate consecutive path segments',
-        }
+          fix: "Remove duplicate consecutive path segments",
+        },
       );
     } catch {
-      return pass('url-repetitive-path', 'Could not parse URL', { url });
+      return pass("url-repetitive-path", "Could not parse URL", { url });
     }
   },
 });

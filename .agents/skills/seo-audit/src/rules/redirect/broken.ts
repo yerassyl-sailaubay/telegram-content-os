@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Redirect chain entry as provided by the crawler/fetcher.
@@ -17,17 +17,18 @@ interface RedirectChainEntry {
  * for both users and search engines.
  */
 export const brokenRedirectRule = defineRule({
-  id: 'redirect-broken',
-  name: 'No Broken Redirects',
-  description: 'Checks that redirect chains resolve to a valid (200) page',
-  category: 'redirect',
+  id: "redirect-broken",
+  name: "No Broken Redirects",
+  description: "Checks that redirect chains resolve to a valid (200) page",
+  category: "redirect",
   weight: 15,
   run: (context: AuditContext) => {
-    const redirectChain = (context as AuditContext & { redirectChain?: RedirectChainEntry[] }).redirectChain;
+    const redirectChain = (context as AuditContext & { redirectChain?: RedirectChainEntry[] })
+      .redirectChain;
 
     // No redirect chain or empty chain - nothing to check
     if (!redirectChain || redirectChain.length === 0) {
-      return pass('redirect-broken', 'No redirect chain to check');
+      return pass("redirect-broken", "No redirect chain to check");
     }
 
     const { statusCode } = context;
@@ -35,10 +36,10 @@ export const brokenRedirectRule = defineRule({
     // Redirect chain exists and final status is an error
     if (statusCode >= 400) {
       const isClientError = statusCode >= 400 && statusCode < 500;
-      const errorType = isClientError ? 'client error' : 'server error';
+      const errorType = isClientError ? "client error" : "server error";
 
       return fail(
-        'redirect-broken',
+        "redirect-broken",
         `Redirect chain ends in ${statusCode} (${errorType}); the redirect destination is broken`,
         {
           finalStatusCode: statusCode,
@@ -48,11 +49,11 @@ export const brokenRedirectRule = defineRule({
             url: entry.url,
             statusCode: entry.statusCode,
           })),
-        }
+        },
       );
     }
 
-    return pass('redirect-broken', 'Redirect chain resolves to a valid page', {
+    return pass("redirect-broken", "Redirect chain resolves to a valid page", {
       finalStatusCode: statusCode,
       chainLength: redirectChain.length,
     });

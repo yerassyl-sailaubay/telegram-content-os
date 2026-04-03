@@ -38,10 +38,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Return 400 for signature verification failures
     if (message.includes("signature") || message.includes("Webhook")) {
-      return NextResponse.json({ error: message }, { status: 400 });
+      return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
     }
 
     // Return 200 for handler errors to prevent Stripe from retrying
-    return NextResponse.json({ received: true, error: message });
+    return NextResponse.json({ received: true });
   }
 }

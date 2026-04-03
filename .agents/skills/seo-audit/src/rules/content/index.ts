@@ -21,39 +21,33 @@
  * Note: Author info and freshness rules moved to E-E-A-T category
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
-import { wordCountRule } from './word-count.js';
-import { readingLevelRule } from './reading-level.js';
-import { keywordStuffingRule } from './keyword-stuffing.js';
-import { articleLinksRule } from './article-links.js';
-import { brokenHtmlRule } from './broken-html.js';
-import { metaInBodyRule } from './meta-in-body.js';
-import { mimeTypeRule } from './mime-type.js';
+import { wordCountRule } from "./word-count.js";
+import { readingLevelRule } from "./reading-level.js";
+import { keywordStuffingRule } from "./keyword-stuffing.js";
+import { articleLinksRule } from "./article-links.js";
+import { brokenHtmlRule } from "./broken-html.js";
+import { metaInBodyRule } from "./meta-in-body.js";
+import { mimeTypeRule } from "./mime-type.js";
 import {
   duplicateDescriptionRule,
   resetDescriptionRegistry,
   getDescriptionRegistryStats,
-} from './duplicate-description.js';
+} from "./duplicate-description.js";
 
 // Heading rules (moved from headings category)
-import { hierarchyRule } from './heading-hierarchy.js';
-import { contentLengthRule } from './heading-length.js';
-import { contentUniqueRule } from './heading-unique.js';
+import { hierarchyRule } from "./heading-hierarchy.js";
+import { contentLengthRule } from "./heading-length.js";
+import { contentUniqueRule } from "./heading-unique.js";
 
 // New content rules
-import { textHtmlRatioRule } from './text-html-ratio.js';
-import { titleSameAsH1Rule } from './title-same-as-h1.js';
-import { titlePixelWidthRule } from './title-pixel-width.js';
-import { descriptionPixelWidthRule } from './description-pixel-width.js';
-import {
-  duplicateExactRule,
-  resetDuplicateContentRegistry,
-} from './duplicate-exact.js';
-import {
-  duplicateNearRule,
-  resetNearDuplicateRegistry,
-} from './duplicate-near.js';
+import { textHtmlRatioRule } from "./text-html-ratio.js";
+import { titleSameAsH1Rule } from "./title-same-as-h1.js";
+import { titlePixelWidthRule } from "./title-pixel-width.js";
+import { descriptionPixelWidthRule } from "./description-pixel-width.js";
+import { duplicateExactRule, resetDuplicateContentRegistry } from "./duplicate-exact.js";
+import { duplicateNearRule, resetNearDuplicateRegistry } from "./duplicate-near.js";
 
 // Export all rules
 export {

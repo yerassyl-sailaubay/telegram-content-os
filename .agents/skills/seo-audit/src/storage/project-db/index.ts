@@ -1,13 +1,13 @@
-import Database from 'better-sqlite3';
-import * as fs from 'fs';
-import * as path from 'path';
-import { getProjectDbPath, getProjectDbDir, extractDomain } from '../paths.js';
-import { initializeProjectSchema, getProjectDbStats } from './schema.js';
-import * as projects from './projects.js';
-import * as crawls from './crawls.js';
-import * as pages from './pages.js';
-import * as links from './links.js';
-import * as images from './images.js';
+import Database from "better-sqlite3";
+import * as fs from "fs";
+import * as path from "path";
+import { getProjectDbPath, getProjectDbDir, extractDomain } from "../paths.js";
+import { initializeProjectSchema, getProjectDbStats } from "./schema.js";
+import * as projects from "./projects.js";
+import * as crawls from "./crawls.js";
+import * as pages from "./pages.js";
+import * as links from "./links.js";
+import * as images from "./images.js";
 import type {
   HydratedProject,
   HydratedCrawl,
@@ -24,8 +24,8 @@ import type {
   InsertPageInput,
   InsertLinkInput,
   InsertImageInput,
-} from '../types.js';
-import type { PartialSeomatorConfig } from '../../config/schema.js';
+} from "../types.js";
+import type { PartialSeomatorConfig } from "../../config/schema.js";
 
 /**
  * Per-project SQLite database for storing crawl data
@@ -48,7 +48,7 @@ export class ProjectDatabase {
    */
   constructor(domain: string) {
     // Extract domain from URL if needed
-    this.domain = domain.includes('://') ? extractDomain(domain) : domain;
+    this.domain = domain.includes("://") ? extractDomain(domain) : domain;
 
     // Ensure project directory exists
     const dbDir = getProjectDbDir(this.domain);
@@ -193,7 +193,7 @@ export class ProjectDatabase {
   failCrawl(
     crawlId: string,
     errorMessage: string,
-    stats?: Partial<CrawlStats>
+    stats?: Partial<CrawlStats>,
   ): HydratedCrawl | null {
     return crawls.failCrawl(this.db, crawlId, errorMessage, stats);
   }
@@ -275,9 +275,11 @@ export class ProjectDatabase {
   /**
    * Get HTML storage statistics
    */
-  getHtmlStorageStats(
-    crawlId: number
-  ): { originalBytes: number; storedBytes: number; compressionRatio: number } {
+  getHtmlStorageStats(crawlId: number): {
+    originalBytes: number;
+    storedBytes: number;
+    compressionRatio: number;
+  } {
     return pages.getHtmlStorageStats(this.db, crawlId);
   }
 
@@ -316,9 +318,7 @@ export class ProjectDatabase {
   /**
    * Update link statuses after checking
    */
-  updateLinkStatuses(
-    updates: Array<{ linkId: number; statusCode: number; error?: string }>
-  ): void {
+  updateLinkStatuses(updates: Array<{ linkId: number; statusCode: number; error?: string }>): void {
     links.updateLinkStatuses(this.db, updates);
   }
 
@@ -356,18 +356,14 @@ export class ProjectDatabase {
   /**
    * Get images without alt text
    */
-  getImagesWithoutAlt(
-    crawlId: number
-  ): Array<HydratedImage & { sourceUrl: string }> {
+  getImagesWithoutAlt(crawlId: number): Array<HydratedImage & { sourceUrl: string }> {
     return images.getImagesWithoutAlt(this.db, crawlId);
   }
 
   /**
    * Get images without dimensions
    */
-  getImagesWithoutDimensions(
-    crawlId: number
-  ): Array<HydratedImage & { sourceUrl: string }> {
+  getImagesWithoutDimensions(crawlId: number): Array<HydratedImage & { sourceUrl: string }> {
     return images.getImagesWithoutDimensions(this.db, crawlId);
   }
 
@@ -388,9 +384,7 @@ export class ProjectDatabase {
   /**
    * Get image format distribution
    */
-  getImageFormatDistribution(
-    crawlId: number
-  ): Array<{ format: string; count: number }> {
+  getImageFormatDistribution(crawlId: number): Array<{ format: string; count: number }> {
     return images.getImageFormatDistribution(this.db, crawlId);
   }
 }

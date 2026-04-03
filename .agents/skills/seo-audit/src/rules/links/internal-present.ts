@@ -1,14 +1,14 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Check that page has internal links (warn if no internal links)
  */
 export const internalPresentRule = defineRule({
-  id: 'links-internal-present',
-  name: 'Internal Links Present',
-  description: 'Checks that the page contains internal links for navigation and crawlability',
-  category: 'links',
+  id: "links-internal-present",
+  name: "Internal Links Present",
+  description: "Checks that the page contains internal links for navigation and crawlability",
+  category: "links",
   weight: 1,
   run: async (context: AuditContext) => {
     const { links, url } = context;
@@ -20,8 +20,8 @@ export const internalPresentRule = defineRule({
         const linkUrl = new URL(link.href);
         const currentUrl = new URL(url);
         // Remove hash and compare
-        linkUrl.hash = '';
-        currentUrl.hash = '';
+        linkUrl.hash = "";
+        currentUrl.hash = "";
         return linkUrl.href !== currentUrl.href;
       } catch {
         return true;
@@ -29,24 +29,21 @@ export const internalPresentRule = defineRule({
     });
 
     if (uniqueInternalLinks.length === 0) {
-      return warn(
-        'links-internal-present',
-        'No internal links found on this page',
-        {
-          internalLinkCount: 0,
-          selfLinks: internalLinks.length,
-          suggestion: 'Add internal links to improve site navigation and help search engines crawl your site',
-        }
-      );
+      return warn("links-internal-present", "No internal links found on this page", {
+        internalLinkCount: 0,
+        selfLinks: internalLinks.length,
+        suggestion:
+          "Add internal links to improve site navigation and help search engines crawl your site",
+      });
     }
 
     return pass(
-      'links-internal-present',
+      "links-internal-present",
       `Found ${uniqueInternalLinks.length} internal link(s) on this page`,
       {
         internalLinkCount: uniqueInternalLinks.length,
         examples: uniqueInternalLinks.slice(0, 5).map((link) => link.href),
-      }
+      },
     );
   },
 });

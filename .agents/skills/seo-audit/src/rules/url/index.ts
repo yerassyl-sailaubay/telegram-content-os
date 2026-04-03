@@ -5,22 +5,22 @@
  * These rules check URL formatting, keywords, and stop words for SEO optimization.
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
-import { slugKeywordsRule } from './slug-keywords.js';
-import { stopWordsRule } from './stop-words.js';
-import { uppercaseRule } from './uppercase.js';
-import { underscoresRule } from './underscores.js';
-import { doubleSlashRule } from './double-slash.js';
-import { spacesRule } from './spaces.js';
-import { nonAsciiRule } from './non-ascii.js';
-import { lengthRule } from './length.js';
-import { repetitivePathRule } from './repetitive-path.js';
-import { parametersRule } from './parameters.js';
-import { sessionIdsRule } from './session-ids.js';
-import { trackingParamsRule } from './tracking-params.js';
-import { internalSearchRule } from './internal-search.js';
-import { httpHttpsDuplicateRule } from './http-https-duplicate.js';
+import { slugKeywordsRule } from "./slug-keywords.js";
+import { stopWordsRule } from "./stop-words.js";
+import { uppercaseRule } from "./uppercase.js";
+import { underscoresRule } from "./underscores.js";
+import { doubleSlashRule } from "./double-slash.js";
+import { spacesRule } from "./spaces.js";
+import { nonAsciiRule } from "./non-ascii.js";
+import { lengthRule } from "./length.js";
+import { repetitivePathRule } from "./repetitive-path.js";
+import { parametersRule } from "./parameters.js";
+import { sessionIdsRule } from "./session-ids.js";
+import { trackingParamsRule } from "./tracking-params.js";
+import { internalSearchRule } from "./internal-search.js";
+import { httpHttpsDuplicateRule } from "./http-https-duplicate.js";
 
 // Export all rules
 export {

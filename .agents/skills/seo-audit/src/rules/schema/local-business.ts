@@ -1,28 +1,21 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { findItemsByType, getMissingFields, hasField } from './utils.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { findItemsByType, getMissingFields, hasField } from "./utils.js";
 
 const LOCAL_TYPES = [
-  'LocalBusiness',
-  'Restaurant',
-  'Store',
-  'MedicalBusiness',
-  'LegalService',
-  'FinancialService',
-  'RealEstateAgent',
-  'Dentist',
-  'Physician',
-  'Attorney',
+  "LocalBusiness",
+  "Restaurant",
+  "Store",
+  "MedicalBusiness",
+  "LegalService",
+  "FinancialService",
+  "RealEstateAgent",
+  "Dentist",
+  "Physician",
+  "Attorney",
 ];
-const REQUIRED = ['name', 'address'];
-const RECOMMENDED = [
-  'telephone',
-  'openingHours',
-  'geo',
-  'priceRange',
-  'image',
-  'url',
-];
+const REQUIRED = ["name", "address"];
+const RECOMMENDED = ["telephone", "openingHours", "geo", "priceRange", "image", "url"];
 
 /**
  * Rule: Validate LocalBusiness schema structured data
@@ -34,11 +27,11 @@ const RECOMMENDED = [
  * - Geo format: should have latitude and longitude
  */
 export const structuredDataLocalBusinessRule = defineRule({
-  id: 'schema-local-business',
-  name: 'LocalBusiness Schema',
+  id: "schema-local-business",
+  name: "LocalBusiness Schema",
   description:
-    'Validates LocalBusiness, Restaurant, Store, and other local business schemas for required and recommended fields',
-  category: 'schema',
+    "Validates LocalBusiness, Restaurant, Store, and other local business schemas for required and recommended fields",
+  category: "schema",
   weight: 10,
   run: async (context: AuditContext) => {
     const { $ } = context;
@@ -46,11 +39,9 @@ export const structuredDataLocalBusinessRule = defineRule({
     const businesses = findItemsByType($, LOCAL_TYPES);
 
     if (businesses.length === 0) {
-      return pass(
-        'schema-local-business',
-        'No LocalBusiness schema found (not required)',
-        { businessesFound: 0 }
-      );
+      return pass("schema-local-business", "No LocalBusiness schema found (not required)", {
+        businessesFound: 0,
+      });
     }
 
     const issues: string[] = [];
@@ -62,51 +53,45 @@ export const structuredDataLocalBusinessRule = defineRule({
       // Check required fields
       const missingRequired = getMissingFields(business, REQUIRED);
       if (missingRequired.length > 0) {
-        issues.push(
-          `${businessType}: missing required fields: ${missingRequired.join(', ')}`
-        );
+        issues.push(`${businessType}: missing required fields: ${missingRequired.join(", ")}`);
       }
 
       // Validate address format if present
-      if (hasField(business, 'address')) {
+      if (hasField(business, "address")) {
         const address = business.data.address;
-        if (typeof address === 'string') {
-          warnings.push(
-            `${businessType}: address should be PostalAddress object, not string`
-          );
-        } else if (address && typeof address === 'object') {
+        if (typeof address === "string") {
+          warnings.push(`${businessType}: address should be PostalAddress object, not string`);
+        } else if (address && typeof address === "object") {
           const addressObj = address as Record<string, unknown>;
           const missingAddressFields: string[] = [];
           if (!addressObj.streetAddress) {
-            missingAddressFields.push('streetAddress');
+            missingAddressFields.push("streetAddress");
           }
           if (!addressObj.addressLocality) {
-            missingAddressFields.push('addressLocality');
+            missingAddressFields.push("addressLocality");
           }
           if (missingAddressFields.length > 0) {
             warnings.push(
-              `${businessType}: address missing fields: ${missingAddressFields.join(', ')}`
+              `${businessType}: address missing fields: ${missingAddressFields.join(", ")}`,
             );
           }
         }
       }
 
       // Validate geo format if present
-      if (hasField(business, 'geo')) {
+      if (hasField(business, "geo")) {
         const geo = business.data.geo;
-        if (geo && typeof geo === 'object') {
+        if (geo && typeof geo === "object") {
           const geoObj = geo as Record<string, unknown>;
           const missingGeoFields: string[] = [];
           if (geoObj.latitude === undefined || geoObj.latitude === null) {
-            missingGeoFields.push('latitude');
+            missingGeoFields.push("latitude");
           }
           if (geoObj.longitude === undefined || geoObj.longitude === null) {
-            missingGeoFields.push('longitude');
+            missingGeoFields.push("longitude");
           }
           if (missingGeoFields.length > 0) {
-            warnings.push(
-              `${businessType}: geo missing fields: ${missingGeoFields.join(', ')}`
-            );
+            warnings.push(`${businessType}: geo missing fields: ${missingGeoFields.join(", ")}`);
           }
         }
       }
@@ -115,41 +100,41 @@ export const structuredDataLocalBusinessRule = defineRule({
       const missingRecommended = getMissingFields(business, RECOMMENDED);
       if (missingRecommended.length > 0) {
         warnings.push(
-          `${businessType}: missing recommended fields: ${missingRecommended.join(', ')}`
+          `${businessType}: missing recommended fields: ${missingRecommended.join(", ")}`,
         );
       }
     }
 
     if (issues.length > 0) {
       return fail(
-        'schema-local-business',
-        `LocalBusiness schema validation failed: ${issues.join('; ')}`,
+        "schema-local-business",
+        `LocalBusiness schema validation failed: ${issues.join("; ")}`,
         {
           businessesFound: businesses.length,
           issues,
           warnings,
-        }
+        },
       );
     }
 
     if (warnings.length > 0) {
       return warn(
-        'schema-local-business',
-        `LocalBusiness schema has warnings: ${warnings.join('; ')}`,
+        "schema-local-business",
+        `LocalBusiness schema has warnings: ${warnings.join("; ")}`,
         {
           businessesFound: businesses.length,
           warnings,
-        }
+        },
       );
     }
 
     return pass(
-      'schema-local-business',
+      "schema-local-business",
       `All ${businesses.length} LocalBusiness schema(s) have required fields`,
       {
         businessesFound: businesses.length,
         businessTypes: businesses.map((b) => b.type),
-      }
+      },
     );
   },
 });

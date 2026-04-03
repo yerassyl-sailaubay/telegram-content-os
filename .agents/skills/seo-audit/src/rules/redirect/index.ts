@@ -13,17 +13,17 @@
  * - URL case normalization checks
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
 // Redirect rules
-import { metaRefreshRule } from './meta-refresh.js';
-import { javascriptRedirectRule } from './javascript.js';
-import { httpRefreshRule } from './http-refresh.js';
-import { redirectLoopRule } from './loop.js';
-import { redirectTypeRule } from './type.js';
-import { brokenRedirectRule } from './broken.js';
-import { resourceRedirectRule } from './resource.js';
-import { caseNormalizationRule } from './case-normalization.js';
+import { metaRefreshRule } from "./meta-refresh.js";
+import { javascriptRedirectRule } from "./javascript.js";
+import { httpRefreshRule } from "./http-refresh.js";
+import { redirectLoopRule } from "./loop.js";
+import { redirectTypeRule } from "./type.js";
+import { brokenRedirectRule } from "./broken.js";
+import { resourceRedirectRule } from "./resource.js";
+import { caseNormalizationRule } from "./case-normalization.js";
 
 // Export all rules
 export {

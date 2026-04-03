@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchPage } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchPage } from "../../crawler/fetcher.js";
 
 /**
  * Extracts the base URL (origin) from a full URL
@@ -30,12 +30,12 @@ function getHostname(url: string): string | null {
  */
 function extractSitemapUrlsFromRobotsTxt(content: string): string[] {
   const sitemapUrls: string[] = [];
-  const lines = content.split('\n');
+  const lines = content.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim().toLowerCase();
-    if (trimmed.startsWith('sitemap:')) {
-      const url = line.substring(line.indexOf(':') + 1).trim();
+    if (trimmed.startsWith("sitemap:")) {
+      const url = line.substring(line.indexOf(":") + 1).trim();
       if (url) {
         sitemapUrls.push(url);
       }
@@ -79,30 +79,28 @@ function isSitemapIndex(content: string): boolean {
  * Search engines will ignore URLs that don't match the sitemap's domain.
  */
 export const sitemapDomainRule = defineRule({
-  id: 'crawl-sitemap-domain',
-  name: 'Sitemap Domain Validation',
-  description: 'Checks that all sitemap URLs belong to the expected domain',
-  category: 'crawl',
+  id: "crawl-sitemap-domain",
+  name: "Sitemap Domain Validation",
+  description: "Checks that all sitemap URLs belong to the expected domain",
+  category: "crawl",
   weight: 15,
   run: async (context: AuditContext) => {
     const baseUrl = getBaseUrl(context.url);
     const expectedHostname = getHostname(baseUrl);
 
     if (!expectedHostname) {
-      return fail(
-        'crawl-sitemap-domain',
-        'Could not determine expected domain from URL',
-        { url: context.url }
-      );
+      return fail("crawl-sitemap-domain", "Could not determine expected domain from URL", {
+        url: context.url,
+      });
     }
 
     // Also accept www and non-www variants
     const acceptableHostnames = new Set<string>();
     acceptableHostnames.add(expectedHostname);
-    if (expectedHostname.startsWith('www.')) {
+    if (expectedHostname.startsWith("www.")) {
       acceptableHostnames.add(expectedHostname.substring(4));
     } else {
-      acceptableHostnames.add('www.' + expectedHostname);
+      acceptableHostnames.add("www." + expectedHostname);
     }
 
     const sitemapUrl = `${baseUrl}/sitemap.xml`;
@@ -141,11 +139,9 @@ export const sitemapDomainRule = defineRule({
     }
 
     if (!sitemapContent) {
-      return warn(
-        'crawl-sitemap-domain',
-        'Could not find sitemap to validate',
-        { checkedUrls: [sitemapUrl, robotsTxtUrl] }
-      );
+      return warn("crawl-sitemap-domain", "Could not find sitemap to validate", {
+        checkedUrls: [sitemapUrl, robotsTxtUrl],
+      });
     }
 
     // Extract URLs from sitemap
@@ -154,9 +150,9 @@ export const sitemapDomainRule = defineRule({
 
     if (sitemapUrls.length === 0) {
       return warn(
-        'crawl-sitemap-domain',
-        isIndex ? 'Sitemap index contains no sitemap URLs' : 'Sitemap contains no page URLs',
-        { sitemapUrl: fetchedSitemapUrl, isSitemapIndex: isIndex }
+        "crawl-sitemap-domain",
+        isIndex ? "Sitemap index contains no sitemap URLs" : "Sitemap contains no page URLs",
+        { sitemapUrl: fetchedSitemapUrl, isSitemapIndex: isIndex },
       );
     }
 
@@ -181,9 +177,9 @@ export const sitemapDomainRule = defineRule({
 
     if (invalidDomainUrls.length === 0) {
       return pass(
-        'crawl-sitemap-domain',
+        "crawl-sitemap-domain",
         `All ${sitemapUrls.length} sitemap URLs belong to the expected domain`,
-        details
+        details,
       );
     }
 
@@ -192,23 +188,24 @@ export const sitemapDomainRule = defineRule({
 
     if (invalidPercent > 10) {
       return fail(
-        'crawl-sitemap-domain',
+        "crawl-sitemap-domain",
         `${invalidDomainUrls.length} of ${sitemapUrls.length} sitemap URLs (${invalidPercent.toFixed(1)}%) have incorrect domain`,
         {
           ...details,
-          impact: 'Search engines will ignore URLs that do not match the sitemap domain',
-          recommendation: 'Remove cross-domain URLs from the sitemap or fix incorrect domain formatting',
-        }
+          impact: "Search engines will ignore URLs that do not match the sitemap domain",
+          recommendation:
+            "Remove cross-domain URLs from the sitemap or fix incorrect domain formatting",
+        },
       );
     }
 
     return warn(
-      'crawl-sitemap-domain',
+      "crawl-sitemap-domain",
       `${invalidDomainUrls.length} sitemap URL(s) have different domain than expected`,
       {
         ...details,
-        recommendation: 'Review and remove cross-domain URLs from the sitemap',
-      }
+        recommendation: "Review and remove cross-domain URLs from the sitemap",
+      },
     );
   },
 });

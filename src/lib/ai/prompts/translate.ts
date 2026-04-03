@@ -6,6 +6,7 @@
  */
 
 import type { OpenRouterMessage } from "../types";
+import { PROMPT_INJECTION_GUARDRAILS, formatUntrustedPromptSection } from "../prompt-security";
 
 interface TranslatePromptInput {
   content: string;
@@ -47,13 +48,15 @@ Your task is to produce a LITERAL translation that:
 
 This translation will be used as input for a separate adaptation step. Your job is ONLY to translate — accurately and literally.
 
-Output ONLY the translated text, nothing else.`,
+Output ONLY the translated text, nothing else.
+
+${PROMPT_INJECTION_GUARDRAILS}`,
     },
     {
       role: "user",
       content: `Translate the following text from ${sourceLang} to ${targetLang}. Provide a literal, faithful translation only:
 
-${input.content}`,
+${formatUntrustedPromptSection("source_text", input.content, 12_000)}`,
     },
   ];
 }

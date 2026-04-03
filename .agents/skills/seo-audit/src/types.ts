@@ -1,9 +1,9 @@
-import type { CheerioAPI } from 'cheerio';
+import type { CheerioAPI } from "cheerio";
 
 /**
  * Rule execution status
  */
-export type RuleStatus = 'pass' | 'warn' | 'fail';
+export type RuleStatus = "pass" | "warn" | "fail";
 
 /**
  * Category definition for organizing audit rules
@@ -78,7 +78,7 @@ export interface InvalidLinkInfo {
   /** Raw href value */
   href: string;
   /** Reason it's invalid: 'empty' | 'javascript' | 'malformed' */
-  reason: 'empty' | 'javascript' | 'malformed';
+  reason: "empty" | "javascript" | "malformed";
   /** Link text content */
   text: string;
 }
@@ -88,7 +88,7 @@ export interface InvalidLinkInfo {
  */
 export interface SpecialLinkInfo {
   /** Protocol type */
-  type: 'tel' | 'mailto';
+  type: "tel" | "mailto";
   /** Raw href value */
   href: string;
   /** Extracted value (phone number or email) */

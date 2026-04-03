@@ -51,6 +51,11 @@ export const contentLibrary = pgTable(
   },
   (table) => [
     index("content_library_user_created_at_idx").on(table.userId, table.createdAt),
+    index("content_library_user_updated_created_at_idx").on(
+      table.userId,
+      table.updatedAt,
+      table.createdAt,
+    ),
     index("content_library_user_status_created_at_idx").on(
       table.userId,
       table.status,

@@ -1,4 +1,4 @@
-import type { CheerioAPI } from 'cheerio';
+import type { CheerioAPI } from "cheerio";
 
 /**
  * Represents a typed item extracted from JSON-LD
@@ -22,7 +22,7 @@ export function extractJsonLdScripts($: CheerioAPI): unknown[] {
   const jsonLdScripts = $('script[type="application/ld+json"]');
 
   jsonLdScripts.each((_, element) => {
-    const rawContent = $(element).html() || '';
+    const rawContent = $(element).html() || "";
     const trimmedContent = rawContent.trim();
 
     if (!trimmedContent) {
@@ -47,7 +47,7 @@ export function extractJsonLdScripts($: CheerioAPI): unknown[] {
 export function extractTypedItems(data: unknown): TypedItem[] {
   const items: TypedItem[] = [];
 
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== "object") {
     return items;
   }
 
@@ -62,19 +62,19 @@ export function extractTypedItems(data: unknown): TypedItem[] {
   const obj = data as Record<string, unknown>;
 
   // Check @graph array (common in WordPress and other CMSes)
-  if (Array.isArray(obj['@graph'])) {
-    for (const graphItem of obj['@graph']) {
+  if (Array.isArray(obj["@graph"])) {
+    for (const graphItem of obj["@graph"]) {
       items.push(...extractTypedItems(graphItem));
     }
   }
 
   // Check direct @type
-  if (obj['@type']) {
-    const types = Array.isArray(obj['@type'])
-      ? (obj['@type'] as string[])
-      : [obj['@type'] as string];
+  if (obj["@type"]) {
+    const types = Array.isArray(obj["@type"])
+      ? (obj["@type"] as string[])
+      : [obj["@type"] as string];
 
-    const fields = Object.keys(obj).filter((k) => !k.startsWith('@'));
+    const fields = Object.keys(obj).filter((k) => !k.startsWith("@"));
 
     for (const type of types) {
       items.push({
@@ -87,8 +87,8 @@ export function extractTypedItems(data: unknown): TypedItem[] {
 
   // Recursively check nested objects (but not @graph which we already handled)
   for (const [key, value] of Object.entries(obj)) {
-    if (key === '@graph') continue;
-    if (value && typeof value === 'object') {
+    if (key === "@graph") continue;
+    if (value && typeof value === "object") {
       items.push(...extractTypedItems(value));
     }
   }
@@ -99,10 +99,7 @@ export function extractTypedItems(data: unknown): TypedItem[] {
 /**
  * Find all items of a specific type (or types) in JSON-LD scripts
  */
-export function findItemsByType(
-  $: CheerioAPI,
-  targetTypes: string | string[]
-): TypedItem[] {
+export function findItemsByType($: CheerioAPI, targetTypes: string | string[]): TypedItem[] {
   const targets = Array.isArray(targetTypes) ? targetTypes : [targetTypes];
   const allItems: TypedItem[] = [];
 
@@ -125,7 +122,7 @@ export function hasField(item: TypedItem, field: string): boolean {
     return false;
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return value.trim().length > 0;
   }
 

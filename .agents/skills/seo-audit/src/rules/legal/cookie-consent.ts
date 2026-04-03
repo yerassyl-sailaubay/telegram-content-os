@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * Cookie consent detection patterns
@@ -7,24 +7,24 @@ import { defineRule } from '../define-rule.js';
 const CONSENT_PATTERNS = {
   // Common consent management platforms
   platforms: [
-    'cookieyes',
-    'onetrust',
-    'cookiebot',
-    'termly',
-    'quantcast',
-    'trustarc',
-    'cookiepro',
-    'iubenda',
-    'osano',
-    'civic-cookie',
-    'cookie-law-info',
-    'cookie-notice',
-    'gdpr-cookie',
-    'cookie-consent',
-    'cookie-banner',
-    'cookie-bar',
-    'cookies-eu',
-    'eucookie',
+    "cookieyes",
+    "onetrust",
+    "cookiebot",
+    "termly",
+    "quantcast",
+    "trustarc",
+    "cookiepro",
+    "iubenda",
+    "osano",
+    "civic-cookie",
+    "cookie-law-info",
+    "cookie-notice",
+    "gdpr-cookie",
+    "cookie-consent",
+    "cookie-banner",
+    "cookie-bar",
+    "cookies-eu",
+    "eucookie",
   ],
   // Class/ID patterns for consent elements
   elements: [
@@ -60,15 +60,15 @@ const CONSENT_PATTERNS = {
   ],
   // Script sources
   scripts: [
-    'cookieyes.com',
-    'onetrust.com',
-    'cookiebot.com',
-    'termly.io',
-    'quantcast.com',
-    'trustarc.com',
-    'iubenda.com',
-    'osano.com',
-    'civiccomputing.com',
+    "cookieyes.com",
+    "onetrust.com",
+    "cookiebot.com",
+    "termly.io",
+    "quantcast.com",
+    "trustarc.com",
+    "iubenda.com",
+    "osano.com",
+    "civiccomputing.com",
   ],
 };
 
@@ -83,10 +83,10 @@ const CONSENT_PATTERNS = {
  * @see https://www.cookieyes.com/documentation/
  */
 export const cookieConsentRule = defineRule({
-  id: 'legal-cookie-consent',
-  name: 'Cookie Consent',
-  description: 'Checks for cookie consent mechanism presence',
-  category: 'legal',
+  id: "legal-cookie-consent",
+  name: "Cookie Consent",
+  description: "Checks for cookie consent mechanism presence",
+  category: "legal",
   weight: 15,
 
   run(context: AuditContext): RuleResult {
@@ -95,8 +95,8 @@ export const cookieConsentRule = defineRule({
     const issues: string[] = [];
 
     // Check for consent platform scripts
-    $('script[src]').each((_, el) => {
-      const src = $(el).attr('src') || '';
+    $("script[src]").each((_, el) => {
+      const src = $(el).attr("src") || "";
       for (const platform of CONSENT_PATTERNS.scripts) {
         if (src.includes(platform)) {
           detected.push(`Script: ${platform}`);
@@ -106,10 +106,10 @@ export const cookieConsentRule = defineRule({
     });
 
     // Check for consent elements by class/ID
-    const allElements = $('[class], [id]');
+    const allElements = $("[class], [id]");
     allElements.each((_, el) => {
-      const className = $(el).attr('class') || '';
-      const id = $(el).attr('id') || '';
+      const className = $(el).attr("class") || "";
+      const id = $(el).attr("id") || "";
       const combined = `${className} ${id}`.toLowerCase();
 
       // Check platform names in classes/IDs
@@ -123,7 +123,7 @@ export const cookieConsentRule = defineRule({
       // Check element patterns
       for (const pattern of CONSENT_PATTERNS.elements) {
         if (pattern.test(combined)) {
-          detected.push(`Element: ${combined.match(pattern)?.[0] || 'consent element'}`);
+          detected.push(`Element: ${combined.match(pattern)?.[0] || "consent element"}`);
           return;
         }
       }
@@ -141,13 +141,13 @@ export const cookieConsentRule = defineRule({
     });
 
     // Check for inline scripts with consent logic
-    $('script:not([src])').each((_, el) => {
-      const content = $(el).html() || '';
+    $("script:not([src])").each((_, el) => {
+      const content = $(el).html() || "";
       if (
         /cookie.?consent|gdpr.?consent|accept.?cookies|cookie.?banner/i.test(content) &&
         content.length < 50000 // Avoid scanning huge scripts
       ) {
-        detected.push('Inline consent script');
+        detected.push("Inline consent script");
         return false; // Stop after first match
       }
     });
@@ -157,9 +157,9 @@ export const cookieConsentRule = defineRule({
 
     if (uniqueDetected.length > 0) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: `Cookie consent mechanism detected (${uniqueDetected.length} indicator${uniqueDetected.length > 1 ? 's' : ''})`,
+        message: `Cookie consent mechanism detected (${uniqueDetected.length} indicator${uniqueDetected.length > 1 ? "s" : ""})`,
         details: {
           detected: uniqueDetected.slice(0, 5), // Limit to 5 for readability
           hasConsent: true,
@@ -168,14 +168,17 @@ export const cookieConsentRule = defineRule({
     }
 
     // Check if the site likely needs consent (has tracking/analytics)
-    const hasTracking = $('script[src*="googletagmanager"], script[src*="google-analytics"], script[src*="analytics"], script[src*="facebook"], script[src*="hotjar"], script[src*="mixpanel"]').length > 0;
+    const hasTracking =
+      $(
+        'script[src*="googletagmanager"], script[src*="google-analytics"], script[src*="analytics"], script[src*="facebook"], script[src*="hotjar"], script[src*="mixpanel"]',
+      ).length > 0;
 
     if (hasTracking) {
-      issues.push('Tracking scripts detected but no cookie consent mechanism found');
+      issues.push("Tracking scripts detected but no cookie consent mechanism found");
       return {
-        status: 'warn',
+        status: "warn",
         score: 50,
-        message: 'No cookie consent mechanism detected (tracking scripts present)',
+        message: "No cookie consent mechanism detected (tracking scripts present)",
         details: {
           hasConsent: false,
           hasTracking: true,
@@ -186,9 +189,10 @@ export const cookieConsentRule = defineRule({
 
     // No consent mechanism found, but may not be required
     return {
-      status: 'pass',
+      status: "pass",
       score: 100,
-      message: 'No cookie consent mechanism detected (may not be required if no tracking cookies used)',
+      message:
+        "No cookie consent mechanism detected (may not be required if no tracking cookies used)",
       details: {
         hasConsent: false,
         hasTracking: false,

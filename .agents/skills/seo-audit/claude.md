@@ -12,12 +12,12 @@ SEOmator is a comprehensive SEO audit tool (`@seomator/seo-audit`) with 251 rule
 
 The `package.json` serves **both** the npm CLI package and the Electron desktop app. These fields have strict requirements:
 
-| Field | Value | Why |
-|-------|-------|-----|
-| `main` | `./dist-electron/main/index.js` | **Electron reads this** to find the main process entry. DO NOT change to `./dist/cli.js` or Electron will execute Commander CLI instead of launching the app window. |
-| `exports` | `./dist/cli.js` | **npm/Node.js consumers use this** for programmatic imports. Takes priority over `main` in modern Node.js. |
-| `bin` | `./dist/cli.js` | **npm CLI users use this** (`seomator` command). |
-| `files` | `["dist"]` | **Only `dist/` ships to npm.** This is the firewall — `electron/`, `dist-electron/`, `scripts/` never reach npm users. |
+| Field     | Value                           | Why                                                                                                                                                                  |
+| --------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `main`    | `./dist-electron/main/index.js` | **Electron reads this** to find the main process entry. DO NOT change to `./dist/cli.js` or Electron will execute Commander CLI instead of launching the app window. |
+| `exports` | `./dist/cli.js`                 | **npm/Node.js consumers use this** for programmatic imports. Takes priority over `main` in modern Node.js.                                                           |
+| `bin`     | `./dist/cli.js`                 | **npm CLI users use this** (`seomator` command).                                                                                                                     |
+| `files`   | `["dist"]`                      | **Only `dist/` ships to npm.** This is the firewall — `electron/`, `dist-electron/`, `scripts/` never reach npm users.                                               |
 
 **If you change `main` to anything other than the Electron entry, `npm run electron:dev` will break** — Electron will print Commander help text and exit instead of opening the app window.
 
@@ -65,11 +65,13 @@ npm test               # Run tests in watch mode
 ```
 
 Run locally after building:
+
 ```bash
 ./dist/cli.js audit https://example.com --no-cwv
 ```
 
 Run a single test file:
+
 ```bash
 npx vitest run src/rules/core/core.test.ts
 ```
@@ -109,6 +111,7 @@ The entire audit engine is built on a **self-registering rule pattern**:
 ### AuditContext
 
 Defined in `src/types.ts`. Every rule receives the same context object containing:
+
 - **Always available**: `url`, `html`, `$` (CheerioAPI), `headers`, `statusCode`, `responseTime`, `cwv`, `links`, `images`, `invalidLinks`, `specialLinks`, `figures`, `inlineSvgs`, `pictureElements`
 - **Tier 2 (network-fetched, optional)**: `robotsTxtContent`, `sitemapContent`, `sitemapUrls`, `redirectChain`
 - **Tier 4 (Playwright, optional)**: `renderedHtml`, `rendered$` (CheerioAPI of rendered DOM)
@@ -127,6 +130,7 @@ core(12%), perf(12%), links(8%), images(8%), security(8%), technical(7%), crawl(
 ### Audit Flow
 
 `Auditor` class (`src/auditor.ts`) orchestrates:
+
 1. `loadAllRules()` → triggers static imports
 2. `fetchPage()` → HTTP fetch + Cheerio parse → `AuditContext`
 3. (Optional) `fetchPageWithPlaywright()` → CWV metrics + rendered DOM
@@ -174,6 +178,7 @@ The desktop app wraps the existing audit engine without modifying `src/`:
 ## Tech Stack
 
 ### CLI (`src/`)
+
 - **TypeScript** (ES2022 target, ESM modules, bundler resolution)
 - **tsup** for building (single ESM entry, `#!/usr/bin/env node` banner)
 - **vitest** for testing
@@ -184,6 +189,7 @@ The desktop app wraps the existing audit engine without modifying `src/`:
 - **chalk/ora/cli-table3/log-update** for terminal UI
 
 ### Desktop App (`electron/`)
+
 - **Electron** + **electron-vite** (triple build: main/preload/renderer)
 - **React** with **Tailwind CSS v4** (uses `@theme {}` block for custom properties)
 - **Zustand** for state management

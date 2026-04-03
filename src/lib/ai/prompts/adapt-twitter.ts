@@ -6,6 +6,11 @@
  */
 
 import type { OpenRouterMessage, ChannelProfile } from "../types";
+import {
+  PROMPT_INJECTION_GUARDRAILS,
+  formatUntrustedPromptSection,
+  sanitizeUntrustedPromptInput,
+} from "../prompt-security";
 
 interface TwitterAdaptInput {
   translatedContent: string;
@@ -20,11 +25,14 @@ export function buildTwitterAdaptPrompt(input: TwitterAdaptInput): OpenRouterMes
   let channelContext = "";
   if (input.channelProfile) {
     const { niche, tone, topTopics } = input.channelProfile;
+    const safeTopics = topTopics
+      .map((topic) => sanitizeUntrustedPromptInput(topic, 120))
+      .filter((topic) => topic.length > 0);
     channelContext = `
 Channel context:
-- Niche: ${niche ?? "general"}
-- Tone: ${tone ?? "neutral"}
-- Key topics: ${topTopics?.join(", ") ?? "various"}
+- Niche: ${sanitizeUntrustedPromptInput(niche ?? "general", 200)}
+- Tone: ${sanitizeUntrustedPromptInput(tone ?? "neutral", 200)}
+- Key topics: ${safeTopics.join(", ") || "various"}
 
 Adapt the voice to match this channel's style while keeping Twitter conventions.
 `;
@@ -51,6 +59,8 @@ Requirements:
 - Preserve the key message from the original content
 - Do NOT use overly formal language
 - Do NOT stuff hashtags — keep them natural
+
+${PROMPT_INJECTION_GUARDRAILS}
 ${channelContext}
 Output format:
 - For a single tweet: just the tweet text
@@ -60,7 +70,7 @@ Output format:
       role: "user",
       content: `Adapt the following translated content into tweet(s):
 
-${input.translatedContent}`,
+${formatUntrustedPromptSection("translated_content", input.translatedContent, 12_000)}`,
     },
   ];
 }

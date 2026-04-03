@@ -39,8 +39,8 @@
   --content-max-width: 1200px;
   --traffic-light-width: 78px;
 
-  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", "SF Mono", Consolas, monospace;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -49,7 +49,7 @@
 }
 
 /* ─── Dark Theme ────────────────────────────────────────────────────────── */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --color-bg: #09090b;
   --color-bg-elevated: #18181b;
   --color-bg-hover: #27272a;

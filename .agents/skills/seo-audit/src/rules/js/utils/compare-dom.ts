@@ -1,4 +1,4 @@
-import type { CheerioAPI } from 'cheerio';
+import type { CheerioAPI } from "cheerio";
 
 /**
  * Compare a specific element between raw and rendered DOM.
@@ -7,7 +7,7 @@ import type { CheerioAPI } from 'cheerio';
 export function compareDomElement(
   raw$: CheerioAPI,
   rendered$: CheerioAPI | undefined,
-  selector: string
+  selector: string,
 ): { rawText: string; renderedText: string; differs: boolean } | null {
   if (!rendered$) return null;
 
@@ -27,7 +27,7 @@ export function compareDomElement(
 export function elementPresenceChanged(
   raw$: CheerioAPI,
   rendered$: CheerioAPI | undefined,
-  selector: string
+  selector: string,
 ): { rawPresent: boolean; renderedPresent: boolean; changed: boolean } | null {
   if (!rendered$) return null;
 
@@ -48,7 +48,7 @@ export function compareAttribute(
   raw$: CheerioAPI,
   rendered$: CheerioAPI | undefined,
   selector: string,
-  attribute: string
+  attribute: string,
 ): { rawValue: string | undefined; renderedValue: string | undefined; differs: boolean } | null {
   if (!rendered$) return null;
 

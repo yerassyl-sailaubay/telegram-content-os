@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Module-level registry for tracking crawled URLs across pages.
@@ -20,12 +20,12 @@ function normalizeUrl(url: string): string {
   try {
     const urlObj = new URL(url);
     let path = urlObj.pathname;
-    if (path.length > 1 && path.endsWith('/')) {
+    if (path.length > 1 && path.endsWith("/")) {
       path = path.slice(0, -1);
     }
     return `${urlObj.protocol}//${urlObj.host.toLowerCase()}${path}${urlObj.search}`;
   } catch {
-    return url.toLowerCase().replace(/\/$/, '');
+    return url.toLowerCase().replace(/\/$/, "");
   }
 }
 
@@ -70,10 +70,10 @@ export function getOrphanStats(): {
  * data but cannot determine orphan status.
  */
 export const sitemapOrphanUrlsRule = defineRule({
-  id: 'crawl-sitemap-orphan-urls',
-  name: 'Sitemap Orphan URLs',
-  description: 'Checks if sitemap contains URLs not linked from any crawled page',
-  category: 'crawl',
+  id: "crawl-sitemap-orphan-urls",
+  name: "Sitemap Orphan URLs",
+  description: "Checks if sitemap contains URLs not linked from any crawled page",
+  category: "crawl",
   weight: 7,
   run: async (context: AuditContext) => {
     const { links, url } = context;
@@ -118,30 +118,30 @@ export const sitemapOrphanUrlsRule = defineRule({
 
     // If we have no sitemap URLs to compare, just collect data
     if (sitemapCheckUrls.size === 0) {
-      return pass(
-        'crawl-sitemap-orphan-urls',
-        'No sitemap URLs available for orphan detection',
-        { ...details, note: 'Data is being collected for cross-page analysis' }
-      );
+      return pass("crawl-sitemap-orphan-urls", "No sitemap URLs available for orphan detection", {
+        ...details,
+        note: "Data is being collected for cross-page analysis",
+      });
     }
 
     if (orphanUrls.length > 0) {
       const orphanPercent = ((orphanUrls.length / sitemapCheckUrls.size) * 100).toFixed(1);
       return warn(
-        'crawl-sitemap-orphan-urls',
+        "crawl-sitemap-orphan-urls",
         `${orphanUrls.length} sitemap URL(s) (${orphanPercent}%) are not linked from any crawled page`,
         {
           ...details,
-          impact: 'Orphan pages lack internal links, reducing discoverability and crawl priority',
-          recommendation: 'Add internal links to orphan pages or remove them from the sitemap if obsolete',
-        }
+          impact: "Orphan pages lack internal links, reducing discoverability and crawl priority",
+          recommendation:
+            "Add internal links to orphan pages or remove them from the sitemap if obsolete",
+        },
       );
     }
 
     return pass(
-      'crawl-sitemap-orphan-urls',
+      "crawl-sitemap-orphan-urls",
       `All ${sitemapCheckUrls.size} sitemap URLs are linked from crawled pages`,
-      details
+      details,
     );
   },
 });

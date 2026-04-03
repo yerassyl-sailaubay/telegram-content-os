@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Patterns that indicate generic/non-descriptive URLs
@@ -91,7 +91,7 @@ function analyzeSlug(url: string): {
           hasDescriptiveSlug: false,
           isGeneric: false,
           isDynamic: true,
-          issues: ['URL uses dynamic parameters instead of descriptive slugs'],
+          issues: ["URL uses dynamic parameters instead of descriptive slugs"],
         };
       }
     }
@@ -105,16 +105,16 @@ function analyzeSlug(url: string): {
           hasDescriptiveSlug: false,
           isGeneric: true,
           isDynamic: false,
-          issues: ['URL uses generic identifiers instead of descriptive keywords'],
+          issues: ["URL uses generic identifiers instead of descriptive keywords"],
         };
       }
     }
 
     // Extract slug segments (exclude empty segments and file extensions)
     const segments = path
-      .split('/')
+      .split("/")
       .filter((s) => s.length > 0)
-      .map((s) => s.replace(/\.[^.]+$/, '')); // Remove file extensions
+      .map((s) => s.replace(/\.[^.]+$/, "")); // Remove file extensions
 
     if (segments.length === 0) {
       // Root path - always pass
@@ -133,7 +133,7 @@ function analyzeSlug(url: string): {
     const hasDescriptiveSlug = descriptiveSegments.length > 0;
 
     if (!hasDescriptiveSlug) {
-      issues.push('URL path lacks descriptive keywords');
+      issues.push("URL path lacks descriptive keywords");
     }
 
     return {
@@ -151,7 +151,7 @@ function analyzeSlug(url: string): {
       hasDescriptiveSlug: false,
       isGeneric: false,
       isDynamic: false,
-      issues: ['Could not parse URL'],
+      issues: ["Could not parse URL"],
     };
   }
 }
@@ -160,11 +160,10 @@ function analyzeSlug(url: string): {
  * Rule: Check if URL slug contains relevant keywords
  */
 export const slugKeywordsRule = defineRule({
-  id: 'url-slug-keywords',
-  name: 'Slug Keywords',
-  description:
-    'Checks if URL slug contains relevant keywords rather than generic identifiers',
-  category: 'url',
+  id: "url-slug-keywords",
+  name: "Slug Keywords",
+  description: "Checks if URL slug contains relevant keywords rather than generic identifiers",
+  category: "url",
   weight: 15,
   run: async (context: AuditContext) => {
     const { url } = context;
@@ -182,35 +181,31 @@ export const slugKeywordsRule = defineRule({
     // Dynamic URLs with parameters are problematic
     if (analysis.isDynamic) {
       return fail(
-        'url-slug-keywords',
-        analysis.issues[0] || 'URL uses dynamic parameters instead of descriptive slugs',
-        details
+        "url-slug-keywords",
+        analysis.issues[0] || "URL uses dynamic parameters instead of descriptive slugs",
+        details,
       );
     }
 
     // Generic IDs instead of keywords
     if (analysis.isGeneric) {
       return fail(
-        'url-slug-keywords',
-        analysis.issues[0] || 'URL uses generic identifiers instead of keywords',
-        details
+        "url-slug-keywords",
+        analysis.issues[0] || "URL uses generic identifiers instead of keywords",
+        details,
       );
     }
 
     // Has descriptive slugs
     if (analysis.hasDescriptiveSlug) {
       return pass(
-        'url-slug-keywords',
-        `URL contains descriptive keywords: ${analysis.slugs.join('/')}`,
-        details
+        "url-slug-keywords",
+        `URL contains descriptive keywords: ${analysis.slugs.join("/")}`,
+        details,
       );
     }
 
     // Path lacks keywords but isn't obviously generic
-    return warn(
-      'url-slug-keywords',
-      'URL path may lack descriptive keywords',
-      details
-    );
+    return warn("url-slug-keywords", "URL path may lack descriptive keywords", details);
   },
 });

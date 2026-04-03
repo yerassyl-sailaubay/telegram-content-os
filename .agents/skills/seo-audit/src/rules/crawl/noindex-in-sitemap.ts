@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchPage } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchPage } from "../../crawler/fetcher.js";
 
 /**
  * Extracts the base URL (origin) from a full URL
@@ -22,33 +22,33 @@ function normalizeUrl(url: string): string {
     const urlObj = new URL(url);
     // Normalize: lowercase host, remove trailing slash, remove query params for comparison
     let path = urlObj.pathname;
-    if (path.length > 1 && path.endsWith('/')) {
+    if (path.length > 1 && path.endsWith("/")) {
       path = path.slice(0, -1);
     }
     return `${urlObj.protocol}//${urlObj.host.toLowerCase()}${path}`;
   } catch {
-    return url.toLowerCase().replace(/\/$/, '');
+    return url.toLowerCase().replace(/\/$/, "");
   }
 }
 
 /**
  * Check if page has noindex directive
  */
-function hasNoindex($: AuditContext['$'], headers: Record<string, string>): boolean {
+function hasNoindex($: AuditContext["$"], headers: Record<string, string>): boolean {
   // Check meta robots
-  const robotsMeta = $('meta[name="robots"]').attr('content') || '';
+  const robotsMeta = $('meta[name="robots"]').attr("content") || "";
   if (/noindex/i.test(robotsMeta)) {
     return true;
   }
 
   // Check googlebot meta
-  const googlebotMeta = $('meta[name="googlebot"]').attr('content') || '';
+  const googlebotMeta = $('meta[name="googlebot"]').attr("content") || "";
   if (/noindex/i.test(googlebotMeta)) {
     return true;
   }
 
   // Check X-Robots-Tag header
-  const xRobotsTag = headers['x-robots-tag'] || headers['X-Robots-Tag'] || '';
+  const xRobotsTag = headers["x-robots-tag"] || headers["X-Robots-Tag"] || "";
   if (/noindex/i.test(xRobotsTag)) {
     return true;
   }
@@ -61,12 +61,12 @@ function hasNoindex($: AuditContext['$'], headers: Record<string, string>): bool
  */
 function extractSitemapUrlsFromRobotsTxt(content: string): string[] {
   const sitemapUrls: string[] = [];
-  const lines = content.split('\n');
+  const lines = content.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim().toLowerCase();
-    if (trimmed.startsWith('sitemap:')) {
-      const url = line.substring(line.indexOf(':') + 1).trim();
+    if (trimmed.startsWith("sitemap:")) {
+      const url = line.substring(line.indexOf(":") + 1).trim();
       if (url) {
         sitemapUrls.push(url);
       }
@@ -110,10 +110,10 @@ function isSitemapIndex(content: string): boolean {
  * in the sitemap. This creates conflicting signals for search engines.
  */
 export const noindexInSitemapRule = defineRule({
-  id: 'crawl-noindex-in-sitemap',
-  name: 'Noindex in Sitemap',
-  description: 'Checks for noindexed pages listed in sitemap',
-  category: 'crawl',
+  id: "crawl-noindex-in-sitemap",
+  name: "Noindex in Sitemap",
+  description: "Checks for noindexed pages listed in sitemap",
+  category: "crawl",
   weight: 15,
   run: async (context: AuditContext) => {
     const { $, url, headers } = context;
@@ -123,11 +123,9 @@ export const noindexInSitemapRule = defineRule({
 
     // If page is not noindexed, this rule passes (no conflict possible)
     if (!isNoindexed) {
-      return pass(
-        'crawl-noindex-in-sitemap',
-        'Page is indexable (no noindex directive)',
-        { isNoindexed: false }
-      );
+      return pass("crawl-noindex-in-sitemap", "Page is indexable (no noindex directive)", {
+        isNoindexed: false,
+      });
     }
 
     // Page is noindexed - now check if it's in the sitemap
@@ -170,13 +168,13 @@ export const noindexInSitemapRule = defineRule({
     // If we can't get the sitemap, we can't check for conflict
     if (!sitemapContent) {
       return warn(
-        'crawl-noindex-in-sitemap',
-        'Page has noindex but could not verify sitemap status',
+        "crawl-noindex-in-sitemap",
+        "Page has noindex but could not verify sitemap status",
         {
           isNoindexed: true,
           sitemapChecked: false,
           checkedUrls: [sitemapUrl, robotsTxtUrl],
-        }
+        },
       );
     }
 
@@ -208,33 +206,29 @@ export const noindexInSitemapRule = defineRule({
 
     // Check if current URL is in sitemap
     const isInSitemap = allSitemapUrls.some(
-      (sitemapEntry) => normalizeUrl(sitemapEntry) === normalizedCurrentUrl
+      (sitemapEntry) => normalizeUrl(sitemapEntry) === normalizedCurrentUrl,
     );
 
     if (isInSitemap) {
       return fail(
-        'crawl-noindex-in-sitemap',
-        'Page has noindex directive but is listed in sitemap (conflicting signals)',
+        "crawl-noindex-in-sitemap",
+        "Page has noindex directive but is listed in sitemap (conflicting signals)",
         {
           isNoindexed: true,
           isInSitemap: true,
           sitemapUrl: fetchedSitemapUrl,
           isSitemapIndex: isIndex,
-          impact: 'Sitemaps indicate pages should be indexed; noindex contradicts this',
-          recommendation: 'Either remove the page from sitemap or remove the noindex directive',
-        }
+          impact: "Sitemaps indicate pages should be indexed; noindex contradicts this",
+          recommendation: "Either remove the page from sitemap or remove the noindex directive",
+        },
       );
     }
 
-    return pass(
-      'crawl-noindex-in-sitemap',
-      'Page has noindex and is not in sitemap (consistent)',
-      {
-        isNoindexed: true,
-        isInSitemap: false,
-        sitemapUrl: fetchedSitemapUrl,
-        urlsChecked: allSitemapUrls.length,
-      }
-    );
+    return pass("crawl-noindex-in-sitemap", "Page has noindex and is not in sitemap (consistent)", {
+      isNoindexed: true,
+      isInSitemap: false,
+      sitemapUrl: fetchedSitemapUrl,
+      urlsChecked: allSitemapUrls.length,
+    });
   },
 });

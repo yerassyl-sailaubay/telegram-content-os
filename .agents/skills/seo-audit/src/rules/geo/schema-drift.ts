@@ -1,15 +1,15 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Extracts the visible text content from the page, stripping scripts,
  * styles, and excess whitespace for comparison purposes.
  */
-function getVisibleText($: AuditContext['$']): string {
+function getVisibleText($: AuditContext["$"]): string {
   // Clone body to avoid mutating the original
-  const body = $('body').clone();
-  body.find('script, style, noscript').remove();
-  return body.text().replace(/\s+/g, ' ').trim().toLowerCase();
+  const body = $("body").clone();
+  body.find("script, style, noscript").remove();
+  return body.text().replace(/\s+/g, " ").trim().toLowerCase();
 }
 
 /**
@@ -20,7 +20,7 @@ function getVisibleText($: AuditContext['$']): string {
 function textAppearsIn(target: string, source: string): boolean {
   if (!target || !source) return false;
 
-  const normalizedTarget = target.replace(/\s+/g, ' ').trim().toLowerCase();
+  const normalizedTarget = target.replace(/\s+/g, " ").trim().toLowerCase();
   if (normalizedTarget.length === 0) return false;
 
   // Direct inclusion check
@@ -35,9 +35,7 @@ function textAppearsIn(target: string, source: string): boolean {
 
   // Check if individual significant words overlap
   // (useful for slight rewordings between schema and visible text)
-  const targetWords = normalizedTarget
-    .split(/\s+/)
-    .filter((w) => w.length > 3);
+  const targetWords = normalizedTarget.split(/\s+/).filter((w) => w.length > 3);
   if (targetWords.length === 0) return false;
 
   const matchedWords = targetWords.filter((w) => source.includes(w));
@@ -52,14 +50,14 @@ function textAppearsIn(target: string, source: string): boolean {
  * a string, an object with a name property, or an array.
  */
 function extractStringValue(value: unknown): string | null {
-  if (typeof value === 'string') return value;
+  if (typeof value === "string") return value;
   if (Array.isArray(value) && value.length > 0) {
     return extractStringValue(value[0]);
   }
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     const obj = value as Record<string, unknown>;
-    if (typeof obj.name === 'string') return obj.name;
-    if (typeof obj['@value'] === 'string') return obj['@value'];
+    if (typeof obj.name === "string") return obj.name;
+    if (typeof obj["@value"] === "string") return obj["@value"];
   }
   return null;
 }
@@ -90,11 +88,10 @@ interface DriftCheck {
  * - name/headline not found on page at all: fail
  */
 export const schemaDriftRule = defineRule({
-  id: 'geo-schema-drift',
-  name: 'Schema Content Drift',
-  description:
-    'Compares JSON-LD structured data against visible page content for consistency',
-  category: 'geo',
+  id: "geo-schema-drift",
+  name: "Schema Content Drift",
+  description: "Compares JSON-LD structured data against visible page content for consistency",
+  category: "geo",
   weight: 15,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -103,7 +100,7 @@ export const schemaDriftRule = defineRule({
     const jsonLdScripts = $('script[type="application/ld+json"]');
 
     if (jsonLdScripts.length === 0) {
-      return pass('geo-schema-drift', 'No JSON-LD structured data to check', {
+      return pass("geo-schema-drift", "No JSON-LD structured data to check", {
         jsonLdCount: 0,
       });
     }
@@ -116,13 +113,13 @@ export const schemaDriftRule = defineRule({
       try {
         const parsed = JSON.parse(raw);
         // Handle @graph arrays
-        if (parsed['@graph'] && Array.isArray(parsed['@graph'])) {
-          for (const item of parsed['@graph']) {
-            if (item && typeof item === 'object') {
+        if (parsed["@graph"] && Array.isArray(parsed["@graph"])) {
+          for (const item of parsed["@graph"]) {
+            if (item && typeof item === "object") {
               schemas.push(item as Record<string, unknown>);
             }
           }
-        } else if (parsed && typeof parsed === 'object') {
+        } else if (parsed && typeof parsed === "object") {
           schemas.push(parsed as Record<string, unknown>);
         }
       } catch {
@@ -131,30 +128,26 @@ export const schemaDriftRule = defineRule({
     });
 
     if (schemas.length === 0) {
-      return pass('geo-schema-drift', 'No parseable JSON-LD structured data found', {
+      return pass("geo-schema-drift", "No parseable JSON-LD structured data found", {
         jsonLdCount: jsonLdScripts.length,
         parsedSchemas: 0,
       });
     }
 
     const visibleText = getVisibleText($);
-    const metaDescription = (
-      $('meta[name="description"]').attr('content') || ''
-    ).toLowerCase();
+    const metaDescription = ($('meta[name="description"]').attr("content") || "").toLowerCase();
 
     const checks: DriftCheck[] = [];
     let hasNameDrift = false;
 
     for (const schema of schemas) {
       // Check name / headline
-      const nameValue =
-        extractStringValue(schema.name) ||
-        extractStringValue(schema.headline);
+      const nameValue = extractStringValue(schema.name) || extractStringValue(schema.headline);
 
       if (nameValue) {
         const found = textAppearsIn(nameValue, visibleText);
         checks.push({
-          field: 'name/headline',
+          field: "name/headline",
           schemaValue: nameValue.substring(0, 100),
           foundOnPage: found,
         });
@@ -170,7 +163,7 @@ export const schemaDriftRule = defineRule({
         const foundInBody = textAppearsIn(descValue, visibleText);
         const foundInMeta = textAppearsIn(descValue, metaDescription);
         checks.push({
-          field: 'description',
+          field: "description",
           schemaValue: descValue.substring(0, 100),
           foundOnPage: foundInBody || foundInMeta,
         });
@@ -181,7 +174,7 @@ export const schemaDriftRule = defineRule({
       if (authorValue) {
         const found = textAppearsIn(authorValue, visibleText);
         checks.push({
-          field: 'author.name',
+          field: "author.name",
           schemaValue: authorValue.substring(0, 100),
           foundOnPage: found,
         });
@@ -190,13 +183,13 @@ export const schemaDriftRule = defineRule({
 
     if (checks.length === 0) {
       return pass(
-        'geo-schema-drift',
-        'JSON-LD found but no name, description, or author fields to verify',
+        "geo-schema-drift",
+        "JSON-LD found but no name, description, or author fields to verify",
         {
           jsonLdCount: jsonLdScripts.length,
           parsedSchemas: schemas.length,
           checksPerformed: 0,
-        }
+        },
       );
     }
 
@@ -216,32 +209,28 @@ export const schemaDriftRule = defineRule({
 
     if (driftChecks.length === 0) {
       return pass(
-        'geo-schema-drift',
+        "geo-schema-drift",
         `Schema data is consistent with visible content (${checks.length} field(s) verified)`,
-        details
+        details,
       );
     }
 
     if (hasNameDrift) {
-      return fail(
-        'geo-schema-drift',
-        `Schema name/headline not found in visible page content`,
-        {
-          ...details,
-          recommendation:
-            'Ensure the name or headline in your JSON-LD matches text that actually appears on the page',
-        }
-      );
+      return fail("geo-schema-drift", `Schema name/headline not found in visible page content`, {
+        ...details,
+        recommendation:
+          "Ensure the name or headline in your JSON-LD matches text that actually appears on the page",
+      });
     }
 
     return warn(
-      'geo-schema-drift',
-      `${driftChecks.length} schema field(s) don't match visible content: ${driftChecks.map((c) => c.field).join(', ')}`,
+      "geo-schema-drift",
+      `${driftChecks.length} schema field(s) don't match visible content: ${driftChecks.map((c) => c.field).join(", ")}`,
       {
         ...details,
         recommendation:
-          'Keep JSON-LD structured data consistent with visible page content to avoid misleading AI systems',
-      }
+          "Keep JSON-LD structured data consistent with visible page content to avoid misleading AI systems",
+      },
     );
   },
 });

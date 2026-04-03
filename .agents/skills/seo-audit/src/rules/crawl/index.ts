@@ -7,33 +7,37 @@
  * blocking issues.
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
 // Existing rules
-import { schemaNoindexConflictRule } from './schema-noindex-conflict.js';
-import { paginationCanonicalRule } from './pagination-canonical.js';
-import { sitemapDomainRule } from './sitemap-domain.js';
-import { noindexInSitemapRule } from './noindex-in-sitemap.js';
-import { indexabilityConflictRule } from './indexability-conflict.js';
-import { canonicalRedirectRule } from './canonical-redirect.js';
+import { schemaNoindexConflictRule } from "./schema-noindex-conflict.js";
+import { paginationCanonicalRule } from "./pagination-canonical.js";
+import { sitemapDomainRule } from "./sitemap-domain.js";
+import { noindexInSitemapRule } from "./noindex-in-sitemap.js";
+import { indexabilityConflictRule } from "./indexability-conflict.js";
+import { canonicalRedirectRule } from "./canonical-redirect.js";
 
 // Sitemap rules
-import { sitemapUrlLimitRule } from './sitemap-url-limit.js';
-import { sitemapSizeLimitRule } from './sitemap-size-limit.js';
-import { sitemapDuplicateUrlsRule } from './sitemap-duplicate-urls.js';
-import { sitemapOrphanUrlsRule, resetOrphanRegistry, getOrphanStats } from './sitemap-orphan-urls.js';
+import { sitemapUrlLimitRule } from "./sitemap-url-limit.js";
+import { sitemapSizeLimitRule } from "./sitemap-size-limit.js";
+import { sitemapDuplicateUrlsRule } from "./sitemap-duplicate-urls.js";
+import {
+  sitemapOrphanUrlsRule,
+  resetOrphanRegistry,
+  getOrphanStats,
+} from "./sitemap-orphan-urls.js";
 
 // Robots.txt rules
-import { blockedResourcesRule } from './blocked-resources.js';
-import { crawlDelayRule } from './crawl-delay.js';
-import { sitemapInRobotstxtRule } from './sitemap-in-robotstxt.js';
+import { blockedResourcesRule } from "./blocked-resources.js";
+import { crawlDelayRule } from "./crawl-delay.js";
+import { sitemapInRobotstxtRule } from "./sitemap-in-robotstxt.js";
 
 // Pagination rules
-import { paginationBrokenRule } from './pagination-broken.js';
-import { paginationLoopRule } from './pagination-loop.js';
-import { paginationSequenceRule } from './pagination-sequence.js';
-import { paginationNoindexRule } from './pagination-noindex.js';
-import { paginationOrphanedRule } from './pagination-orphaned.js';
+import { paginationBrokenRule } from "./pagination-broken.js";
+import { paginationLoopRule } from "./pagination-loop.js";
+import { paginationSequenceRule } from "./pagination-sequence.js";
+import { paginationNoindexRule } from "./pagination-noindex.js";
+import { paginationOrphanedRule } from "./pagination-orphaned.js";
 
 // Export all rules
 export {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   LineChart,
   Line,
@@ -20,9 +20,9 @@ type GrowthChartProps = {
   trend: GrowthTrend;
 };
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en", { month: "short", day: "numeric" });
+  return date.toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
 function TrendBadge({ trend, rate }: { trend: GrowthTrend; rate: number }) {
@@ -54,12 +54,13 @@ function TrendBadge({ trend, rate }: { trend: GrowthTrend; rate: number }) {
 
 export function GrowthChart({ dataPoints, rate, trend }: GrowthChartProps) {
   const t = useTranslations("analytics");
+  const locale = useLocale();
 
   const isEmpty = dataPoints.length === 0;
 
   const chartData = dataPoints.map((d) => ({
     ...d,
-    date: formatDate(d.date),
+    date: formatDate(d.date, locale),
   }));
 
   return (

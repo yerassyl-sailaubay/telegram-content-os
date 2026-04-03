@@ -11,10 +11,10 @@ interface DomainPickerProps {
 export function DomainPicker({ domains, selected, onChange }: DomainPickerProps) {
   return (
     <select
-      value={selected ?? ''}
+      value={selected ?? ""}
       onChange={(e) => onChange(e.target.value || null)}
-      className="px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] text-sm focus:outline-none focus:border-[var(--color-accent)]"
-      style={{ color: 'var(--color-text)' }}
+      className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-sm focus:border-[var(--color-accent)] focus:outline-none"
+      style={{ color: "var(--color-text)" }}
     >
       <option value="">All domains</option>
       {domains.map((domain) => (

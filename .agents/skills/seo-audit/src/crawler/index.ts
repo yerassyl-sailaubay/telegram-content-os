@@ -1,10 +1,5 @@
 // Fetcher exports
-export {
-  fetchPage,
-  fetchUrl,
-  createAuditContext,
-  type FetchResult,
-} from './fetcher.js';
+export { fetchPage, fetchUrl, createAuditContext, type FetchResult } from "./fetcher.js";
 
 // Playwright fetcher exports
 export {
@@ -14,7 +9,7 @@ export {
   measureCoreWebVitals,
   getBrowser,
   type PlaywrightFetchResult,
-} from './playwright-fetcher.js';
+} from "./playwright-fetcher.js";
 
 // Crawler exports
 export {
@@ -24,12 +19,7 @@ export {
   type CrawlProgress,
   type CrawlerOptions,
   type CrawledPage,
-} from './crawler.js';
+} from "./crawler.js";
 
 // URL filter exports
-export {
-  UrlFilter,
-  createUrlFilter,
-  globToRegex,
-  type UrlFilterOptions,
-} from './url-filter.js';
+export { UrlFilter, createUrlFilter, globToRegex, type UrlFilterOptions } from "./url-filter.js";

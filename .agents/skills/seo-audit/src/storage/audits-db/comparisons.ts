@@ -1,13 +1,13 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 import type {
   DbAuditComparison,
   HydratedAuditComparison,
   CategoryDelta,
   HydratedAudit,
   HydratedAuditCategory,
-} from '../types.js';
-import { getAuditById } from './audits.js';
-import { getCategories } from './results.js';
+} from "../types.js";
+import { getAuditById } from "./audits.js";
+import { getCategories } from "./results.js";
 
 /**
  * Hydrate a comparison record
@@ -19,9 +19,7 @@ function hydrateComparison(row: DbAuditComparison): HydratedAuditComparison {
     previousAuditId: row.previous_audit_id,
     domain: row.domain,
     scoreDelta: row.score_delta,
-    categoryDeltas: row.category_deltas_json
-      ? JSON.parse(row.category_deltas_json)
-      : [],
+    categoryDeltas: row.category_deltas_json ? JSON.parse(row.category_deltas_json) : [],
     newIssuesCount: row.new_issues_count,
     fixedIssuesCount: row.fixed_issues_count,
     comparedAt: new Date(row.compared_at),
@@ -33,11 +31,9 @@ function hydrateComparison(row: DbAuditComparison): HydratedAuditComparison {
  */
 function calculateCategoryDeltas(
   currentCategories: HydratedAuditCategory[],
-  previousCategories: HydratedAuditCategory[]
+  previousCategories: HydratedAuditCategory[],
 ): CategoryDelta[] {
-  const previousMap = new Map(
-    previousCategories.map((c) => [c.categoryId, c])
-  );
+  const previousMap = new Map(previousCategories.map((c) => [c.categoryId, c]));
 
   const deltas: CategoryDelta[] = [];
 
@@ -63,7 +59,7 @@ function calculateCategoryDeltas(
 function countNewIssues(
   db: Database.Database,
   currentAuditId: number,
-  previousAuditId: number
+  previousAuditId: number,
 ): number {
   // Count rules that failed in current but passed in previous
   const result = db
@@ -74,7 +70,7 @@ function countNewIssues(
     LEFT JOIN audit_results p ON c.rule_id = p.rule_id AND p.audit_id = ?
     WHERE c.audit_id = ? AND c.status = 'fail'
       AND (p.id IS NULL OR p.status != 'fail')
-  `
+  `,
     )
     .get(previousAuditId, currentAuditId) as { count: number };
 
@@ -87,7 +83,7 @@ function countNewIssues(
 function countFixedIssues(
   db: Database.Database,
   currentAuditId: number,
-  previousAuditId: number
+  previousAuditId: number,
 ): number {
   // Count rules that failed in previous but pass/warn in current
   const result = db
@@ -98,7 +94,7 @@ function countFixedIssues(
     LEFT JOIN audit_results c ON p.rule_id = c.rule_id AND c.audit_id = ?
     WHERE p.audit_id = ? AND p.status = 'fail'
       AND (c.id IS NULL OR c.status != 'fail')
-  `
+  `,
     )
     .get(currentAuditId, previousAuditId) as { count: number };
 
@@ -116,7 +112,7 @@ function countFixedIssues(
 export function compareAudits(
   db: Database.Database,
   currentAuditId: number,
-  previousAuditId: number
+  previousAuditId: number,
 ): HydratedAuditComparison | null {
   const currentAudit = getAuditById(db, currentAuditId);
   const previousAudit = getAuditById(db, previousAuditId);
@@ -143,7 +139,7 @@ export function compareAudits(
       new_issues_count, fixed_issues_count
     ) VALUES (?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       currentAuditId,
@@ -152,7 +148,7 @@ export function compareAudits(
       scoreDelta,
       JSON.stringify(categoryDeltas),
       newIssuesCount,
-      fixedIssuesCount
+      fixedIssuesCount,
     ) as DbAuditComparison;
 
   return hydrateComparison(result);
@@ -167,10 +163,10 @@ export function compareAudits(
  */
 export function getComparison(
   db: Database.Database,
-  currentAuditId: number
+  currentAuditId: number,
 ): HydratedAuditComparison | null {
   const row = db
-    .prepare('SELECT * FROM audit_comparisons WHERE current_audit_id = ?')
+    .prepare("SELECT * FROM audit_comparisons WHERE current_audit_id = ?")
     .get(currentAuditId) as DbAuditComparison | undefined;
 
   return row ? hydrateComparison(row) : null;
@@ -187,7 +183,7 @@ export function getComparison(
 export function getComparisonsByDomain(
   db: Database.Database,
   domain: string,
-  limit = 10
+  limit = 10,
 ): HydratedAuditComparison[] {
   const rows = db
     .prepare(
@@ -196,7 +192,7 @@ export function getComparisonsByDomain(
     WHERE domain = ?
     ORDER BY compared_at DESC
     LIMIT ?
-  `
+  `,
     )
     .all(domain, limit) as DbAuditComparison[];
 
@@ -214,7 +210,7 @@ export function getComparisonsByDomain(
 export function getScoreTrend(
   db: Database.Database,
   domain: string,
-  limit = 10
+  limit = 10,
 ): Array<{ auditId: string; score: number; date: Date }> {
   const rows = db
     .prepare(
@@ -224,7 +220,7 @@ export function getScoreTrend(
     WHERE domain = ? AND status = 'completed'
     ORDER BY started_at DESC
     LIMIT ?
-  `
+  `,
     )
     .all(domain, limit) as Array<{
     audit_id: string;
@@ -232,11 +228,13 @@ export function getScoreTrend(
     started_at: string;
   }>;
 
-  return rows.map((r) => ({
-    auditId: r.audit_id,
-    score: r.overall_score,
-    date: new Date(r.started_at),
-  })).reverse(); // Oldest first for trend display
+  return rows
+    .map((r) => ({
+      auditId: r.audit_id,
+      score: r.overall_score,
+      date: new Date(r.started_at),
+    }))
+    .reverse(); // Oldest first for trend display
 }
 
 /**
@@ -246,12 +244,7 @@ export function getScoreTrend(
  * @param comparisonId - Comparison ID
  * @returns True if deleted
  */
-export function deleteComparison(
-  db: Database.Database,
-  comparisonId: number
-): boolean {
-  const result = db
-    .prepare('DELETE FROM audit_comparisons WHERE id = ?')
-    .run(comparisonId);
+export function deleteComparison(db: Database.Database, comparisonId: number): boolean {
+  const result = db.prepare("DELETE FROM audit_comparisons WHERE id = ?").run(comparisonId);
   return result.changes > 0;
 }

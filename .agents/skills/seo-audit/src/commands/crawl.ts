@@ -1,7 +1,7 @@
-import chalk from 'chalk';
-import { Crawler } from '../crawler/index.js';
-import { loadConfig } from '../config/index.js';
-import { saveCrawl, createCrawl, type StoredPage } from '../storage/index.js';
+import chalk from "chalk";
+import { Crawler } from "../crawler/index.js";
+import { loadConfig } from "../config/index.js";
+import { saveCrawl, createCrawl, type StoredPage } from "../storage/index.js";
 
 export interface CrawlOptions {
   maxPages?: number;
@@ -19,9 +19,9 @@ export async function runCrawl(url: string, options: CrawlOptions): Promise<void
   const baseDir = options.output ?? process.cwd();
 
   // Create crawl record
-  const crawl = createCrawl(url, config.project.name || 'default', config);
+  const crawl = createCrawl(url, config.project.name || "default", config);
 
-  console.log(chalk.blue('Starting crawl...'));
+  console.log(chalk.blue("Starting crawl..."));
   console.log(`  URL: ${url}`);
   console.log(`  Max pages: ${maxPages}`);
   console.log();
@@ -36,10 +36,13 @@ export async function runCrawl(url: string, options: CrawlOptions): Promise<void
     timeout: config.crawler.timeout_ms,
     onProgress: (progress) => {
       if (options.verbose) {
-        const truncatedUrl = progress.currentUrl.length > 50
-          ? progress.currentUrl.slice(0, 50) + '...'
-          : progress.currentUrl;
-        process.stderr.write(`\r  Crawled: ${progress.crawled}/${progress.total} | Current: ${truncatedUrl}`);
+        const truncatedUrl =
+          progress.currentUrl.length > 50
+            ? progress.currentUrl.slice(0, 50) + "..."
+            : progress.currentUrl;
+        process.stderr.write(
+          `\r  Crawled: ${progress.crawled}/${progress.total} | Current: ${truncatedUrl}`,
+        );
       }
     },
   });
@@ -48,7 +51,7 @@ export async function runCrawl(url: string, options: CrawlOptions): Promise<void
     const crawledPages = await crawler.crawl(url, maxPages, config.crawler.concurrency);
 
     if (options.verbose) {
-      process.stderr.write('\n');
+      process.stderr.write("\n");
     }
 
     // Convert to stored pages
@@ -82,17 +85,20 @@ export async function runCrawl(url: string, options: CrawlOptions): Promise<void
     const crawlId = saveCrawl(baseDir, crawl);
 
     console.log();
-    console.log(chalk.green('Crawl complete!'));
+    console.log(chalk.green("Crawl complete!"));
     console.log(`  Pages crawled: ${crawl.pages.length}`);
     console.log(`  Errors: ${errorCount}`);
     console.log(`  Duration: ${(crawl.stats.duration / 1000).toFixed(1)}s`);
     console.log(`  Crawl ID: ${crawlId}`);
     console.log();
-    console.log('Run analysis with:');
+    console.log("Run analysis with:");
     console.log(`  seomator analyze ${crawlId}`);
     console.log();
   } catch (error) {
-    console.error(chalk.red('Crawl failed:'), error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      chalk.red("Crawl failed:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(2);
   }
 }

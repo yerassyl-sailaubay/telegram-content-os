@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 import type {
   DbPage,
   HydratedPage,
@@ -6,9 +6,9 @@ import type {
   PageQueryOptions,
   InsertPageInput,
   PageCoreWebVitals,
-} from '../types.js';
-import { hashUrl } from '../utils/hash.js';
-import { compressHtml, decompressHtml } from '../utils/compression.js';
+} from "../types.js";
+import { hashUrl } from "../utils/hash.js";
+import { compressHtml, decompressHtml } from "../utils/compression.js";
 
 /**
  * Hydrate a page record (without HTML)
@@ -44,9 +44,7 @@ function hydratePage(row: DbPage): HydratedPage {
  */
 function hydratePageWithHtml(row: DbPage): HydratedPageWithHtml {
   const base = hydratePage(row);
-  const html = row.html
-    ? decompressHtml(row.html, row.html_compressed === 1)
-    : '';
+  const html = row.html ? decompressHtml(row.html, row.html_compressed === 1) : "";
 
   return { ...base, html };
 }
@@ -64,7 +62,7 @@ function hydratePageWithHtml(row: DbPage): HydratedPageWithHtml {
 export function insertPage(
   db: Database.Database,
   crawlId: number,
-  input: InsertPageInput
+  input: InsertPageInput,
 ): HydratedPage {
   const urlHash = hashUrl(input.url);
 
@@ -91,7 +89,7 @@ export function insertPage(
       error_message
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       crawlId,
@@ -111,7 +109,7 @@ export function insertPage(
       input.cwv?.inp ?? null,
       input.cwv?.fcp ?? null,
       input.cwv?.ttfb ?? null,
-      input.errorMessage ?? null
+      input.errorMessage ?? null,
     ) as DbPage;
 
   return hydratePage(result);
@@ -128,7 +126,7 @@ export function insertPage(
 export function insertPages(
   db: Database.Database,
   crawlId: number,
-  pages: InsertPageInput[]
+  pages: InsertPageInput[],
 ): number {
   const stmt = db.prepare(`
     INSERT INTO pages (
@@ -174,7 +172,7 @@ export function insertPages(
         input.cwv?.inp ?? null,
         input.cwv?.fcp ?? null,
         input.cwv?.ttfb ?? null,
-        input.errorMessage ?? null
+        input.errorMessage ?? null,
       );
       count++;
     }
@@ -191,10 +189,7 @@ export function insertPages(
  * @param pageId - Page ID
  * @returns Page record or null
  */
-export function getPage(
-  db: Database.Database,
-  pageId: number
-): HydratedPage | null {
+export function getPage(db: Database.Database, pageId: number): HydratedPage | null {
   const row = db
     .prepare(
       `
@@ -203,9 +198,9 @@ export function getPage(
            cwv_lcp, cwv_cls, cwv_inp, cwv_fcp, cwv_ttfb,
            error_message, crawled_at
     FROM pages WHERE id = ?
-  `
+  `,
     )
-    .get(pageId) as (Omit<DbPage, 'html'> & { html: null }) | undefined;
+    .get(pageId) as (Omit<DbPage, "html"> & { html: null }) | undefined;
 
   if (!row) return null;
   return hydratePage({ ...row, html: null });
@@ -222,7 +217,7 @@ export function getPage(
 export function getPageByHash(
   db: Database.Database,
   crawlId: number,
-  urlHash: string
+  urlHash: string,
 ): HydratedPage | null {
   const row = db
     .prepare(
@@ -232,9 +227,9 @@ export function getPageByHash(
            cwv_lcp, cwv_cls, cwv_inp, cwv_fcp, cwv_ttfb,
            error_message, crawled_at
     FROM pages WHERE crawl_id = ? AND url_hash = ?
-  `
+  `,
     )
-    .get(crawlId, urlHash) as (Omit<DbPage, 'html'> & { html: null }) | undefined;
+    .get(crawlId, urlHash) as (Omit<DbPage, "html"> & { html: null }) | undefined;
 
   if (!row) return null;
   return hydratePage({ ...row, html: null });
@@ -247,13 +242,10 @@ export function getPageByHash(
  * @param pageId - Page ID
  * @returns HTML string or null
  */
-export function getPageHtml(
-  db: Database.Database,
-  pageId: number
-): string | null {
-  const row = db
-    .prepare('SELECT html, html_compressed FROM pages WHERE id = ?')
-    .get(pageId) as { html: Buffer | null; html_compressed: number } | undefined;
+export function getPageHtml(db: Database.Database, pageId: number): string | null {
+  const row = db.prepare("SELECT html, html_compressed FROM pages WHERE id = ?").get(pageId) as
+    | { html: Buffer | null; html_compressed: number }
+    | undefined;
 
   if (!row || !row.html) return null;
   return decompressHtml(row.html, row.html_compressed === 1);
@@ -268,11 +260,9 @@ export function getPageHtml(
  */
 export function getPageWithHtml(
   db: Database.Database,
-  pageId: number
+  pageId: number,
 ): HydratedPageWithHtml | null {
-  const row = db
-    .prepare('SELECT * FROM pages WHERE id = ?')
-    .get(pageId) as DbPage | undefined;
+  const row = db.prepare("SELECT * FROM pages WHERE id = ?").get(pageId) as DbPage | undefined;
 
   if (!row) return null;
   return hydratePageWithHtml(row);
@@ -289,28 +279,28 @@ export function getPageWithHtml(
 export function listPages(
   db: Database.Database,
   crawlId: number,
-  options: PageQueryOptions = {}
+  options: PageQueryOptions = {},
 ): HydratedPage[] {
-  const conditions: string[] = ['crawl_id = ?'];
+  const conditions: string[] = ["crawl_id = ?"];
   const params: unknown[] = [crawlId];
 
   if (options.statusCode !== undefined) {
-    conditions.push('status_code = ?');
+    conditions.push("status_code = ?");
     params.push(options.statusCode);
   }
 
   if (options.minStatusCode !== undefined) {
-    conditions.push('status_code >= ?');
+    conditions.push("status_code >= ?");
     params.push(options.minStatusCode);
   }
 
   if (options.maxStatusCode !== undefined) {
-    conditions.push('status_code <= ?');
+    conditions.push("status_code <= ?");
     params.push(options.maxStatusCode);
   }
 
   if (options.hasError !== undefined) {
-    conditions.push(options.hasError ? 'error_message IS NOT NULL' : 'error_message IS NULL');
+    conditions.push(options.hasError ? "error_message IS NOT NULL" : "error_message IS NULL");
   }
 
   const limit = options.limit ?? 1000;
@@ -324,12 +314,12 @@ export function listPages(
            cwv_lcp, cwv_cls, cwv_inp, cwv_fcp, cwv_ttfb,
            error_message, crawled_at
     FROM pages
-    WHERE ${conditions.join(' AND ')}
+    WHERE ${conditions.join(" AND ")}
     ORDER BY id
     LIMIT ? OFFSET ?
-  `
+  `,
     )
-    .all(...params, limit, offset) as Array<Omit<DbPage, 'html'> & { html: null }>;
+    .all(...params, limit, offset) as Array<Omit<DbPage, "html"> & { html: null }>;
 
   return rows.map((row) => hydratePage({ ...row, html: null }));
 }
@@ -347,7 +337,7 @@ export function getPagesByStatusRange(
   db: Database.Database,
   crawlId: number,
   minStatus: number,
-  maxStatus: number
+  maxStatus: number,
 ): HydratedPage[] {
   return listPages(db, crawlId, {
     minStatusCode: minStatus,
@@ -362,10 +352,7 @@ export function getPagesByStatusRange(
  * @param crawlId - Database crawl ID
  * @returns Array of pages with errors
  */
-export function getErrorPages(
-  db: Database.Database,
-  crawlId: number
-): HydratedPage[] {
+export function getErrorPages(db: Database.Database, crawlId: number): HydratedPage[] {
   return listPages(db, crawlId, { hasError: true });
 }
 
@@ -378,7 +365,7 @@ export function getErrorPages(
  */
 export function getPageCount(db: Database.Database, crawlId: number): number {
   const result = db
-    .prepare('SELECT COUNT(*) as count FROM pages WHERE crawl_id = ?')
+    .prepare("SELECT COUNT(*) as count FROM pages WHERE crawl_id = ?")
     .get(crawlId) as { count: number };
   return result.count;
 }
@@ -392,7 +379,7 @@ export function getPageCount(db: Database.Database, crawlId: number): number {
  */
 export function getHtmlStorageStats(
   db: Database.Database,
-  crawlId: number
+  crawlId: number,
 ): { originalBytes: number; storedBytes: number; compressionRatio: number } {
   const result = db
     .prepare(
@@ -402,7 +389,7 @@ export function getHtmlStorageStats(
       COALESCE(SUM(LENGTH(html)), 0) as stored_bytes
     FROM pages
     WHERE crawl_id = ?
-  `
+  `,
     )
     .get(crawlId) as { original_bytes: number; stored_bytes: number };
 

@@ -5,8 +5,8 @@
  * The AuditsDatabase is a singleton that stores data in ~/.seomator/audits.db.
  */
 
-import { ipcMain } from 'electron';
-import { AuditsDatabase } from '@core/storage/audits-db/index.js';
+import { ipcMain } from "electron";
+import { AuditsDatabase } from "@core/storage/audits-db/index.js";
 import {
   IPC_CHANNELS,
   type DbListAuditsArgs,
@@ -15,9 +15,9 @@ import {
   type ScoreTrendPoint,
   type AuditDetailIpc,
   type RuleMetadataIpc,
-} from '../shared/ipc-types.js';
-import { getRuleById } from '@core/rules/registry.js';
-import type { AuditResult, CategoryResult, RuleResult } from '@core/types.js';
+} from "../shared/ipc-types.js";
+import { getRuleById } from "@core/rules/registry.js";
+import type { AuditResult, CategoryResult, RuleResult } from "@core/types.js";
 
 export function registerDbHandlers(): void {
   ipcMain.handle(
@@ -43,7 +43,12 @@ export function registerDbHandlers(): void {
         warningCount: s.warningCount,
         failedCount: s.failedCount,
         startedAt: s.startedAt instanceof Date ? s.startedAt.toISOString() : String(s.startedAt),
-        completedAt: s.completedAt instanceof Date ? s.completedAt.toISOString() : s.completedAt ? String(s.completedAt) : null,
+        completedAt:
+          s.completedAt instanceof Date
+            ? s.completedAt.toISOString()
+            : s.completedAt
+              ? String(s.completedAt)
+              : null,
         status: s.status,
       }));
     },
@@ -63,13 +68,10 @@ export function registerDbHandlers(): void {
     },
   );
 
-  ipcMain.handle(
-    IPC_CHANNELS.DB_GET_AUDITED_DOMAINS,
-    (): string[] => {
-      const db = AuditsDatabase.getInstance();
-      return db.getAuditedDomains();
-    },
-  );
+  ipcMain.handle(IPC_CHANNELS.DB_GET_AUDITED_DOMAINS, (): string[] => {
+    const db = AuditsDatabase.getInstance();
+    return db.getAuditedDomains();
+  });
 
   ipcMain.handle(
     IPC_CHANNELS.DB_GET_AUDIT_DETAIL,
@@ -88,7 +90,7 @@ export function registerDbHandlers(): void {
         const list = resultsByCategory.get(r.categoryId) ?? [];
         list.push({
           ruleId: r.ruleId,
-          status: r.status as RuleResult['status'],
+          status: r.status as RuleResult["status"],
           message: r.message,
           score: r.score,
           details: (r.details as Record<string, unknown>) ?? undefined,
@@ -110,9 +112,8 @@ export function registerDbHandlers(): void {
         url: audit.startUrl,
         overallScore: audit.overallScore,
         categoryResults,
-        timestamp: audit.startedAt instanceof Date
-          ? audit.startedAt.toISOString()
-          : String(audit.startedAt),
+        timestamp:
+          audit.startedAt instanceof Date ? audit.startedAt.toISOString() : String(audit.startedAt),
         crawledPages: audit.pagesAudited,
       };
 
@@ -123,7 +124,7 @@ export function registerDbHandlers(): void {
           const rule = getRuleById(r.ruleId);
           ruleMetadata[r.ruleId] = {
             name: rule?.name ?? r.ruleName,
-            description: rule?.description ?? '',
+            description: rule?.description ?? "",
           };
         }
       }

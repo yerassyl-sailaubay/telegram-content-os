@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 interface UnlabeledInput {
   /** Input type */
@@ -24,10 +24,10 @@ interface UnlabeledInput {
  * Placeholder text alone is NOT sufficient as a label.
  */
 export const formLabelsRule = defineRule({
-  id: 'a11y-form-labels',
-  name: 'Form Labels',
-  description: 'Checks that form inputs have associated labels',
-  category: 'a11y',
+  id: "a11y-form-labels",
+  name: "Form Labels",
+  description: "Checks that form inputs have associated labels",
+  category: "a11y",
   weight: 10,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -45,51 +45,51 @@ export const formLabelsRule = defineRule({
 
       if (!hasLabel($, $el)) {
         unlabeledInputs.push({
-          type: $el.attr('type') || 'text',
-          name: $el.attr('name'),
-          id: $el.attr('id'),
-          placeholder: $el.attr('placeholder'),
+          type: $el.attr("type") || "text",
+          name: $el.attr("name"),
+          id: $el.attr("id"),
+          placeholder: $el.attr("placeholder"),
         });
       }
     });
 
     // Check select elements
-    $('select').each((_, el) => {
+    $("select").each((_, el) => {
       const $el = $(el);
       labeledCount.total++;
 
       if (!hasLabel($, $el)) {
         unlabeledInputs.push({
-          type: 'select',
-          name: $el.attr('name'),
-          id: $el.attr('id'),
+          type: "select",
+          name: $el.attr("name"),
+          id: $el.attr("id"),
         });
       }
     });
 
     // Check textarea elements
-    $('textarea').each((_, el) => {
+    $("textarea").each((_, el) => {
       const $el = $(el);
       labeledCount.total++;
 
       if (!hasLabel($, $el)) {
         unlabeledInputs.push({
-          type: 'textarea',
-          name: $el.attr('name'),
-          id: $el.attr('id'),
-          placeholder: $el.attr('placeholder'),
+          type: "textarea",
+          name: $el.attr("name"),
+          id: $el.attr("id"),
+          placeholder: $el.attr("placeholder"),
         });
       }
     });
 
     if (labeledCount.total === 0) {
-      return pass('a11y-form-labels', 'No form inputs found on page', {
+      return pass("a11y-form-labels", "No form inputs found on page", {
         totalInputs: 0,
       });
     }
 
     if (unlabeledInputs.length === 0) {
-      return pass('a11y-form-labels', 'All form inputs have associated labels', {
+      return pass("a11y-form-labels", "All form inputs have associated labels", {
         totalInputs: labeledCount.total,
       });
     }
@@ -99,39 +99,39 @@ export const formLabelsRule = defineRule({
 
     // Fail if more than 30% unlabeled or more than 3 unlabeled
     if (percentUnlabeled > 30 || unlabeledInputs.length > 3) {
-      return fail('a11y-form-labels', message, {
+      return fail("a11y-form-labels", message, {
         unlabeledInputs: unlabeledInputs.slice(0, 10),
         totalUnlabeled: unlabeledInputs.length,
         totalInputs: labeledCount.total,
-        note: 'Placeholder text is not a substitute for labels',
+        note: "Placeholder text is not a substitute for labels",
       });
     }
 
-    return warn('a11y-form-labels', message, {
+    return warn("a11y-form-labels", message, {
       unlabeledInputs,
       totalInputs: labeledCount.total,
-      note: 'Placeholder text is not a substitute for labels',
+      note: "Placeholder text is not a substitute for labels",
     });
   },
 });
 
 function hasLabel($: cheerio.CheerioAPI, $el: cheerio.Cheerio<cheerio.Element>): boolean {
   // Check for aria-label
-  if ($el.attr('aria-label')?.trim()) {
+  if ($el.attr("aria-label")?.trim()) {
     return true;
   }
 
   // Check for aria-labelledby
-  const labelledBy = $el.attr('aria-labelledby');
+  const labelledBy = $el.attr("aria-labelledby");
   if (labelledBy) {
-    const labelElement = $(`#${labelledBy.split(' ')[0]}`);
+    const labelElement = $(`#${labelledBy.split(" ")[0]}`);
     if (labelElement.length > 0) {
       return true;
     }
   }
 
   // Check for associated label via id
-  const id = $el.attr('id');
+  const id = $el.attr("id");
   if (id) {
     const label = $(`label[for="${id}"]`);
     if (label.length > 0 && label.text().trim()) {
@@ -140,7 +140,7 @@ function hasLabel($: cheerio.CheerioAPI, $el: cheerio.Cheerio<cheerio.Element>):
   }
 
   // Check for wrapping label
-  const parentLabel = $el.closest('label');
+  const parentLabel = $el.closest("label");
   if (parentLabel.length > 0) {
     // Wrapping label should have text content
     const labelText = parentLabel.clone().children().remove().end().text().trim();
@@ -150,7 +150,7 @@ function hasLabel($: cheerio.CheerioAPI, $el: cheerio.Cheerio<cheerio.Element>):
   }
 
   // Check for title attribute (acceptable but not preferred)
-  if ($el.attr('title')?.trim()) {
+  if ($el.attr("title")?.trim()) {
     return true;
   }
 

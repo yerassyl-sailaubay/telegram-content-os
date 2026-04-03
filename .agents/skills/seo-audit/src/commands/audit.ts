@@ -1,7 +1,7 @@
-import chalk from 'chalk';
-import * as fs from 'fs';
-import * as path from 'path';
-import { Auditor } from '../auditor.js';
+import chalk from "chalk";
+import * as fs from "fs";
+import * as path from "path";
+import { Auditor } from "../auditor.js";
 import {
   ProgressReporter,
   renderTerminalReport,
@@ -11,9 +11,9 @@ import {
   renderLlmReport,
   outputLlmReport,
   renderBanner,
-} from '../reporters/index.js';
-import { loadConfig } from '../config/index.js';
-import { saveReport, createReport, generateId } from '../storage/index.js';
+} from "../reporters/index.js";
+import { loadConfig } from "../config/index.js";
+import { saveReport, createReport, generateId } from "../storage/index.js";
 
 export interface AuditOptions {
   categories?: string[];
@@ -28,14 +28,14 @@ export interface AuditOptions {
   resume: boolean;
   config?: string;
   save: boolean;
-  format?: 'console' | 'json' | 'html' | 'markdown' | 'llm';
+  format?: "console" | "json" | "html" | "markdown" | "llm";
   output?: string;
 }
 
 export async function runAudit(url: string, options: AuditOptions): Promise<void> {
   // Determine output format (--format takes precedence over --json)
-  const outputFormat = options.format ?? (options.json ? 'json' : 'console');
-  const isJsonMode = outputFormat === 'json';
+  const outputFormat = options.format ?? (options.json ? "json" : "console");
+  const isJsonMode = outputFormat === "json";
   const isCrawlMode = options.crawl;
   const isVerbose = options.verbose;
   const measureCwv = options.cwv !== false;
@@ -63,7 +63,7 @@ export async function runAudit(url: string, options: AuditOptions): Promise<void
 
   try {
     // Show banner (only for console output)
-    if (outputFormat === 'console') {
+    if (outputFormat === "console") {
       renderBanner({
         url,
         configPath: options.config,
@@ -101,7 +101,11 @@ export async function runAudit(url: string, options: AuditOptions): Promise<void
 
     if (isCrawlMode) {
       progress.startCrawlProgress(config.crawler.max_pages);
-      result = await auditor.auditWithCrawl(url, config.crawler.max_pages, config.crawler.concurrency);
+      result = await auditor.auditWithCrawl(
+        url,
+        config.crawler.max_pages,
+        config.crawler.concurrency,
+      );
     } else {
       result = await auditor.audit(url);
     }
@@ -114,55 +118,57 @@ export async function runAudit(url: string, options: AuditOptions): Promise<void
     const elapsedSec = (elapsedMs / 1000).toFixed(1);
 
     // Show completion message (for non-JSON output)
-    if (outputFormat === 'console' || (isVerbose && !isJsonMode)) {
-      const pageText = result.crawledPages === 1 ? 'page' : 'pages';
+    if (outputFormat === "console" || (isVerbose && !isJsonMode)) {
+      const pageText = result.crawledPages === 1 ? "page" : "pages";
       console.log();
-      console.log(chalk.green(`\u2713 Audited ${result.crawledPages} ${pageText} in ${elapsedSec}s`));
+      console.log(
+        chalk.green(`\u2713 Audited ${result.crawledPages} ${pageText} in ${elapsedSec}s`),
+      );
     }
 
     // Save report if requested
     if (shouldSave) {
       const report = createReport(
-        '', // No crawl ID for inline audits
+        "", // No crawl ID for inline audits
         url,
-        config.project.name || 'default',
+        config.project.name || "default",
         config,
         result.overallScore,
-        result.categoryResults
+        result.categoryResults,
       );
       saveReport(process.cwd(), report);
     }
 
     // Output results based on format
     switch (outputFormat) {
-      case 'json':
+      case "json":
         if (outputPath) {
-          fs.writeFileSync(outputPath, JSON.stringify(result, null, 2), 'utf-8');
+          fs.writeFileSync(outputPath, JSON.stringify(result, null, 2), "utf-8");
           console.log(chalk.green(`Report saved to: ${outputPath}`));
         } else {
           outputJsonReport(result);
         }
         break;
 
-      case 'html': {
+      case "html": {
         const htmlContent = renderHtmlReport(result);
         const htmlPath = outputPath ?? `seo-report-${generateId()}.html`;
-        fs.writeFileSync(htmlPath, htmlContent, 'utf-8');
+        fs.writeFileSync(htmlPath, htmlContent, "utf-8");
         console.log(chalk.green(`HTML report saved to: ${htmlPath}`));
         break;
       }
 
-      case 'markdown': {
+      case "markdown": {
         const mdContent = renderMarkdownReport(result);
         const mdPath = outputPath ?? `seo-report-${generateId()}.md`;
-        fs.writeFileSync(mdPath, mdContent, 'utf-8');
+        fs.writeFileSync(mdPath, mdContent, "utf-8");
         console.log(chalk.green(`Markdown report saved to: ${mdPath}`));
         break;
       }
 
-      case 'llm':
+      case "llm":
         if (outputPath) {
-          fs.writeFileSync(outputPath, renderLlmReport(result), 'utf-8');
+          fs.writeFileSync(outputPath, renderLlmReport(result), "utf-8");
           // Use stderr for status message so stdout stays clean for piping
           console.error(chalk.green(`LLM report saved to: ${outputPath}`));
         } else {
@@ -170,7 +176,7 @@ export async function runAudit(url: string, options: AuditOptions): Promise<void
         }
         break;
 
-      case 'console':
+      case "console":
       default:
         renderTerminalReport(result);
         break;
@@ -184,12 +190,14 @@ export async function runAudit(url: string, options: AuditOptions): Promise<void
 
     if (!isJsonMode) {
       console.error();
-      console.error(chalk.red('Error: ') + (error instanceof Error ? error.message : 'Unknown error'));
+      console.error(
+        chalk.red("Error: ") + (error instanceof Error ? error.message : "Unknown error"),
+      );
       console.error();
     } else {
       const errorOutput = {
         error: true,
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: error instanceof Error ? error.message : "Unknown error",
         timestamp: new Date().toISOString(),
       };
       console.log(JSON.stringify(errorOutput, null, 2));

@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * CSS file count thresholds
@@ -21,12 +21,12 @@ interface CssAnalysis {
 /**
  * Analyze CSS usage on the page
  */
-function analyzeCss($: AuditContext['$']): CssAnalysis {
+function analyzeCss($: AuditContext["$"]): CssAnalysis {
   const externalUrls: string[] = [];
 
   // Count external stylesheets
   $('link[rel="stylesheet"]').each((_, el) => {
-    const href = $(el).attr('href');
+    const href = $(el).attr("href");
     if (href) {
       externalUrls.push(href);
     }
@@ -35,8 +35,8 @@ function analyzeCss($: AuditContext['$']): CssAnalysis {
   // Calculate inline CSS size
   let inlineCssBytes = 0;
   let inlineStyleCount = 0;
-  $('style').each((_, el) => {
-    const content = $(el).html() || '';
+  $("style").each((_, el) => {
+    const content = $(el).html() || "";
     inlineCssBytes += content.length;
     inlineStyleCount++;
   });
@@ -64,35 +64,37 @@ function analyzeCss($: AuditContext['$']): CssAnalysis {
  * - Inline CSS should be <50KB
  */
 export const cssFileSizeRule = defineRule({
-  id: 'perf-css-file-size',
-  name: 'CSS File Size',
-  description: 'Checks CSS file count and inline CSS size for performance',
-  category: 'perf',
+  id: "perf-css-file-size",
+  name: "CSS File Size",
+  description: "Checks CSS file count and inline CSS size for performance",
+  category: "perf",
   weight: 10,
   run: (context: AuditContext) => {
     const { $ } = context;
     const analysis = analyzeCss($);
 
     const issues: string[] = [];
-    let severity: 'pass' | 'warn' | 'fail' = 'pass';
+    let severity: "pass" | "warn" | "fail" = "pass";
 
     // Check external CSS count
     if (analysis.externalCount > THRESHOLDS.externalFiles.warning) {
-      issues.push(`${analysis.externalCount} external CSS files (recommended: <=${THRESHOLDS.externalFiles.good})`);
-      severity = 'fail';
+      issues.push(
+        `${analysis.externalCount} external CSS files (recommended: <=${THRESHOLDS.externalFiles.good})`,
+      );
+      severity = "fail";
     } else if (analysis.externalCount > THRESHOLDS.externalFiles.good) {
       issues.push(`${analysis.externalCount} external CSS files - consider bundling`);
-      severity = 'warn';
+      severity = "warn";
     }
 
     // Check inline CSS size
     const inlineCssKb = Math.round(analysis.inlineCssBytes / 1024);
     if (inlineCssKb > THRESHOLDS.inlineCssKb.warning) {
       issues.push(`${inlineCssKb}KB inline CSS (recommended: <${THRESHOLDS.inlineCssKb.good}KB)`);
-      if (severity !== 'fail') severity = 'fail';
+      if (severity !== "fail") severity = "fail";
     } else if (inlineCssKb > THRESHOLDS.inlineCssKb.good) {
       issues.push(`${inlineCssKb}KB inline CSS - consider extracting to external file`);
-      if (severity === 'pass') severity = 'warn';
+      if (severity === "pass") severity = "warn";
     }
 
     const details = {
@@ -104,18 +106,19 @@ export const cssFileSizeRule = defineRule({
       thresholds: THRESHOLDS,
     };
 
-    if (severity === 'fail') {
-      return fail('perf-css-file-size', `CSS optimization needed: ${issues.join('; ')}`, details);
+    if (severity === "fail") {
+      return fail("perf-css-file-size", `CSS optimization needed: ${issues.join("; ")}`, details);
     }
 
-    if (severity === 'warn') {
-      return warn('perf-css-file-size', `CSS could be optimized: ${issues.join('; ')}`, details);
+    if (severity === "warn") {
+      return warn("perf-css-file-size", `CSS could be optimized: ${issues.join("; ")}`, details);
     }
 
-    const summary = analysis.externalCount === 0
-      ? 'No external CSS files (inline only)'
-      : `${analysis.externalCount} CSS file(s), ${inlineCssKb}KB inline`;
+    const summary =
+      analysis.externalCount === 0
+        ? "No external CSS files (inline only)"
+        : `${analysis.externalCount} CSS file(s), ${inlineCssKb}KB inline`;
 
-    return pass('perf-css-file-size', `CSS is well optimized: ${summary}`, details);
+    return pass("perf-css-file-size", `CSS is well optimized: ${summary}`, details);
   },
 });

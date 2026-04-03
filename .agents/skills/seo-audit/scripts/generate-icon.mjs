@@ -7,13 +7,13 @@
  * Usage: node scripts/generate-icon.mjs
  */
 
-import { chromium } from 'playwright';
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { chromium } from "playwright";
+import { writeFileSync, mkdirSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const resourcesDir = join(__dirname, '..', 'electron', 'resources');
+const resourcesDir = join(__dirname, "..", "electron", "resources");
 
 if (!existsSync(resourcesDir)) {
   mkdirSync(resourcesDir, { recursive: true });
@@ -99,25 +99,25 @@ const html = `<!DOCTYPE html>
 </html>`;
 
 async function generateIcon() {
-  console.log('Launching browser...');
+  console.log("Launching browser...");
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({
     viewport: { width: SIZE, height: SIZE },
     deviceScaleFactor: 1,
   });
 
-  await page.setContent(html, { waitUntil: 'networkidle' });
+  await page.setContent(html, { waitUntil: "networkidle" });
 
-  const iconPath = join(resourcesDir, 'icon.png');
-  const buffer = await page.screenshot({ type: 'png', omitBackground: true });
+  const iconPath = join(resourcesDir, "icon.png");
+  const buffer = await page.screenshot({ type: "png", omitBackground: true });
   writeFileSync(iconPath, buffer);
   console.log(`✓ icon.png (${SIZE}x${SIZE}) → ${iconPath}`);
 
   await browser.close();
-  console.log('Done! electron-builder will auto-convert to .icns / .ico');
+  console.log("Done! electron-builder will auto-convert to .icns / .ico");
 }
 
 generateIcon().catch((err) => {
-  console.error('Failed to generate icon:', err.message);
+  console.error("Failed to generate icon:", err.message);
   process.exit(1);
 });

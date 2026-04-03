@@ -1,13 +1,13 @@
-import chalk from 'chalk';
-import type { AuditResult, CategoryResult, RuleResult } from '../types.js';
-import { getCategoryById } from '../categories/index.js';
+import chalk from "chalk";
+import type { AuditResult, CategoryResult, RuleResult } from "../types.js";
+import { getCategoryById } from "../categories/index.js";
 import {
   getLetterGrade,
   formatScoreWithGrade,
   renderCompactBar,
   getScoreColor,
   renderSeparator,
-} from './banner.js';
+} from "./banner.js";
 
 /**
  * Grouped issue for display
@@ -15,7 +15,7 @@ import {
 interface GroupedIssue {
   ruleId: string;
   ruleName: string;
-  status: 'warn' | 'fail';
+  status: "warn" | "fail";
   message: string;
   pages: string[];
   details: Array<{ key: string; value: string }>;
@@ -51,14 +51,14 @@ function getPageUrl(result: RuleResult): string | null {
 function normalizeMessage(message: string): string {
   // Remove specific numbers that vary (like "20 chars" -> "X chars")
   return message
-    .replace(/\d+ chars?/g, 'X chars')
-    .replace(/\d+ words?/g, 'X words')
-    .replace(/\d+ images?/g, 'X images')
-    .replace(/\d+ links?/g, 'X links')
-    .replace(/\d+px/g, 'Xpx')
-    .replace(/\d+ms/g, 'Xms')
-    .replace(/\d+KB/g, 'XKB')
-    .replace(/\d+\.\d+s/g, 'X.Xs');
+    .replace(/\d+ chars?/g, "X chars")
+    .replace(/\d+ words?/g, "X words")
+    .replace(/\d+ images?/g, "X images")
+    .replace(/\d+ links?/g, "X links")
+    .replace(/\d+px/g, "Xpx")
+    .replace(/\d+ms/g, "Xms")
+    .replace(/\d+KB/g, "XKB")
+    .replace(/\d+\.\d+s/g, "X.Xs");
 }
 
 /**
@@ -72,7 +72,7 @@ function groupIssuesByCategory(result: AuditResult): CategoryIssues[] {
     const categoryName = category?.name ?? categoryResult.categoryId;
 
     for (const ruleResult of categoryResult.results) {
-      if (ruleResult.status === 'pass') continue;
+      if (ruleResult.status === "pass") continue;
 
       // Get or create category entry
       if (!categoryMap.has(categoryResult.categoryId)) {
@@ -88,7 +88,7 @@ function groupIssuesByCategory(result: AuditResult): CategoryIssues[] {
       const categoryIssues = categoryMap.get(categoryResult.categoryId)!;
 
       // Update counts
-      if (ruleResult.status === 'fail') {
+      if (ruleResult.status === "fail") {
         categoryIssues.errorCount++;
       } else {
         categoryIssues.warningCount++;
@@ -99,15 +99,16 @@ function groupIssuesByCategory(result: AuditResult): CategoryIssues[] {
       const groupKey = `${ruleResult.ruleId}:${normalizedMsg}`;
 
       let existingIssue = categoryIssues.issues.find(
-        (i) => `${i.ruleId}:${normalizeMessage(i.message)}` === groupKey
+        (i) => `${i.ruleId}:${normalizeMessage(i.message)}` === groupKey,
       );
 
       if (!existingIssue) {
         existingIssue = {
           ruleId: ruleResult.ruleId,
-          ruleName: ruleResult.ruleId.split('-').map(w =>
-            w.charAt(0).toUpperCase() + w.slice(1)
-          ).join(' '),
+          ruleName: ruleResult.ruleId
+            .split("-")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" "),
           status: ruleResult.status,
           message: ruleResult.message,
           pages: [],
@@ -125,12 +126,10 @@ function groupIssuesByCategory(result: AuditResult): CategoryIssues[] {
       // Collect non-URL details
       if (ruleResult.details) {
         for (const [key, value] of Object.entries(ruleResult.details)) {
-          if (key === 'pageUrl' || key === 'url') continue;
-          const strValue = typeof value === 'object'
-            ? JSON.stringify(value)
-            : String(value);
+          if (key === "pageUrl" || key === "url") continue;
+          const strValue = typeof value === "object" ? JSON.stringify(value) : String(value);
           // Only add if not already present
-          if (!existingIssue.details.some(d => d.key === key && d.value === strValue)) {
+          if (!existingIssue.details.some((d) => d.key === key && d.value === strValue)) {
             existingIssue.details.push({ key, value: strValue });
           }
         }
@@ -149,8 +148,8 @@ function groupIssuesByCategory(result: AuditResult): CategoryIssues[] {
   // Sort issues within each category: errors first, then warnings
   for (const cat of categories) {
     cat.issues.sort((a, b) => {
-      if (a.status === 'fail' && b.status === 'warn') return -1;
-      if (a.status === 'warn' && b.status === 'fail') return 1;
+      if (a.status === "fail" && b.status === "warn") return -1;
+      if (a.status === "warn" && b.status === "fail") return 1;
       return 0;
     });
   }
@@ -161,7 +160,7 @@ function groupIssuesByCategory(result: AuditResult): CategoryIssues[] {
 /**
  * Render pages list with "+N more" truncation
  */
-function renderPagesList(pages: string[], maxItems = 5, indent = '      '): void {
+function renderPagesList(pages: string[], maxItems = 5, indent = "      "): void {
   const displayPages = pages.slice(0, maxItems);
 
   for (const page of displayPages) {
@@ -169,7 +168,7 @@ function renderPagesList(pages: string[], maxItems = 5, indent = '      '): void
     let displayUrl = page;
     try {
       const url = new URL(page);
-      displayUrl = url.pathname || '/';
+      displayUrl = url.pathname || "/";
     } catch {
       // Keep original if not a valid URL
     }
@@ -184,12 +183,16 @@ function renderPagesList(pages: string[], maxItems = 5, indent = '      '): void
 /**
  * Render details list with truncation
  */
-function renderDetailsList(details: Array<{ key: string; value: string }>, maxItems = 5, indent = '      '): void {
+function renderDetailsList(
+  details: Array<{ key: string; value: string }>,
+  maxItems = 5,
+  indent = "      ",
+): void {
   const displayDetails = details.slice(0, maxItems);
 
   for (const { key, value } of displayDetails) {
     // Truncate long values
-    const truncated = value.length > 60 ? value.substring(0, 57) + '...' : value;
+    const truncated = value.length > 60 ? value.substring(0, 57) + "..." : value;
     console.log(chalk.gray(`${indent}→ ${truncated}`));
   }
 
@@ -207,25 +210,25 @@ export function renderTerminalReport(result: AuditResult): void {
 
   // Report header
   console.log(renderSeparator(50));
-  console.log(chalk.bold('SEOMATOR REPORT'));
+  console.log(chalk.bold("SEOMATOR REPORT"));
 
   // URL, pages, and score in one line
   const domain = extractDomain(result.url);
-  const pageInfo = result.crawledPages > 1 ? `${result.crawledPages} pages` : '1 page';
+  const pageInfo = result.crawledPages > 1 ? `${result.crawledPages} pages` : "1 page";
   console.log(
-    `${chalk.white(domain)} ${chalk.gray('•')} ${chalk.gray(pageInfo)} ${chalk.gray('•')} ${formatScoreWithGrade(result.overallScore)}`
+    `${chalk.white(domain)} ${chalk.gray("•")} ${chalk.gray(pageInfo)} ${chalk.gray("•")} ${formatScoreWithGrade(result.overallScore)}`,
   );
   console.log(renderSeparator(50));
   console.log();
 
   // Health Score
   const { grade, color } = getLetterGrade(result.overallScore);
-  console.log(`${chalk.bold('Health Score:')} ${color(`${result.overallScore}/100 (${grade})`)}`);
+  console.log(`${chalk.bold("Health Score:")} ${color(`${result.overallScore}/100 (${grade})`)}`);
   console.log();
 
   // Category Breakdown
-  console.log(chalk.bold('Category Breakdown:'));
-  console.log(chalk.gray('-'.repeat(50)));
+  console.log(chalk.bold("Category Breakdown:"));
+  console.log(chalk.gray("-".repeat(50)));
 
   // Sort categories by score (worst first for priority)
   const sortedCategories = [...result.categoryResults].sort((a, b) => a.score - b.score);
@@ -238,17 +241,15 @@ export function renderTerminalReport(result: AuditResult): void {
 
     // Category name and progress bar
     console.log(
-      `${categoryName.padEnd(20)} ${scoreColor(bar)} ${scoreColor(`${categoryResult.score}%`)}`
+      `${categoryName.padEnd(20)} ${scoreColor(bar)} ${scoreColor(`${categoryResult.score}%`)}`,
     );
 
     // Pass/warn/fail counts on second line
     const passStr = chalk.green(`Passed: ${categoryResult.passCount}`);
-    const warnStr = categoryResult.warnCount > 0
-      ? chalk.yellow(` | Warnings: ${categoryResult.warnCount}`)
-      : '';
-    const failStr = categoryResult.failCount > 0
-      ? chalk.red(` | Failed: ${categoryResult.failCount}`)
-      : '';
+    const warnStr =
+      categoryResult.warnCount > 0 ? chalk.yellow(` | Warnings: ${categoryResult.warnCount}`) : "";
+    const failStr =
+      categoryResult.failCount > 0 ? chalk.red(` | Failed: ${categoryResult.failCount}`) : "";
     console.log(`  ${passStr}${warnStr}${failStr}`);
   }
 
@@ -259,50 +260,54 @@ export function renderTerminalReport(result: AuditResult): void {
   const totalWarnings = result.categoryResults.reduce((sum, cat) => sum + cat.warnCount, 0);
   const totalFailures = result.categoryResults.reduce((sum, cat) => sum + cat.failCount, 0);
 
-  console.log(chalk.gray(`Total: ${totalPassed} passed, ${totalWarnings} warnings, ${totalFailures} errors`));
+  console.log(
+    chalk.gray(`Total: ${totalPassed} passed, ${totalWarnings} warnings, ${totalFailures} errors`),
+  );
   console.log();
 
   // Grouped Issues
   const groupedIssues = groupIssuesByCategory(result);
 
   if (groupedIssues.length > 0) {
-    console.log(chalk.bold('ISSUES'));
+    console.log(chalk.bold("ISSUES"));
     console.log();
 
     for (const categoryIssues of groupedIssues) {
       // Category header with counts
-      const errorPart = categoryIssues.errorCount > 0
-        ? chalk.red(`${categoryIssues.errorCount} errors`)
-        : '';
-      const warningPart = categoryIssues.warningCount > 0
-        ? chalk.yellow(`${categoryIssues.warningCount} warnings`)
-        : '';
-      const separator = errorPart && warningPart ? ', ' : '';
+      const errorPart =
+        categoryIssues.errorCount > 0 ? chalk.red(`${categoryIssues.errorCount} errors`) : "";
+      const warningPart =
+        categoryIssues.warningCount > 0
+          ? chalk.yellow(`${categoryIssues.warningCount} warnings`)
+          : "";
+      const separator = errorPart && warningPart ? ", " : "";
 
-      console.log(chalk.bold(`${categoryIssues.categoryName}`) + chalk.gray(` (${errorPart}${separator}${warningPart})`));
+      console.log(
+        chalk.bold(`${categoryIssues.categoryName}`) +
+          chalk.gray(` (${errorPart}${separator}${warningPart})`),
+      );
 
       for (const issue of categoryIssues.issues) {
         // Issue type indicator
-        const typeLabel = issue.status === 'fail'
-          ? chalk.red('(error)')
-          : chalk.yellow('(warning)');
+        const typeLabel =
+          issue.status === "fail" ? chalk.red("(error)") : chalk.yellow("(warning)");
 
         // Rule ID and name
         console.log(`  ${chalk.gray(issue.ruleId)} ${issue.ruleName} ${typeLabel}`);
 
         // Status icon and message
-        const icon = issue.status === 'fail' ? chalk.red('✗') : chalk.yellow('⚠');
-        const pageCount = issue.pages.length > 1 ? ` (${issue.pages.length} pages)` : '';
+        const icon = issue.status === "fail" ? chalk.red("✗") : chalk.yellow("⚠");
+        const pageCount = issue.pages.length > 1 ? ` (${issue.pages.length} pages)` : "";
         console.log(`    ${icon} ${issue.ruleId}: ${issue.message}${chalk.gray(pageCount)}`);
 
         // Show affected pages
         if (issue.pages.length > 0) {
-          renderPagesList(issue.pages, 5, '      ');
+          renderPagesList(issue.pages, 5, "      ");
         }
 
         // Show other details
         if (issue.details.length > 0 && issue.pages.length === 0) {
-          renderDetailsList(issue.details, 5, '      ');
+          renderDetailsList(issue.details, 5, "      ");
         }
       }
       console.log();
@@ -312,9 +317,9 @@ export function renderTerminalReport(result: AuditResult): void {
   // Summary footer
   console.log(renderSeparator(50));
   console.log(
-    `${chalk.green(`${totalPassed} passed`)} ${chalk.gray('•')} ` +
-    `${chalk.yellow(`${totalWarnings} warnings`)} ${chalk.gray('•')} ` +
-    `${chalk.red(`${totalFailures} failed`)}`
+    `${chalk.green(`${totalPassed} passed`)} ${chalk.gray("•")} ` +
+      `${chalk.yellow(`${totalWarnings} warnings`)} ${chalk.gray("•")} ` +
+      `${chalk.red(`${totalFailures} failed`)}`,
   );
   console.log(renderSeparator(50));
   console.log();
@@ -325,7 +330,7 @@ export function renderTerminalReport(result: AuditResult): void {
  */
 function extractDomain(url: string): string {
   try {
-    const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
     return parsed.hostname;
   } catch {
     return url;

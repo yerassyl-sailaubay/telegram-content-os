@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { estimatePixelWidth } from './utils/pixel-width.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { estimatePixelWidth } from "./utils/pixel-width.js";
 
 /**
  * Google SERP title pixel width thresholds
@@ -17,27 +17,22 @@ const MAX_WARN_WIDTH = 620;
  * reducing click-through rates and hiding important keywords.
  */
 export const titlePixelWidthRule = defineRule({
-  id: 'content-title-pixel-width',
-  name: 'Title Pixel Width',
-  description:
-    'Estimates title tag pixel width to predict SERP truncation',
-  category: 'content',
+  id: "content-title-pixel-width",
+  name: "Title Pixel Width",
+  description: "Estimates title tag pixel width to predict SERP truncation",
+  category: "content",
   weight: 7,
   run: async (context: AuditContext) => {
     const { $ } = context;
 
-    const title = $('title').text().trim();
+    const title = $("title").text().trim();
 
     if (!title) {
       // Missing title is handled by core rules
-      return pass(
-        'content-title-pixel-width',
-        'No title tag found (handled by core rules)',
-        {
-          title: null,
-          reason: 'skipped',
-        }
-      );
+      return pass("content-title-pixel-width", "No title tag found (handled by core rules)", {
+        title: null,
+        reason: "skipped",
+      });
     }
 
     const estimatedWidth = estimatePixelWidth(title);
@@ -54,36 +49,35 @@ export const titlePixelWidthRule = defineRule({
 
     if (estimatedWidth > MAX_WARN_WIDTH) {
       return fail(
-        'content-title-pixel-width',
+        "content-title-pixel-width",
         `Title will be truncated in SERP: estimated ${estimatedWidth}px (max ~${MAX_GOOD_WIDTH}px)`,
         {
           ...details,
           impact:
-            'Truncated titles hide important keywords and reduce click-through rates in search results',
+            "Truncated titles hide important keywords and reduce click-through rates in search results",
           recommendation:
-            'Shorten the title to fit within 580px. Move the most important keywords to the beginning.',
-        }
+            "Shorten the title to fit within 580px. Move the most important keywords to the beginning.",
+        },
       );
     }
 
     if (estimatedWidth > MAX_GOOD_WIDTH) {
       return warn(
-        'content-title-pixel-width',
+        "content-title-pixel-width",
         `Title may be truncated in SERP: estimated ${estimatedWidth}px (max ~${MAX_GOOD_WIDTH}px)`,
         {
           ...details,
-          impact:
-            'Title is borderline and may be truncated depending on the exact font rendering',
+          impact: "Title is borderline and may be truncated depending on the exact font rendering",
           recommendation:
-            'Consider trimming a few characters to ensure the title displays fully in search results',
-        }
+            "Consider trimming a few characters to ensure the title displays fully in search results",
+        },
       );
     }
 
     return pass(
-      'content-title-pixel-width',
+      "content-title-pixel-width",
       `Title fits within SERP display: estimated ${estimatedWidth}px`,
-      details
+      details,
     );
   },
 });

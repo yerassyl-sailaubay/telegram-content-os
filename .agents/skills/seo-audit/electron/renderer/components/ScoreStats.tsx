@@ -12,7 +12,12 @@ export function ScoreStats({ passCount, warnCount, failCount }: ScoreStatsProps)
   return (
     <div className="flex gap-4">
       <StatBadge count={failCount} label="Failed" colorVar="--color-fail" bgVar="--color-fail-bg" />
-      <StatBadge count={warnCount} label="Warnings" colorVar="--color-warn" bgVar="--color-warn-bg" />
+      <StatBadge
+        count={warnCount}
+        label="Warnings"
+        colorVar="--color-warn"
+        bgVar="--color-warn-bg"
+      />
       <StatBadge count={passCount} label="Passed" colorVar="--color-pass" bgVar="--color-pass-bg" />
     </div>
   );
@@ -31,7 +36,7 @@ function StatBadge({
 }) {
   return (
     <div
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+      className="flex items-center gap-2 rounded-lg px-3 py-1.5"
       style={{ backgroundColor: `var(${bgVar})` }}
     >
       <span className="text-lg font-bold" style={{ color: `var(${colorVar})` }}>

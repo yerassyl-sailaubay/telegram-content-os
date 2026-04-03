@@ -1,12 +1,19 @@
-import chalk from 'chalk';
-import * as cheerio from 'cheerio';
-import { Auditor } from '../auditor.js';
-import { loadConfig } from '../config/index.js';
-import { loadCrawl, getLatestCrawl, saveReport, createReport, type StoredCrawl, type StoredPage } from '../storage/index.js';
-import { ProgressReporter, renderTerminalReport, outputJsonReport } from '../reporters/index.js';
-import { buildAuditResult } from '../scoring.js';
-import { loadAllRules } from '../rules/loader.js';
-import type { AuditContext, LinkInfo, ImageInfo } from '../types.js';
+import chalk from "chalk";
+import * as cheerio from "cheerio";
+import { Auditor } from "../auditor.js";
+import { loadConfig } from "../config/index.js";
+import {
+  loadCrawl,
+  getLatestCrawl,
+  saveReport,
+  createReport,
+  type StoredCrawl,
+  type StoredPage,
+} from "../storage/index.js";
+import { ProgressReporter, renderTerminalReport, outputJsonReport } from "../reporters/index.js";
+import { buildAuditResult } from "../scoring.js";
+import { loadAllRules } from "../rules/loader.js";
+import type { AuditContext, LinkInfo, ImageInfo } from "../types.js";
 
 export interface AnalyzeOptions {
   categories?: string[];
@@ -27,15 +34,15 @@ function createContextFromStoredPage(page: StoredPage): AuditContext {
   const links: LinkInfo[] = [];
   const baseUrl = new URL(page.url);
 
-  $('a[href]').each((_, el) => {
-    const href = $(el).attr('href') || '';
+  $("a[href]").each((_, el) => {
+    const href = $(el).attr("href") || "";
     const text = $(el).text().trim();
 
     try {
       const linkUrl = new URL(href, page.url);
       const isInternal = linkUrl.hostname === baseUrl.hostname;
-      const rel = $(el).attr('rel') || '';
-      const isNoFollow = rel.includes('nofollow');
+      const rel = $(el).attr("rel") || "";
+      const isNoFollow = rel.includes("nofollow");
 
       links.push({ href: linkUrl.href, text, isInternal, isNoFollow });
     } catch {
@@ -45,17 +52,17 @@ function createContextFromStoredPage(page: StoredPage): AuditContext {
 
   // Extract images
   const images: ImageInfo[] = [];
-  $('img').each((_, el) => {
-    const src = $(el).attr('src') || '';
-    const alt = $(el).attr('alt') || '';
+  $("img").each((_, el) => {
+    const src = $(el).attr("src") || "";
+    const alt = $(el).attr("alt") || "";
 
     images.push({
       src,
       alt,
-      hasAlt: $(el).attr('alt') !== undefined,
-      width: $(el).attr('width'),
-      height: $(el).attr('height'),
-      isLazyLoaded: $(el).attr('loading') === 'lazy',
+      hasAlt: $(el).attr("alt") !== undefined,
+      width: $(el).attr("width"),
+      height: $(el).attr("height"),
+      isLazyLoaded: $(el).attr("loading") === "lazy",
     });
   });
 
@@ -75,7 +82,10 @@ function createContextFromStoredPage(page: StoredPage): AuditContext {
 /**
  * Run analysis on stored crawl data
  */
-export async function runAnalyze(crawlId: string | undefined, options: AnalyzeOptions): Promise<void> {
+export async function runAnalyze(
+  crawlId: string | undefined,
+  options: AnalyzeOptions,
+): Promise<void> {
   const { config } = loadConfig(process.cwd());
   const baseDir = process.cwd();
 
@@ -85,7 +95,7 @@ export async function runAnalyze(crawlId: string | undefined, options: AnalyzeOp
   if (options.latest || !crawlId) {
     crawl = getLatestCrawl(baseDir);
     if (!crawl) {
-      console.error(chalk.red('No crawls found. Run `seomator crawl <url>` first.'));
+      console.error(chalk.red("No crawls found. Run `seomator crawl <url>` first."));
       process.exit(1);
     }
   } else {
@@ -96,7 +106,7 @@ export async function runAnalyze(crawlId: string | undefined, options: AnalyzeOp
     }
   }
 
-  console.log(chalk.blue('Analyzing crawl...'));
+  console.log(chalk.blue("Analyzing crawl..."));
   console.log(`  Crawl ID: ${crawl.id}`);
   console.log(`  URL: ${crawl.url}`);
   console.log(`  Pages: ${crawl.pages.length}`);
@@ -125,7 +135,7 @@ export async function runAnalyze(crawlId: string | undefined, options: AnalyzeOp
     // Analyze first page for now (multi-page analysis would need aggregation)
     const firstPage = crawl.pages[0];
     if (!firstPage) {
-      console.error(chalk.red('No pages in crawl data.'));
+      console.error(chalk.red("No pages in crawl data."));
       process.exit(1);
     }
 
@@ -141,7 +151,7 @@ export async function runAnalyze(crawlId: string | undefined, options: AnalyzeOp
       categoryResults,
       auditor.getCategoriesToAudit(),
       timestamp,
-      crawl.pages.length
+      crawl.pages.length,
     );
 
     progress.stop();
@@ -154,7 +164,7 @@ export async function runAnalyze(crawlId: string | undefined, options: AnalyzeOp
         crawl.project,
         config,
         result.overallScore,
-        result.categoryResults
+        result.categoryResults,
       );
       saveReport(baseDir, report);
       console.log(chalk.green(`Report saved: ${report.id}`));
@@ -171,7 +181,10 @@ export async function runAnalyze(crawlId: string | undefined, options: AnalyzeOp
     process.exit(exitCode);
   } catch (error) {
     progress.stop();
-    console.error(chalk.red('Analysis failed:'), error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      chalk.red("Analysis failed:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(2);
   }
 }

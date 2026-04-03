@@ -434,6 +434,18 @@ async function findChannelByTelegramChatId(
 async function storeSinglePost(channelDbId: string, message: TelegramMessage): Promise<string> {
   const db = await getDb();
   const { telegramPosts } = await getSchema();
+  const eq = await getEq();
+
+  const existingRows = await db
+    .select({ id: telegramPosts.id, channelId: telegramPosts.channelId })
+    .from(telegramPosts)
+    .where(eq(telegramPosts.telegramMessageId, message.message_id))
+    .limit(5);
+
+  const existing = existingRows.find((row) => row.channelId === channelDbId);
+  if (existing) {
+    return existing.id;
+  }
 
   const contentRaw = message.text ?? message.caption ?? "";
   const mediaUrls = extractMediaUrls(message);
@@ -471,6 +483,7 @@ async function flushMediaGroup(groupId: string): Promise<void> {
   const db = await getDb();
   const { telegramPosts } = await getSchema();
   const inngest = await getInngest();
+  const eq = await getEq();
 
   // Sort messages by message_id to preserve order
   const sorted = [...batch.messages].sort((a, b) => a.message_id - b.message_id);
@@ -494,6 +507,16 @@ async function flushMediaGroup(groupId: string): Promise<void> {
     messages: sorted.map(buildContentParsed),
   };
 
+  const existingRows = await db
+    .select({ id: telegramPosts.id, channelId: telegramPosts.channelId })
+    .from(telegramPosts)
+    .where(eq(telegramPosts.telegramMessageId, first.message_id))
+    .limit(5);
+  const existingPostId = existingRows.find((row) => row.channelId === batch.channelDbId)?.id;
+  if (existingPostId) {
+    return;
+  }
+
   const rows = await db
     .insert(telegramPosts)
     .values({
@@ -508,7 +531,20 @@ async function flushMediaGroup(groupId: string): Promise<void> {
     })
     .returning({ id: telegramPosts.id });
 
-  const postId = rows[0]!.id;
+  const insertedRow = rows[0];
+  const postId =
+    insertedRow?.id ??
+    (
+      await db
+        .select({ id: telegramPosts.id, channelId: telegramPosts.channelId })
+        .from(telegramPosts)
+        .where(eq(telegramPosts.telegramMessageId, first.message_id))
+        .limit(5)
+    ).find((row) => row.channelId === batch.channelDbId)?.id;
+
+  if (!postId) {
+    return;
+  }
 
   // Fire Inngest event for the batched post
   await inngest.send({
@@ -716,7 +752,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 async function updateExistingPost(channelDbId: string, message: TelegramMessage): Promise<void> {
   const db = await getDb();
   const { telegramPosts } = await getSchema();
-  const eq = await getEq();
+  const { eq, and } = await getDrizzleOps();
 
   const contentRaw = message.text ?? message.caption ?? "";
   const mediaUrls = extractMediaUrls(message);
@@ -732,7 +768,12 @@ async function updateExistingPost(channelDbId: string, message: TelegramMessage)
       views: message.views ?? 0,
       forwards: message.forwards ?? 0,
     })
-    .where(eq(telegramPosts.telegramMessageId, message.message_id))
+    .where(
+      and(
+        eq(telegramPosts.channelId, channelDbId),
+        eq(telegramPosts.telegramMessageId, message.message_id),
+      ),
+    )
     .returning({ id: telegramPosts.id });
 
   // If no post was updated, it might be a new post we missed

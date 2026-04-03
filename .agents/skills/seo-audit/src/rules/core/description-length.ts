@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 const MIN_LENGTH = 120;
 const MAX_LENGTH = 160;
@@ -8,10 +8,10 @@ const MAX_LENGTH = 160;
  * Rule: Check that the meta description is within the recommended length (120-160 characters)
  */
 export const descriptionLengthRule = defineRule({
-  id: 'core-description-length',
-  name: 'Meta Description Length',
+  id: "core-description-length",
+  name: "Meta Description Length",
   description: `Checks that the meta description is between ${MIN_LENGTH} and ${MAX_LENGTH} characters`,
-  category: 'core',
+  category: "core",
   weight: 1,
   run: async (context: AuditContext) => {
     const { $ } = context;
@@ -19,44 +19,43 @@ export const descriptionLengthRule = defineRule({
 
     if (descriptionElement.length === 0) {
       return warn(
-        'core-description-length',
+        "core-description-length",
         'No <meta name="description"> tag found in the document',
-        { found: false }
+        { found: false },
       );
     }
 
-    const content = descriptionElement.first().attr('content')?.trim();
+    const content = descriptionElement.first().attr("content")?.trim();
 
     if (!content) {
-      return warn(
-        'core-description-length',
-        'Meta description tag exists but has no content',
-        { found: true, length: 0 }
-      );
+      return warn("core-description-length", "Meta description tag exists but has no content", {
+        found: true,
+        length: 0,
+      });
     }
 
     const length = content.length;
 
     if (length < MIN_LENGTH) {
       return warn(
-        'core-description-length',
+        "core-description-length",
         `Meta description is too short (${length} characters). Recommended: ${MIN_LENGTH}-${MAX_LENGTH} characters`,
-        { length, minLength: MIN_LENGTH, maxLength: MAX_LENGTH, description: content }
+        { length, minLength: MIN_LENGTH, maxLength: MAX_LENGTH, description: content },
       );
     }
 
     if (length > MAX_LENGTH) {
       return warn(
-        'core-description-length',
+        "core-description-length",
         `Meta description is too long (${length} characters). Recommended: ${MIN_LENGTH}-${MAX_LENGTH} characters`,
-        { length, minLength: MIN_LENGTH, maxLength: MAX_LENGTH, description: content }
+        { length, minLength: MIN_LENGTH, maxLength: MAX_LENGTH, description: content },
       );
     }
 
     return pass(
-      'core-description-length',
+      "core-description-length",
       `Meta description length is optimal (${length} characters)`,
-      { length, minLength: MIN_LENGTH, maxLength: MAX_LENGTH, description: content }
+      { length, minLength: MIN_LENGTH, maxLength: MAX_LENGTH, description: content },
     );
   },
 });

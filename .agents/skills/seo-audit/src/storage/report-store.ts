@@ -1,8 +1,8 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import type { PartialSeomatorConfig } from '../config/schema.js';
-import type { CategoryResult } from '../types.js';
-import { getReportsDir, generateId } from './paths.js';
+import * as fs from "fs";
+import * as path from "path";
+import type { PartialSeomatorConfig } from "../config/schema.js";
+import type { CategoryResult } from "../types.js";
+import { getReportsDir, generateId } from "./paths.js";
 
 /**
  * Stored report data
@@ -53,7 +53,7 @@ function ensureReportsDir(baseDir: string): string {
 export function saveReport(baseDir: string, report: StoredReport): string {
   const reportsDir = ensureReportsDir(baseDir);
   const filePath = path.join(reportsDir, `${report.id}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(report, null, 2), 'utf-8');
+  fs.writeFileSync(filePath, JSON.stringify(report, null, 2), "utf-8");
   return report.id;
 }
 
@@ -68,7 +68,7 @@ export function loadReport(baseDir: string, id: string): StoredReport | null {
     return null;
   }
 
-  const content = fs.readFileSync(filePath, 'utf-8');
+  const content = fs.readFileSync(filePath, "utf-8");
   return JSON.parse(content);
 }
 
@@ -80,7 +80,7 @@ export function listReports(
   options: {
     project?: string;
     since?: Date;
-  } = {}
+  } = {},
 ): ReportSummary[] {
   const reportsDir = getReportsDir(baseDir);
 
@@ -88,12 +88,12 @@ export function listReports(
     return [];
   }
 
-  const files = fs.readdirSync(reportsDir).filter(f => f.endsWith('.json'));
+  const files = fs.readdirSync(reportsDir).filter((f) => f.endsWith(".json"));
   const summaries: ReportSummary[] = [];
 
   for (const file of files) {
     const filePath = path.join(reportsDir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     const report: StoredReport = JSON.parse(content);
 
     // Apply filters
@@ -115,8 +115,8 @@ export function listReports(
   }
 
   // Sort by timestamp descending
-  return summaries.sort((a, b) =>
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  return summaries.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   );
 }
 
@@ -140,7 +140,7 @@ export function createReport(
   project: string,
   config: PartialSeomatorConfig,
   overallScore: number,
-  categoryResults: CategoryResult[]
+  categoryResults: CategoryResult[],
 ): StoredReport {
   // Calculate stats
   let passed = 0;

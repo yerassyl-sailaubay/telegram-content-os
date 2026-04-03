@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
 
 /**
  * Generate a deterministic hash for a URL
@@ -12,7 +12,7 @@ import * as crypto from 'crypto';
  * @returns 16-character hex string
  */
 export function hashUrl(url: string): string {
-  return crypto.createHash('sha256').update(url).digest('hex').slice(0, 16);
+  return crypto.createHash("sha256").update(url).digest("hex").slice(0, 16);
 }
 
 /**
@@ -22,8 +22,8 @@ export function hashUrl(url: string): string {
  * @returns Unique ID string
  */
 export function generateId(): string {
-  const date = new Date().toISOString().split('T')[0];
-  const randomPart = crypto.randomBytes(3).toString('hex');
+  const date = new Date().toISOString().split("T")[0];
+  const randomPart = crypto.randomBytes(3).toString("hex");
   return `${date}-${randomPart}`;
 }
 
@@ -59,7 +59,7 @@ export function normalizeUrl(url: string): string {
 
     // Remove trailing slash (except for root path)
     let href = parsed.href;
-    if (href.endsWith('/') && parsed.pathname !== '/') {
+    if (href.endsWith("/") && parsed.pathname !== "/") {
       href = href.slice(0, -1);
     }
 

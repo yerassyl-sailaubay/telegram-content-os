@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 
 /**
  * SQL statements for creating the project database schema
@@ -125,11 +125,12 @@ CREATE INDEX IF NOT EXISTS idx_frontier_status ON frontier(crawl_id, status);
  */
 export function initializeProjectSchema(db: Database.Database): void {
   // Set pragmas first
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
 
   // Create tables
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS projects (
       id INTEGER PRIMARY KEY,
       domain TEXT NOT NULL UNIQUE,
@@ -138,9 +139,11 @@ export function initializeProjectSchema(db: Database.Database): void {
       updated_at TEXT DEFAULT (datetime('now')),
       config_json TEXT
     )
-  `).run();
+  `,
+  ).run();
 
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS crawls (
       id INTEGER PRIMARY KEY,
       crawl_id TEXT NOT NULL UNIQUE,
@@ -153,9 +156,11 @@ export function initializeProjectSchema(db: Database.Database): void {
       stats_json TEXT,
       error_message TEXT
     )
-  `).run();
+  `,
+  ).run();
 
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS pages (
       id INTEGER PRIMARY KEY,
       crawl_id INTEGER NOT NULL REFERENCES crawls(id) ON DELETE CASCADE,
@@ -179,9 +184,11 @@ export function initializeProjectSchema(db: Database.Database): void {
       crawled_at TEXT DEFAULT (datetime('now')),
       UNIQUE(crawl_id, url_hash)
     )
-  `).run();
+  `,
+  ).run();
 
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS links (
       id INTEGER PRIMARY KEY,
       page_id INTEGER NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
@@ -194,9 +201,11 @@ export function initializeProjectSchema(db: Database.Database): void {
       target_status_code INTEGER,
       target_error TEXT
     )
-  `).run();
+  `,
+  ).run();
 
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS images (
       id INTEGER PRIMARY KEY,
       page_id INTEGER NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
@@ -212,9 +221,11 @@ export function initializeProjectSchema(db: Database.Database): void {
       file_size INTEGER,
       format TEXT
     )
-  `).run();
+  `,
+  ).run();
 
-  db.prepare(`
+  db.prepare(
+    `
     CREATE TABLE IF NOT EXISTS frontier (
       id INTEGER PRIMARY KEY,
       crawl_id INTEGER NOT NULL REFERENCES crawls(id) ON DELETE CASCADE,
@@ -226,21 +237,22 @@ export function initializeProjectSchema(db: Database.Database): void {
       discovered_at TEXT DEFAULT (datetime('now')),
       UNIQUE(crawl_id, url_hash)
     )
-  `).run();
+  `,
+  ).run();
 
   // Create indexes
   const indexes = [
-    'CREATE INDEX IF NOT EXISTS idx_crawls_project ON crawls(project_id)',
-    'CREATE INDEX IF NOT EXISTS idx_crawls_status ON crawls(status)',
-    'CREATE INDEX IF NOT EXISTS idx_crawls_started ON crawls(started_at DESC)',
-    'CREATE INDEX IF NOT EXISTS idx_pages_crawl ON pages(crawl_id)',
-    'CREATE INDEX IF NOT EXISTS idx_pages_status ON pages(crawl_id, status_code)',
-    'CREATE INDEX IF NOT EXISTS idx_pages_url_hash ON pages(url_hash)',
-    'CREATE INDEX IF NOT EXISTS idx_links_page ON links(page_id)',
-    'CREATE INDEX IF NOT EXISTS idx_links_internal ON links(page_id, is_internal)',
-    'CREATE INDEX IF NOT EXISTS idx_images_page ON images(page_id)',
-    'CREATE INDEX IF NOT EXISTS idx_frontier_crawl ON frontier(crawl_id)',
-    'CREATE INDEX IF NOT EXISTS idx_frontier_status ON frontier(crawl_id, status)',
+    "CREATE INDEX IF NOT EXISTS idx_crawls_project ON crawls(project_id)",
+    "CREATE INDEX IF NOT EXISTS idx_crawls_status ON crawls(status)",
+    "CREATE INDEX IF NOT EXISTS idx_crawls_started ON crawls(started_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_pages_crawl ON pages(crawl_id)",
+    "CREATE INDEX IF NOT EXISTS idx_pages_status ON pages(crawl_id, status_code)",
+    "CREATE INDEX IF NOT EXISTS idx_pages_url_hash ON pages(url_hash)",
+    "CREATE INDEX IF NOT EXISTS idx_links_page ON links(page_id)",
+    "CREATE INDEX IF NOT EXISTS idx_links_internal ON links(page_id, is_internal)",
+    "CREATE INDEX IF NOT EXISTS idx_images_page ON images(page_id)",
+    "CREATE INDEX IF NOT EXISTS idx_frontier_crawl ON frontier(crawl_id)",
+    "CREATE INDEX IF NOT EXISTS idx_frontier_status ON frontier(crawl_id, status)",
   ];
 
   for (const idx of indexes) {
@@ -268,7 +280,7 @@ export function getProjectDbStats(db: Database.Database): {
       (SELECT COUNT(*) FROM pages) as pages,
       (SELECT COUNT(*) FROM links) as links,
       (SELECT COUNT(*) FROM images) as images
-  `
+  `,
     )
     .get() as {
     projects: number;
@@ -279,8 +291,8 @@ export function getProjectDbStats(db: Database.Database): {
   };
 
   // Get database file size
-  const pageCount = db.prepare('PRAGMA page_count').get() as { page_count: number };
-  const pageSize = db.prepare('PRAGMA page_size').get() as { page_size: number };
+  const pageCount = db.prepare("PRAGMA page_count").get() as { page_count: number };
+  const pageSize = db.prepare("PRAGMA page_size").get() as { page_size: number };
   const dbSizeBytes = (pageCount?.page_count ?? 0) * (pageSize?.page_size ?? 4096);
 
   return { ...counts, dbSizeBytes };

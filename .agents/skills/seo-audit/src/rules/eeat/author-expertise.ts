@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * Credential patterns for expertise detection
@@ -43,10 +43,10 @@ const SOCIAL_PATTERNS = {
  * - Link to author page
  */
 export const authorExpertiseRule = defineRule({
-  id: 'eeat-author-expertise',
-  name: 'Author Expertise',
-  description: 'Checks for author credentials and expertise indicators',
-  category: 'eeat',
+  id: "eeat-author-expertise",
+  name: "Author Expertise",
+  description: "Checks for author credentials and expertise indicators",
+  category: "eeat",
   weight: 8,
 
   run(context: AuditContext): RuleResult {
@@ -57,20 +57,20 @@ export const authorExpertiseRule = defineRule({
 
     // 1. Find author-related elements
     const authorSelectors = [
-      '.author',
-      '.byline',
-      '.post-author',
-      '.article-author',
-      '.author-bio',
-      '.author-info',
-      '.author-box',
+      ".author",
+      ".byline",
+      ".post-author",
+      ".article-author",
+      ".author-bio",
+      ".author-info",
+      ".author-box",
       '[class*="author"]',
       '[itemprop="author"]',
       '[rel="author"]',
     ];
 
-    let authorText = '';
-    let authorBio = '';
+    let authorText = "";
+    let authorBio = "";
     let hasAuthorLink = false;
 
     for (const selector of authorSelectors) {
@@ -87,10 +87,12 @@ export const authorExpertiseRule = defineRule({
           }
 
           // Check for author page link
-          const authorLink = element.find('a[href*="author"], a[href*="team"], a[href*="about"]').first();
+          const authorLink = element
+            .find('a[href*="author"], a[href*="team"], a[href*="about"]')
+            .first();
           if (authorLink.length > 0) {
             hasAuthorLink = true;
-            signals.push('Author page link found');
+            signals.push("Author page link found");
           }
 
           break;
@@ -106,16 +108,16 @@ export const authorExpertiseRule = defineRule({
           const data = JSON.parse(content);
 
           const checkAuthorSchema = (obj: unknown): void => {
-            if (!obj || typeof obj !== 'object') return;
+            if (!obj || typeof obj !== "object") return;
             const record = obj as Record<string, unknown>;
 
-            if (record.author && typeof record.author === 'object') {
+            if (record.author && typeof record.author === "object") {
               const author = record.author as Record<string, unknown>;
 
               // Check for description/bio
-              if (author.description && typeof author.description === 'string') {
+              if (author.description && typeof author.description === "string") {
                 if (author.description.length > 50) {
-                  signals.push('Schema.org author description found');
+                  signals.push("Schema.org author description found");
                   authorBio = authorBio || author.description;
                 }
               }
@@ -128,7 +130,7 @@ export const authorExpertiseRule = defineRule({
               // Check for sameAs (social links)
               if (Array.isArray(author.sameAs)) {
                 for (const link of author.sameAs) {
-                  if (typeof link === 'string') {
+                  if (typeof link === "string") {
                     for (const [platform, pattern] of Object.entries(SOCIAL_PATTERNS)) {
                       if (pattern.test(link)) {
                         socialLinks.push(platform);
@@ -144,8 +146,8 @@ export const authorExpertiseRule = defineRule({
               }
             }
 
-            if (Array.isArray(record['@graph'])) {
-              for (const item of record['@graph']) {
+            if (Array.isArray(record["@graph"])) {
+              for (const item of record["@graph"]) {
                 checkAuthorSchema(item);
               }
             }
@@ -159,7 +161,7 @@ export const authorExpertiseRule = defineRule({
     });
 
     // 3. Check for credentials in author area
-    const textToCheck = authorText || authorBio || '';
+    const textToCheck = authorText || authorBio || "";
     for (const pattern of CREDENTIAL_PATTERNS) {
       const matches = textToCheck.match(pattern);
       if (matches) {
@@ -172,14 +174,17 @@ export const authorExpertiseRule = defineRule({
     }
 
     if (credentials.length > 0) {
-      signals.push(`Credentials found: ${credentials.slice(0, 3).join(', ')}${credentials.length > 3 ? '...' : ''}`);
+      signals.push(
+        `Credentials found: ${credentials.slice(0, 3).join(", ")}${credentials.length > 3 ? "..." : ""}`,
+      );
     }
 
     // 4. Check for social links in page
-    $('a[href]').each((_, el) => {
-      const href = $(el).attr('href') || '';
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href") || "";
       // Only check links in author-related areas or with author-related classes
-      const isAuthorRelated = $(el).closest('[class*="author"], [class*="bio"], .byline').length > 0;
+      const isAuthorRelated =
+        $(el).closest('[class*="author"], [class*="bio"], .byline').length > 0;
 
       if (isAuthorRelated) {
         for (const [platform, pattern] of Object.entries(SOCIAL_PATTERNS)) {
@@ -191,15 +196,16 @@ export const authorExpertiseRule = defineRule({
     });
 
     if (socialLinks.length > 0) {
-      signals.push(`Social profiles: ${socialLinks.join(', ')}`);
+      signals.push(`Social profiles: ${socialLinks.join(", ")}`);
     }
 
     // Evaluate results
-    const hasExpertise = credentials.length > 0 || authorBio.length > 100 || socialLinks.length >= 2;
+    const hasExpertise =
+      credentials.length > 0 || authorBio.length > 100 || socialLinks.length >= 2;
 
     if (signals.length >= 3 || (hasExpertise && signals.length >= 2)) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
         message: `Strong author expertise signals found (${signals.length} indicators)`,
         details: {
@@ -214,45 +220,47 @@ export const authorExpertiseRule = defineRule({
 
     if (signals.length > 0) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 80,
-        message: `Author expertise signals found (${signals.length} indicator${signals.length > 1 ? 's' : ''})`,
+        message: `Author expertise signals found (${signals.length} indicator${signals.length > 1 ? "s" : ""})`,
         details: {
           signals,
           credentials,
           socialLinks,
           hasAuthorBio: authorBio.length > 100,
           hasAuthorLink,
-          recommendation: 'Consider adding more expertise indicators: credentials, detailed bio, social profiles',
+          recommendation:
+            "Consider adding more expertise indicators: credentials, detailed bio, social profiles",
         },
       };
     }
 
     // Check if there's an author at all (from author-byline rule context)
-    const hasAnyAuthor = $(authorSelectors.join(', ')).length > 0 ||
-      $('meta[name="author"]').length > 0;
+    const hasAnyAuthor =
+      $(authorSelectors.join(", ")).length > 0 || $('meta[name="author"]').length > 0;
 
     if (hasAnyAuthor) {
       return {
-        status: 'warn',
+        status: "warn",
         score: 50,
-        message: 'Author found but no expertise indicators detected',
+        message: "Author found but no expertise indicators detected",
         details: {
           signals: [],
           credentials: [],
           socialLinks: [],
-          recommendation: 'Add author credentials, bio, and professional social links to establish expertise',
+          recommendation:
+            "Add author credentials, bio, and professional social links to establish expertise",
         },
       };
     }
 
     return {
-      status: 'warn',
+      status: "warn",
       score: 50,
-      message: 'No author present - expertise check not applicable',
+      message: "No author present - expertise check not applicable",
       details: {
         signals: [],
-        note: 'This check requires author attribution. See eeat-author-byline rule.',
+        note: "This check requires author attribution. See eeat-author-byline rule.",
       },
     };
   },

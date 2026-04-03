@@ -49,7 +49,7 @@ export interface ExternalLinksConfig {
  * Output configuration section
  */
 export interface OutputConfig {
-  format: 'console' | 'text' | 'json' | 'html' | 'markdown' | 'llm';
+  format: "console" | "text" | "json" | "html" | "markdown" | "llm";
   path: string;
 }
 

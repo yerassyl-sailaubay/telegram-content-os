@@ -1,2 +1,2 @@
-export { hashUrl, normalizeUrl } from './hash.js';
-export * from './compression.js';
+export { hashUrl, normalizeUrl } from "./hash.js";
+export * from "./compression.js";

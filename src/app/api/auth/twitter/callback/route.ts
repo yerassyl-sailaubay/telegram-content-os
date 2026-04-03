@@ -12,7 +12,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const url = new URL(request.url);
-  const settingsUrl = `${url.origin}/dashboard/settings`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
+  const settingsUrl = `${appUrl}/dashboard/settings`;
 
   // 1. Extract query params
   const searchParams = request.nextUrl.searchParams;
@@ -22,9 +23,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   // Handle Twitter errors (user denied, etc.)
   if (error) {
-    return NextResponse.redirect(
-      `${settingsUrl}?error=twitter_auth_denied&detail=${encodeURIComponent(error)}`,
-    );
+    return NextResponse.redirect(`${settingsUrl}?error=twitter_auth_denied`);
   }
 
   if (!code || !state) {
@@ -51,7 +50,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(`${settingsUrl}?error=twitter_not_configured`);
   }
 
-  const redirectUri = `${url.origin}/api/auth/twitter/callback`;
+  const redirectUri = `${appUrl}/api/auth/twitter/callback`;
 
   const twitterPromise = import("@/lib/platforms/twitter");
   const encryptionPromise = import("@/lib/platforms/encryption");
@@ -136,9 +135,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return response;
   } catch (err) {
     console.error("Twitter OAuth callback error:", err);
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.redirect(
-      `${settingsUrl}?error=twitter_callback_failed&detail=${encodeURIComponent(message)}`,
-    );
+    return NextResponse.redirect(`${settingsUrl}?error=twitter_callback_failed`);
   }
 }

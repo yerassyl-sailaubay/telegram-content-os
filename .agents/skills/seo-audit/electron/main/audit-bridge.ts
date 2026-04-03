@@ -6,12 +6,17 @@
  * those callbacks to BrowserWindow.webContents.send() calls.
  */
 
-import { BrowserWindow, ipcMain } from 'electron';
-import { Auditor } from '@core/auditor.js';
-import type { AuditResult } from '@core/types.js';
-import { getRuleById } from '@core/rules/registry.js';
-import { IPC_CHANNELS, type AuditRunArgs, type AuditCompletePayload, type RuleMetadataIpc } from '../shared/ipc-types.js';
-import { fetchPageWithBrowserWindow } from './electron-fetcher.js';
+import { BrowserWindow, ipcMain } from "electron";
+import { Auditor } from "@core/auditor.js";
+import type { AuditResult } from "@core/types.js";
+import { getRuleById } from "@core/rules/registry.js";
+import {
+  IPC_CHANNELS,
+  type AuditRunArgs,
+  type AuditCompletePayload,
+  type RuleMetadataIpc,
+} from "../shared/ipc-types.js";
+import { fetchPageWithBrowserWindow } from "./electron-fetcher.js";
 
 /** Build a map of ruleId -> { name, description } from the rule registry */
 function buildRuleMetadata(result: AuditResult): Record<string, RuleMetadataIpc> {
@@ -21,8 +26,13 @@ function buildRuleMetadata(result: AuditResult): Record<string, RuleMetadataIpc>
       if (!metadata[r.ruleId]) {
         const rule = getRuleById(r.ruleId);
         metadata[r.ruleId] = {
-          name: rule?.name ?? r.ruleId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-          description: rule?.description ?? '',
+          name:
+            rule?.name ??
+            r.ruleId
+              .split("-")
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(" "),
+          description: rule?.description ?? "",
         };
       }
     }
@@ -40,7 +50,7 @@ export function registerAuditHandlers(getWindow: () => BrowserWindow | null): vo
 
     // Prevent concurrent audits
     if (currentAuditor) {
-      win.webContents.send(IPC_CHANNELS.AUDIT_ERROR, 'An audit is already running');
+      win.webContents.send(IPC_CHANNELS.AUDIT_ERROR, "An audit is already running");
       return;
     }
 
@@ -113,7 +123,7 @@ export function registerAuditHandlers(getWindow: () => BrowserWindow | null): vo
       }
     } catch (error) {
       if (!abortController?.signal.aborted) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
+        const message = error instanceof Error ? error.message : "Unknown error";
         win.webContents.send(IPC_CHANNELS.AUDIT_ERROR, message);
       }
     } finally {

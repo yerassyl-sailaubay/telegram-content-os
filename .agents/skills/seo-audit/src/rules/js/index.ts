@@ -10,28 +10,28 @@
  * - Server-side rendering check
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
 // Rendered presence rules
-import { renderedTitleRule } from './rendered-title.js';
-import { renderedDescriptionRule } from './rendered-description.js';
-import { renderedH1Rule } from './rendered-h1.js';
-import { renderedCanonicalRule } from './rendered-canonical.js';
+import { renderedTitleRule } from "./rendered-title.js";
+import { renderedDescriptionRule } from "./rendered-description.js";
+import { renderedH1Rule } from "./rendered-h1.js";
+import { renderedCanonicalRule } from "./rendered-canonical.js";
 
 // Mismatch detection rules
-import { canonicalMismatchRule } from './canonical-mismatch.js';
-import { noindexMismatchRule } from './noindex-mismatch.js';
-import { titleModifiedRule } from './title-modified.js';
-import { descriptionModifiedRule } from './description-modified.js';
-import { h1ModifiedRule } from './h1-modified.js';
+import { canonicalMismatchRule } from "./canonical-mismatch.js";
+import { noindexMismatchRule } from "./noindex-mismatch.js";
+import { titleModifiedRule } from "./title-modified.js";
+import { descriptionModifiedRule } from "./description-modified.js";
+import { h1ModifiedRule } from "./h1-modified.js";
 
 // Content and link dependency rules
-import { renderedContentRule } from './rendered-content.js';
-import { renderedLinksRule } from './rendered-links.js';
+import { renderedContentRule } from "./rendered-content.js";
+import { renderedLinksRule } from "./rendered-links.js";
 
 // Resource and rendering rules
-import { blockedResourcesRule } from './blocked-resources.js';
-import { ssrCheckRule } from './ssr-check.js';
+import { blockedResourcesRule } from "./blocked-resources.js";
+import { ssrCheckRule } from "./ssr-check.js";
 
 // Export all rules
 export {

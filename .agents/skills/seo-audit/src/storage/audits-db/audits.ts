@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 import type {
   DbAudit,
   HydratedAudit,
@@ -6,7 +6,7 @@ import type {
   AuditStatus,
   AuditQueryOptions,
   CreateAuditInput,
-} from '../types.js';
+} from "../types.js";
 
 /**
  * Hydrate an audit record
@@ -60,10 +60,7 @@ function toAuditSummary(row: DbAudit): AuditSummary {
  * @param input - Audit creation input
  * @returns Created audit
  */
-export function createAudit(
-  db: Database.Database,
-  input: CreateAuditInput
-): HydratedAudit {
+export function createAudit(db: Database.Database, input: CreateAuditInput): HydratedAudit {
   const result = db
     .prepare(
       `
@@ -72,7 +69,7 @@ export function createAudit(
       overall_score, config_json
     ) VALUES (?, ?, ?, ?, ?, 0, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       input.auditId,
@@ -80,7 +77,7 @@ export function createAudit(
       input.projectName ?? null,
       input.crawlId ?? null,
       input.startUrl,
-      input.config ? JSON.stringify(input.config) : null
+      input.config ? JSON.stringify(input.config) : null,
     ) as DbAudit;
 
   return hydrateAudit(result);
@@ -93,13 +90,10 @@ export function createAudit(
  * @param auditId - Audit ID (e.g., "2024-01-23-abc123")
  * @returns Audit record or null
  */
-export function getAudit(
-  db: Database.Database,
-  auditId: string
-): HydratedAudit | null {
-  const row = db
-    .prepare('SELECT * FROM audits WHERE audit_id = ?')
-    .get(auditId) as DbAudit | undefined;
+export function getAudit(db: Database.Database, auditId: string): HydratedAudit | null {
+  const row = db.prepare("SELECT * FROM audits WHERE audit_id = ?").get(auditId) as
+    | DbAudit
+    | undefined;
 
   return row ? hydrateAudit(row) : null;
 }
@@ -111,13 +105,8 @@ export function getAudit(
  * @param id - Database ID
  * @returns Audit record or null
  */
-export function getAuditById(
-  db: Database.Database,
-  id: number
-): HydratedAudit | null {
-  const row = db
-    .prepare('SELECT * FROM audits WHERE id = ?')
-    .get(id) as DbAudit | undefined;
+export function getAuditById(db: Database.Database, id: number): HydratedAudit | null {
+  const row = db.prepare("SELECT * FROM audits WHERE id = ?").get(id) as DbAudit | undefined;
 
   return row ? hydrateAudit(row) : null;
 }
@@ -129,10 +118,7 @@ export function getAuditById(
  * @param domain - Domain name
  * @returns Latest audit or null
  */
-export function getLatestAudit(
-  db: Database.Database,
-  domain: string
-): HydratedAudit | null {
+export function getLatestAudit(db: Database.Database, domain: string): HydratedAudit | null {
   const row = db
     .prepare(
       `
@@ -140,7 +126,7 @@ export function getLatestAudit(
     WHERE domain = ? AND status = 'completed'
     ORDER BY started_at DESC
     LIMIT 1
-  `
+  `,
     )
     .get(domain) as DbAudit | undefined;
 
@@ -158,7 +144,7 @@ export function getLatestAudit(
 export function getPreviousAudit(
   db: Database.Database,
   domain: string,
-  beforeAuditId: string
+  beforeAuditId: string,
 ): HydratedAudit | null {
   const row = db
     .prepare(
@@ -167,7 +153,7 @@ export function getPreviousAudit(
     WHERE domain = ? AND status = 'completed' AND audit_id != ?
     ORDER BY started_at DESC
     LIMIT 1
-  `
+  `,
     )
     .get(domain, beforeAuditId) as DbAudit | undefined;
 
@@ -181,49 +167,46 @@ export function getPreviousAudit(
  * @param options - Query options
  * @returns Array of audit summaries
  */
-export function listAudits(
-  db: Database.Database,
-  options: AuditQueryOptions = {}
-): AuditSummary[] {
+export function listAudits(db: Database.Database, options: AuditQueryOptions = {}): AuditSummary[] {
   const conditions: string[] = [];
   const params: unknown[] = [];
 
   if (options.domain) {
-    conditions.push('domain = ?');
+    conditions.push("domain = ?");
     params.push(options.domain);
   }
 
   if (options.projectName) {
-    conditions.push('project_name = ?');
+    conditions.push("project_name = ?");
     params.push(options.projectName);
   }
 
   if (options.minScore !== undefined) {
-    conditions.push('overall_score >= ?');
+    conditions.push("overall_score >= ?");
     params.push(options.minScore);
   }
 
   if (options.maxScore !== undefined) {
-    conditions.push('overall_score <= ?');
+    conditions.push("overall_score <= ?");
     params.push(options.maxScore);
   }
 
   if (options.since) {
-    conditions.push('started_at >= ?');
+    conditions.push("started_at >= ?");
     params.push(options.since.toISOString());
   }
 
   if (options.until) {
-    conditions.push('started_at <= ?');
+    conditions.push("started_at <= ?");
     params.push(options.until.toISOString());
   }
 
   if (options.status) {
-    conditions.push('status = ?');
+    conditions.push("status = ?");
     params.push(options.status);
   }
 
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const limit = options.limit ?? 50;
   const offset = options.offset ?? 0;
 
@@ -234,7 +217,7 @@ export function listAudits(
     ${whereClause}
     ORDER BY started_at DESC
     LIMIT ? OFFSET ?
-  `
+  `,
     )
     .all(...params, limit, offset) as DbAudit[];
 
@@ -259,7 +242,7 @@ export function completeAudit(
     warningCount: number;
     failedCount: number;
     pagesAudited: number;
-  }
+  },
 ): HydratedAudit | null {
   const result = db
     .prepare(
@@ -275,7 +258,7 @@ export function completeAudit(
         pages_audited = ?
     WHERE audit_id = ?
     RETURNING *
-  `
+  `,
     )
     .get(
       stats.overallScore,
@@ -284,7 +267,7 @@ export function completeAudit(
       stats.warningCount,
       stats.failedCount,
       stats.pagesAudited,
-      auditId
+      auditId,
     ) as DbAudit | undefined;
 
   return result ? hydrateAudit(result) : null;
@@ -297,10 +280,7 @@ export function completeAudit(
  * @param auditId - Audit ID
  * @returns Updated audit or null
  */
-export function failAudit(
-  db: Database.Database,
-  auditId: string
-): HydratedAudit | null {
+export function failAudit(db: Database.Database, auditId: string): HydratedAudit | null {
   const result = db
     .prepare(
       `
@@ -309,7 +289,7 @@ export function failAudit(
         completed_at = datetime('now')
     WHERE audit_id = ?
     RETURNING *
-  `
+  `,
     )
     .get(auditId) as DbAudit | undefined;
 
@@ -324,29 +304,22 @@ export function failAudit(
  * @returns True if deleted
  */
 export function deleteAudit(db: Database.Database, auditId: string): boolean {
-  const result = db
-    .prepare('DELETE FROM audits WHERE audit_id = ?')
-    .run(auditId);
+  const result = db.prepare("DELETE FROM audits WHERE audit_id = ?").run(auditId);
   return result.changes > 0;
 }
 
 /**
  * Get audit count
  */
-export function getAuditCount(
-  db: Database.Database,
-  domain?: string
-): number {
+export function getAuditCount(db: Database.Database, domain?: string): number {
   if (domain) {
     const result = db
-      .prepare('SELECT COUNT(*) as count FROM audits WHERE domain = ?')
+      .prepare("SELECT COUNT(*) as count FROM audits WHERE domain = ?")
       .get(domain) as { count: number };
     return result.count;
   }
 
-  const result = db
-    .prepare('SELECT COUNT(*) as count FROM audits')
-    .get() as { count: number };
+  const result = db.prepare("SELECT COUNT(*) as count FROM audits").get() as { count: number };
   return result.count;
 }
 
@@ -354,8 +327,8 @@ export function getAuditCount(
  * Get unique domains with audits
  */
 export function getAuditedDomains(db: Database.Database): string[] {
-  const rows = db
-    .prepare('SELECT DISTINCT domain FROM audits ORDER BY domain')
-    .all() as Array<{ domain: string }>;
+  const rows = db.prepare("SELECT DISTINCT domain FROM audits ORDER BY domain").all() as Array<{
+    domain: string;
+  }>;
   return rows.map((r) => r.domain);
 }

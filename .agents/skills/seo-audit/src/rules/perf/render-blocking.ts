@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Thresholds for render-blocking resources
@@ -22,7 +22,7 @@ interface RenderBlockingAnalysis {
 /**
  * Analyze render-blocking resources
  */
-function analyzeRenderBlocking($: AuditContext['$']): RenderBlockingAnalysis {
+function analyzeRenderBlocking($: AuditContext["$"]): RenderBlockingAnalysis {
   const blockingScripts: Array<{ src: string; inHead: boolean }> = [];
   let inlineScriptsInHead = 0;
   const largeInlineScripts: Array<{ size: number }> = [];
@@ -32,11 +32,11 @@ function analyzeRenderBlocking($: AuditContext['$']): RenderBlockingAnalysis {
   let moduleScripts = 0;
 
   // Analyze scripts in <head>
-  $('head script').each((_, el) => {
-    const src = $(el).attr('src');
-    const isAsync = $(el).attr('async') !== undefined;
-    const isDefer = $(el).attr('defer') !== undefined;
-    const isModule = $(el).attr('type') === 'module';
+  $("head script").each((_, el) => {
+    const src = $(el).attr("src");
+    const isAsync = $(el).attr("async") !== undefined;
+    const isDefer = $(el).attr("defer") !== undefined;
+    const isModule = $(el).attr("type") === "module";
 
     if (isAsync) asyncScripts++;
     if (isDefer) deferScripts++;
@@ -49,7 +49,7 @@ function analyzeRenderBlocking($: AuditContext['$']): RenderBlockingAnalysis {
 
     // Large inline scripts (blocking)
     if (!src) {
-      const content = $(el).html() || '';
+      const content = $(el).html() || "";
       const sizeKb = Math.round(content.length / 1024);
       inlineScriptsInHead++;
       if (sizeKb > 10) {
@@ -59,11 +59,11 @@ function analyzeRenderBlocking($: AuditContext['$']): RenderBlockingAnalysis {
   });
 
   // Analyze scripts in <body> (less critical but can still block)
-  $('body script[src]').each((_, el) => {
-    const src = $(el).attr('src');
-    const isAsync = $(el).attr('async') !== undefined;
-    const isDefer = $(el).attr('defer') !== undefined;
-    const isModule = $(el).attr('type') === 'module';
+  $("body script[src]").each((_, el) => {
+    const src = $(el).attr("src");
+    const isAsync = $(el).attr("async") !== undefined;
+    const isDefer = $(el).attr("defer") !== undefined;
+    const isModule = $(el).attr("type") === "module";
 
     if (isAsync) asyncScripts++;
     if (isDefer) deferScripts++;
@@ -77,11 +77,11 @@ function analyzeRenderBlocking($: AuditContext['$']): RenderBlockingAnalysis {
 
   // Analyze CSS - any CSS without media query potentially blocks
   $('head link[rel="stylesheet"]').each((_, el) => {
-    const href = $(el).attr('href');
-    const media = $(el).attr('media');
+    const href = $(el).attr("href");
+    const media = $(el).attr("media");
 
     // CSS with media="print" or media="(specific condition)" is non-blocking
-    if (href && (!media || media === 'all' || media === 'screen')) {
+    if (href && (!media || media === "all" || media === "screen")) {
       potentiallyBlockingCss.push(href);
     }
   });
@@ -107,33 +107,35 @@ function analyzeRenderBlocking($: AuditContext['$']): RenderBlockingAnalysis {
  * - Inline critical CSS, defer non-critical
  */
 export const renderBlockingRule = defineRule({
-  id: 'perf-render-blocking',
-  name: 'Render-Blocking Resources',
-  description: 'Checks for render-blocking CSS and JavaScript in the head',
-  category: 'perf',
+  id: "perf-render-blocking",
+  name: "Render-Blocking Resources",
+  description: "Checks for render-blocking CSS and JavaScript in the head",
+  category: "perf",
   weight: 20,
   run: (context: AuditContext) => {
     const { $ } = context;
     const analysis = analyzeRenderBlocking($);
 
     const issues: string[] = [];
-    let severity: 'pass' | 'warn' | 'fail' = 'pass';
+    let severity: "pass" | "warn" | "fail" = "pass";
 
     // Check blocking scripts
     const blockingInHead = analysis.blockingScripts.filter((s) => s.inHead);
     if (blockingInHead.length > THRESHOLDS.blockingScripts.warning) {
       issues.push(`${blockingInHead.length} render-blocking scripts in <head>`);
-      severity = 'fail';
+      severity = "fail";
     } else if (blockingInHead.length > THRESHOLDS.blockingScripts.good) {
       issues.push(`${blockingInHead.length} script(s) in <head> without async/defer`);
-      severity = 'warn';
+      severity = "warn";
     }
 
     // Check large inline scripts
     if (analysis.largeInlineScripts.length > 0) {
       const totalKb = analysis.largeInlineScripts.reduce((sum, s) => sum + s.size, 0);
-      issues.push(`${analysis.largeInlineScripts.length} large inline script(s) (${totalKb}KB total)`);
-      if (severity === 'pass') severity = 'warn';
+      issues.push(
+        `${analysis.largeInlineScripts.length} large inline script(s) (${totalKb}KB total)`,
+      );
+      if (severity === "pass") severity = "warn";
     }
 
     // Note about potentially blocking CSS (informational)
@@ -143,9 +145,9 @@ export const renderBlockingRule = defineRule({
         ? `${analysis.potentiallyBlockingCss.length} CSS files in head (consider critical CSS extraction)`
         : null;
 
-    if (cssNote && severity === 'pass' && analysis.potentiallyBlockingCss.length > 5) {
+    if (cssNote && severity === "pass" && analysis.potentiallyBlockingCss.length > 5) {
       issues.push(cssNote);
-      severity = 'warn';
+      severity = "warn";
     }
 
     const details = {
@@ -158,12 +160,20 @@ export const renderBlockingRule = defineRule({
       moduleScripts: analysis.moduleScripts,
     };
 
-    if (severity === 'fail') {
-      return fail('perf-render-blocking', `Render-blocking resources detected: ${issues.join('; ')}`, details);
+    if (severity === "fail") {
+      return fail(
+        "perf-render-blocking",
+        `Render-blocking resources detected: ${issues.join("; ")}`,
+        details,
+      );
     }
 
-    if (severity === 'warn') {
-      return warn('perf-render-blocking', `Render-blocking resources found: ${issues.join('; ')}`, details);
+    if (severity === "warn") {
+      return warn(
+        "perf-render-blocking",
+        `Render-blocking resources found: ${issues.join("; ")}`,
+        details,
+      );
     }
 
     const optimizedCount = analysis.asyncScripts + analysis.deferScripts + analysis.moduleScripts;
@@ -171,9 +181,9 @@ export const renderBlockingRule = defineRule({
       optimizedCount > 0
         ? `No render-blocking scripts (${optimizedCount} async/defer/module)`
         : analysis.blockingScripts.length === 0
-          ? 'No external scripts in head'
-          : 'Scripts properly optimized';
+          ? "No external scripts in head"
+          : "Scripts properly optimized";
 
-    return pass('perf-render-blocking', message, details);
+    return pass("perf-render-blocking", message, details);
   },
 });

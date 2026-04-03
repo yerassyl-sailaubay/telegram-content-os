@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Patterns that indicate poor filename quality
@@ -25,32 +25,30 @@ function getFilename(src: string): string {
   try {
     const url = new URL(src);
     const path = url.pathname;
-    return path.split('/').pop() || '';
+    return path.split("/").pop() || "";
   } catch {
-    return src.split('/').pop() || '';
+    return src.split("/").pop() || "";
   }
 }
 
 /**
  * Check if filename is descriptive
  */
-function hasDescriptiveFilename(
-  filename: string
-): { isGood: boolean; issue?: string } {
+function hasDescriptiveFilename(filename: string): { isGood: boolean; issue?: string } {
   if (!filename) {
-    return { isGood: false, issue: 'Empty filename' };
+    return { isGood: false, issue: "Empty filename" };
   }
 
   for (const pattern of BAD_FILENAME_PATTERNS) {
     if (pattern.test(filename)) {
-      return { isGood: false, issue: 'Non-descriptive filename pattern' };
+      return { isGood: false, issue: "Non-descriptive filename pattern" };
     }
   }
 
   // Check if filename is too short (excluding extension)
-  const nameWithoutExt = filename.replace(/\.[^.]+$/, '');
+  const nameWithoutExt = filename.replace(/\.[^.]+$/, "");
   if (nameWithoutExt.length < 3) {
-    return { isGood: false, issue: 'Filename too short' };
+    return { isGood: false, issue: "Filename too short" };
   }
 
   return { isGood: true };
@@ -60,16 +58,16 @@ function hasDescriptiveFilename(
  * Rule: Check for descriptive image filenames
  */
 export const filenameQualityRule = defineRule({
-  id: 'images-filename-quality',
-  name: 'Image Filename Quality',
-  description: 'Checks for descriptive image filenames (not IMG_001.jpg)',
-  category: 'images',
+  id: "images-filename-quality",
+  name: "Image Filename Quality",
+  description: "Checks for descriptive image filenames (not IMG_001.jpg)",
+  category: "images",
   weight: 5,
   run: (context: AuditContext) => {
     const { images } = context;
 
     if (images.length === 0) {
-      return pass('images-filename-quality', 'No images found on page', {
+      return pass("images-filename-quality", "No images found on page", {
         imageCount: 0,
       });
     }
@@ -90,11 +88,9 @@ export const filenameQualityRule = defineRule({
     }
 
     if (poorFilenames.length > 0) {
-      const percentage = ((poorFilenames.length / images.length) * 100).toFixed(
-        1
-      );
+      const percentage = ((poorFilenames.length / images.length) * 100).toFixed(1);
       return warn(
-        'images-filename-quality',
+        "images-filename-quality",
         `Found ${poorFilenames.length} image(s) with non-descriptive filenames (${percentage}%)`,
         {
           poorFilenameCount: poorFilenames.length,
@@ -102,14 +98,14 @@ export const filenameQualityRule = defineRule({
           images: poorFilenames.slice(0, 10),
           suggestion:
             'Use descriptive filenames like "red-running-shoes.jpg" instead of "IMG_001.jpg"',
-        }
+        },
       );
     }
 
     return pass(
-      'images-filename-quality',
+      "images-filename-quality",
       `All ${images.length} image(s) have descriptive filenames`,
-      { totalImages: images.length }
+      { totalImages: images.length },
     );
   },
 });

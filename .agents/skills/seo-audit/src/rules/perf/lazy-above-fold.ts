@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Number of images considered "above the fold"
@@ -21,32 +21,34 @@ interface LazyAboveFoldAnalysis {
 /**
  * Analyze above-fold images for lazy loading anti-pattern
  */
-function analyzeLazyAboveFold($: AuditContext['$']): LazyAboveFoldAnalysis {
-  const aboveFoldImages: LazyAboveFoldAnalysis['aboveFoldImages'] = [];
+function analyzeLazyAboveFold($: AuditContext["$"]): LazyAboveFoldAnalysis {
+  const aboveFoldImages: LazyAboveFoldAnalysis["aboveFoldImages"] = [];
   let firstImageLazy = false;
   let lazyAboveFoldCount = 0;
 
   // Get first N images (considered above fold)
-  $('img').slice(0, ABOVE_FOLD_COUNT).each((index, el) => {
-    const src = $(el).attr('src') || $(el).attr('data-src') || '';
-    const loading = $(el).attr('loading');
-    const fetchPriority = $(el).attr('fetchpriority');
-    const isLazy = loading === 'lazy';
+  $("img")
+    .slice(0, ABOVE_FOLD_COUNT)
+    .each((index, el) => {
+      const src = $(el).attr("src") || $(el).attr("data-src") || "";
+      const loading = $(el).attr("loading");
+      const fetchPriority = $(el).attr("fetchpriority");
+      const isLazy = loading === "lazy";
 
-    aboveFoldImages.push({
-      src,
-      isLazy,
-      hasFetchPriority: !!fetchPriority,
-      fetchPriority: fetchPriority || null,
-    });
+      aboveFoldImages.push({
+        src,
+        isLazy,
+        hasFetchPriority: !!fetchPriority,
+        fetchPriority: fetchPriority || null,
+      });
 
-    if (isLazy) {
-      lazyAboveFoldCount++;
-      if (index === 0) {
-        firstImageLazy = true;
+      if (isLazy) {
+        lazyAboveFoldCount++;
+        if (index === 0) {
+          firstImageLazy = true;
+        }
       }
-    }
-  });
+    });
 
   return {
     aboveFoldImages,
@@ -64,17 +66,17 @@ function analyzeLazyAboveFold($: AuditContext['$']): LazyAboveFoldAnalysis {
  * - Optionally have fetchpriority="high" for the hero image
  */
 export const lazyAboveFoldRule = defineRule({
-  id: 'perf-lazy-above-fold',
-  name: 'Lazy Loading Above Fold',
-  description: 'Detects lazy loading on above-fold images that should load immediately',
-  category: 'perf',
+  id: "perf-lazy-above-fold",
+  name: "Lazy Loading Above Fold",
+  description: "Detects lazy loading on above-fold images that should load immediately",
+  category: "perf",
   weight: 15,
   run: (context: AuditContext) => {
     const { images } = context;
 
     // No images on page
     if (images.length === 0) {
-      return pass('perf-lazy-above-fold', 'No images found on page', {
+      return pass("perf-lazy-above-fold", "No images found on page", {
         aboveFoldImages: [],
         totalImages: 0,
       });
@@ -99,18 +101,18 @@ export const lazyAboveFoldRule = defineRule({
     // First/hero image is lazy loaded - fail
     if (firstImageLazy) {
       return fail(
-        'perf-lazy-above-fold',
+        "perf-lazy-above-fold",
         `Hero image has loading="lazy" - this delays LCP`,
-        details
+        details,
       );
     }
 
     // Some above-fold images are lazy loaded - warn
     if (lazyAboveFold.length > 0) {
       return warn(
-        'perf-lazy-above-fold',
+        "perf-lazy-above-fold",
         `${lazyAboveFold.length} above-fold image(s) have loading="lazy"`,
-        details
+        details,
       );
     }
 
@@ -120,6 +122,6 @@ export const lazyAboveFoldRule = defineRule({
         ? `${aboveFoldImages.length} image(s) correctly without lazy loading`
         : `First ${ABOVE_FOLD_COUNT} images correctly without lazy loading`;
 
-    return pass('perf-lazy-above-fold', message, details);
+    return pass("perf-lazy-above-fold", message, details);
   },
 });

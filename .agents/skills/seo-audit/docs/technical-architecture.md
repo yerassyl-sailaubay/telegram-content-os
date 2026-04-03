@@ -84,6 +84,7 @@ seomator
 ```
 
 **Key responsibilities:**
+
 - Parse CLI arguments
 - Load and merge configuration
 - Route to appropriate command handler
@@ -101,6 +102,7 @@ src/config/
 ```
 
 **Config resolution order:**
+
 1. CLI arguments (highest priority)
 2. `./seomator.toml` (project config)
 3. Parent directories (searches up tree)
@@ -163,7 +165,7 @@ src/crawler/
 
 #### URL Filtering (`url-filter.ts`)
 
-- **Normalization:** Strips tracking params (utm_*, gclid, fbclid)
+- **Normalization:** Strips tracking params (utm\_\*, gclid, fbclid)
 - **Deduplication:** Hash-based URL tracking
 - **Include/Exclude:** Glob pattern matching
 - **Domain restriction:** Stays within configured domains
@@ -172,17 +174,18 @@ src/crawler/
 #### Fetcher (`fetcher.ts`)
 
 Two modes:
+
 1. **HTTP-only** (fast): Node.js fetch for HTML
 2. **Playwright** (CWV): Launches browser for Core Web Vitals
 
 ```typescript
 // Playwright metrics collected:
 interface CoreWebVitals {
-  lcp: number;   // Largest Contentful Paint
-  fcp: number;   // First Contentful Paint
-  cls: number;   // Cumulative Layout Shift
-  ttfb: number;  // Time to First Byte
-  inp: number;   // Interaction to Next Paint
+  lcp: number; // Largest Contentful Paint
+  fcp: number; // First Contentful Paint
+  cls: number; // Cumulative Layout Shift
+  ttfb: number; // Time to First Byte
+  inp: number; // Interaction to Next Paint
 }
 ```
 
@@ -351,11 +354,11 @@ src/rules/
 
 ```typescript
 interface Rule {
-  id: string;           // e.g., 'core-meta-title'
-  name: string;         // e.g., 'Meta Title'
+  id: string; // e.g., 'core-meta-title'
+  name: string; // e.g., 'Meta Title'
   description: string;
-  category: string;     // e.g., 'core'
-  weight: number;       // 1-10, affects category score
+  category: string; // e.g., 'core'
+  weight: number; // 1-10, affects category score
 
   run(context: AuditContext): RuleResult;
 }
@@ -363,7 +366,7 @@ interface Rule {
 interface AuditContext {
   url: string;
   html: string;
-  $: CheerioAPI;        // Parsed DOM
+  $: CheerioAPI; // Parsed DOM
   headers: Headers;
   statusCode: number;
   cwv?: CoreWebVitals;
@@ -371,8 +374,8 @@ interface AuditContext {
 }
 
 interface RuleResult {
-  status: 'pass' | 'warn' | 'fail';
-  score: number;        // 0-100
+  status: "pass" | "warn" | "fail";
+  score: number; // 0-100
   message: string;
   details?: Record<string, unknown>;
 }
@@ -502,13 +505,13 @@ src/reporters/
 
 #### Output Format Comparison
 
-| Format | Size | Use Case |
-|--------|------|----------|
-| `console` | - | Human terminal output |
-| `json` | 100% | CI/CD, programmatic |
-| `html` | 150% | Visual reports |
-| `markdown` | 80% | Documentation |
-| `llm` | 30-50% | AI agents (token-optimized) |
+| Format     | Size   | Use Case                    |
+| ---------- | ------ | --------------------------- |
+| `console`  | -      | Human terminal output       |
+| `json`     | 100%   | CI/CD, programmatic         |
+| `html`     | 150%   | Visual reports              |
+| `markdown` | 80%    | Documentation               |
+| `llm`      | 30-50% | AI agents (token-optimized) |
 
 #### LLM Reporter
 
@@ -573,30 +576,33 @@ User runs: seomator audit https://example.com --crawl -m 10
 
 ## External Dependencies
 
-| Dependency | Purpose |
-|------------|---------|
-| `commander` | CLI argument parsing |
-| `cheerio` | HTML parsing (jQuery-like) |
-| `playwright` | Browser automation for CWV |
-| `better-sqlite3` | SQLite database |
-| `chalk` | Terminal colors |
-| `cli-progress` | Progress bars |
-| `ora` | Spinners |
-| `@iarna/toml` | TOML config parsing |
+| Dependency       | Purpose                    |
+| ---------------- | -------------------------- |
+| `commander`      | CLI argument parsing       |
+| `cheerio`        | HTML parsing (jQuery-like) |
+| `playwright`     | Browser automation for CWV |
+| `better-sqlite3` | SQLite database            |
+| `chalk`          | Terminal colors            |
+| `cli-progress`   | Progress bars              |
+| `ora`            | Spinners                   |
+| `@iarna/toml`    | TOML config parsing        |
 
 ## Performance Considerations
 
 ### Concurrency
+
 - **Crawler:** Configurable concurrent requests (default: 3)
 - **External links:** Separate concurrency (default: 5)
 - **Rules:** Run sequentially per page (DOM access)
 
 ### Caching
+
 - **Pages:** Stored in SQLite with content hashing
 - **External links:** Cached with configurable TTL
 - **Crawls:** Can be resumed if interrupted
 
 ### Memory
+
 - **HTML compression:** zlib for pages >10KB
 - **Streaming:** Large crawls process pages incrementally
 - **SQLite WAL:** Enables concurrent reads during writes
@@ -607,13 +613,13 @@ User runs: seomator audit https://example.com --crawl -m 10
 
 ```typescript
 // src/rules/core/my-rule.ts
-import { defineRule } from '../define-rule.js';
+import { defineRule } from "../define-rule.js";
 
 export const myRule = defineRule({
-  id: 'core-my-rule',
-  name: 'My Rule',
-  description: 'Checks for something important',
-  category: 'core',
+  id: "core-my-rule",
+  name: "My Rule",
+  description: "Checks for something important",
+  category: "core",
   weight: 5,
 
   run(context) {
@@ -624,16 +630,16 @@ export const myRule = defineRule({
 
     if (hasFeature) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
-        message: 'Feature found',
+        message: "Feature found",
       };
     }
 
     return {
-      status: 'fail',
+      status: "fail",
       score: 0,
-      message: 'Feature missing',
+      message: "Feature missing",
       details: {
         recommendation: 'Add <meta name="feature"> tag',
       },
@@ -646,7 +652,7 @@ export const myRule = defineRule({
 
 ```typescript
 // src/reporters/my-reporter.ts
-import type { AuditReport } from '../types.js';
+import type { AuditReport } from "../types.js";
 
 export function generateMyReport(report: AuditReport): string {
   // Transform report to your format

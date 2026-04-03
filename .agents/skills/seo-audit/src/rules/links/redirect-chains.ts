@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { fetchUrlWithRedirects } from '../../crawler/fetcher.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { fetchUrlWithRedirects } from "../../crawler/fetcher.js";
 
 /**
  * Rule: Check for redirect chains in internal links
@@ -9,10 +9,10 @@ import { fetchUrlWithRedirects } from '../../crawler/fetcher.js';
  * user navigation, and dilute PageRank. Direct links are preferred.
  */
 export const redirectChainsRule = defineRule({
-  id: 'links-redirect-chains',
-  name: 'No Redirect Chains',
-  description: 'Checks that internal links do not go through multiple redirects',
-  category: 'links',
+  id: "links-redirect-chains",
+  name: "No Redirect Chains",
+  description: "Checks that internal links do not go through multiple redirects",
+  category: "links",
   weight: 1,
   run: async (context: AuditContext) => {
     const { links } = context;
@@ -22,11 +22,7 @@ export const redirectChainsRule = defineRule({
     const uniqueUrls = [...new Set(internalLinks.map((l) => l.href))];
 
     if (uniqueUrls.length === 0) {
-      return pass(
-        'links-redirect-chains',
-        'No internal links to check',
-        { totalChecked: 0 }
-      );
+      return pass("links-redirect-chains", "No internal links to check", { totalChecked: 0 });
     }
 
     // Sample up to 20 links for performance
@@ -60,12 +56,12 @@ export const redirectChainsRule = defineRule({
 
     if (redirectingLinks.length === 0) {
       return pass(
-        'links-redirect-chains',
+        "links-redirect-chains",
         `All ${sampleSize} sampled internal link(s) resolve directly`,
         {
           totalChecked: sampleSize,
           totalInternalLinks: uniqueUrls.length,
-        }
+        },
       );
     }
 
@@ -76,7 +72,7 @@ export const redirectChainsRule = defineRule({
     // Fail if any chains have 3+ redirects
     if (longChains.length > 0) {
       return fail(
-        'links-redirect-chains',
+        "links-redirect-chains",
         `Found ${longChains.length} link(s) with 3+ redirect hops`,
         {
           totalChecked: sampleSize,
@@ -89,14 +85,14 @@ export const redirectChainsRule = defineRule({
             redirectCount: l.redirectCount,
             chain: l.chain,
           })),
-          recommendation: 'Update links to point directly to final destination URLs',
-        }
+          recommendation: "Update links to point directly to final destination URLs",
+        },
       );
     }
 
     // Warn for 1-2 redirect hops
     return warn(
-      'links-redirect-chains',
+      "links-redirect-chains",
       `Found ${shortChains.length} link(s) with 1-2 redirect hops`,
       {
         totalChecked: sampleSize,
@@ -107,8 +103,8 @@ export const redirectChainsRule = defineRule({
           finalUrl: l.finalUrl,
           redirectCount: l.redirectCount,
         })),
-        recommendation: 'Update links to point directly to final destination URLs',
-      }
+        recommendation: "Update links to point directly to final destination URLs",
+      },
     );
   },
 });

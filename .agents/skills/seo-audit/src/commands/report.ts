@@ -1,13 +1,13 @@
-import chalk from 'chalk';
-import Table from 'cli-table3';
-import { listReports, loadReport } from '../storage/index.js';
-import { renderTerminalReport, outputJsonReport } from '../reporters/index.js';
+import chalk from "chalk";
+import Table from "cli-table3";
+import { listReports, loadReport } from "../storage/index.js";
+import { renderTerminalReport, outputJsonReport } from "../reporters/index.js";
 
 export interface ReportOptions {
   list: boolean;
   project?: string;
   since?: string;
-  format: 'table' | 'json';
+  format: "table" | "json";
 }
 
 export async function runReport(query: string | undefined, options: ReportOptions): Promise<void> {
@@ -22,18 +22,18 @@ export async function runReport(query: string | undefined, options: ReportOption
     });
 
     if (reports.length === 0) {
-      console.log(chalk.yellow('No reports found.'));
+      console.log(chalk.yellow("No reports found."));
       return;
     }
 
-    if (options.format === 'json') {
+    if (options.format === "json") {
       console.log(JSON.stringify(reports, null, 2));
       return;
     }
 
     // Table format
     const table = new Table({
-      head: ['ID', 'URL', 'Project', 'Score', 'Date'],
+      head: ["ID", "URL", "Project", "Score", "Date"],
       colWidths: [20, 40, 15, 8, 22],
     });
 
@@ -42,7 +42,7 @@ export async function runReport(query: string | undefined, options: ReportOption
       table.push([
         report.id,
         report.url.slice(0, 38),
-        report.project || '-',
+        report.project || "-",
         scoreColor(report.overallScore.toString()),
         new Date(report.timestamp).toLocaleString(),
       ]);
@@ -58,7 +58,7 @@ export async function runReport(query: string | undefined, options: ReportOption
       process.exit(1);
     }
 
-    if (options.format === 'json') {
+    if (options.format === "json") {
       console.log(JSON.stringify(report, null, 2));
     } else {
       // Convert to AuditResult format

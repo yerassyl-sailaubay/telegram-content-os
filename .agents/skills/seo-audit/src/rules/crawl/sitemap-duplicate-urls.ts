@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Normalize URL for duplicate comparison
@@ -9,12 +9,12 @@ function normalizeUrl(url: string): string {
   try {
     const urlObj = new URL(url);
     let path = urlObj.pathname;
-    if (path.length > 1 && path.endsWith('/')) {
+    if (path.length > 1 && path.endsWith("/")) {
       path = path.slice(0, -1);
     }
     return `${urlObj.protocol}//${urlObj.host.toLowerCase()}${path}${urlObj.search}`;
   } catch {
-    return url.toLowerCase().replace(/\/$/, '');
+    return url.toLowerCase().replace(/\/$/, "");
   }
 }
 
@@ -26,20 +26,18 @@ function normalizeUrl(url: string): string {
  * priority signals.
  */
 export const sitemapDuplicateUrlsRule = defineRule({
-  id: 'crawl-sitemap-duplicate-urls',
-  name: 'Sitemap Duplicate URLs',
-  description: 'Checks for duplicate URLs in sitemap',
-  category: 'crawl',
+  id: "crawl-sitemap-duplicate-urls",
+  name: "Sitemap Duplicate URLs",
+  description: "Checks for duplicate URLs in sitemap",
+  category: "crawl",
   weight: 6,
   run: async (context: AuditContext) => {
     const sitemapUrls = (context as any).sitemapUrls as string[] | undefined;
 
     if (!sitemapUrls || sitemapUrls.length === 0) {
-      return pass(
-        'crawl-sitemap-duplicate-urls',
-        'No sitemap URLs available to check',
-        { sitemapAvailable: false }
-      );
+      return pass("crawl-sitemap-duplicate-urls", "No sitemap URLs available to check", {
+        sitemapAvailable: false,
+      });
     }
 
     const seen = new Set<string>();
@@ -65,20 +63,20 @@ export const sitemapDuplicateUrlsRule = defineRule({
 
     if (duplicates.length > 0) {
       return warn(
-        'crawl-sitemap-duplicate-urls',
+        "crawl-sitemap-duplicate-urls",
         `Sitemap contains ${duplicates.length} duplicate URL(s)`,
         {
           ...details,
-          impact: 'Duplicate URLs waste crawl budget and may confuse crawl priority',
-          recommendation: 'Remove duplicate entries from the sitemap',
-        }
+          impact: "Duplicate URLs waste crawl budget and may confuse crawl priority",
+          recommendation: "Remove duplicate entries from the sitemap",
+        },
       );
     }
 
     return pass(
-      'crawl-sitemap-duplicate-urls',
+      "crawl-sitemap-duplicate-urls",
       `All ${sitemapUrls.length} sitemap URLs are unique`,
-      details
+      details,
     );
   },
 });

@@ -11,34 +11,34 @@
  * - Title uniqueness
  */
 
-import { registerRule } from '../registry.js';
+import { registerRule } from "../registry.js";
 
 // Meta tags rules
-import { titlePresentRule } from './title-present.js';
-import { titleLengthRule } from './title-length.js';
-import { descriptionPresentRule } from './description-present.js';
-import { descriptionLengthRule } from './description-length.js';
-import { canonicalPresentRule } from './canonical-present.js';
-import { canonicalValidRule } from './canonical-valid.js';
-import { viewportPresentRule } from './viewport-present.js';
-import { faviconPresentRule } from './favicon-present.js';
+import { titlePresentRule } from "./title-present.js";
+import { titleLengthRule } from "./title-length.js";
+import { descriptionPresentRule } from "./description-present.js";
+import { descriptionLengthRule } from "./description-length.js";
+import { canonicalPresentRule } from "./canonical-present.js";
+import { canonicalValidRule } from "./canonical-valid.js";
+import { viewportPresentRule } from "./viewport-present.js";
+import { faviconPresentRule } from "./favicon-present.js";
 
 // H1 rules
-import { h1PresentRule } from './h1-present.js';
-import { h1SingleRule } from './h1-single.js';
+import { h1PresentRule } from "./h1-present.js";
+import { h1SingleRule } from "./h1-single.js";
 
 // Core SEO rules
-import { canonicalHeaderRule } from './canonical-header.js';
-import { nosnippetRule } from './nosnippet.js';
-import { robotsMetaRule } from './robots-meta.js';
-import { titleUniqueRule, resetTitleRegistry, getTitleRegistryStats } from './title-unique.js';
+import { canonicalHeaderRule } from "./canonical-header.js";
+import { nosnippetRule } from "./nosnippet.js";
+import { robotsMetaRule } from "./robots-meta.js";
+import { titleUniqueRule, resetTitleRegistry, getTitleRegistryStats } from "./title-unique.js";
 
 // Canonical validation rules
-import { canonicalConflictingRule } from './canonical-conflicting.js';
-import { canonicalToHomepageRule } from './canonical-to-homepage.js';
-import { canonicalHttpMismatchRule } from './canonical-http-mismatch.js';
-import { canonicalLoopRule } from './canonical-loop.js';
-import { canonicalToNoindexRule } from './canonical-to-noindex.js';
+import { canonicalConflictingRule } from "./canonical-conflicting.js";
+import { canonicalToHomepageRule } from "./canonical-to-homepage.js";
+import { canonicalHttpMismatchRule } from "./canonical-http-mismatch.js";
+import { canonicalLoopRule } from "./canonical-loop.js";
+import { canonicalToNoindexRule } from "./canonical-to-noindex.js";
 
 // Export all rules
 export {

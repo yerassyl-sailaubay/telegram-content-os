@@ -163,12 +163,12 @@ describe("listChannels", () => {
       connectedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      postCount: 5,
+      lastPostAt: new Date("2026-01-15"),
     };
 
-    // First select: channels list
+    // Single select: channels with aggregated stats
     selectResults.push([mockChannel]);
-    // Second select: post stats for channel-1
-    selectResults.push([{ channelId: "channel-1", count: 5, lastPostAt: new Date("2026-01-15") }]);
 
     const result = await listChannels();
     expect(result.success).toBe(true);
@@ -193,10 +193,11 @@ describe("listChannels", () => {
       connectedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      postCount: 0,
+      lastPostAt: null,
     };
 
     selectResults.push([mockChannel]);
-    selectResults.push([{ channelId: "channel-1", count: 0, lastPostAt: null }]);
 
     const result = await listChannels();
     expect(result.success).toBe(true);

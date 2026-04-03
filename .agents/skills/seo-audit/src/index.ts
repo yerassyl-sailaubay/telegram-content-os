@@ -16,14 +16,14 @@
  *   console.log(`Overall Score: ${result.overallScore}`);
  */
 
-export { Auditor, createAuditor } from './auditor.js';
+export { Auditor, createAuditor } from "./auditor.js";
 export type {
   AuditorOptions,
   OnCategoryStartCallback,
   OnCategoryCompleteCallback,
   OnRuleCompleteCallback,
   OnPageCompleteCallback,
-} from './auditor.js';
+} from "./auditor.js";
 
 export type {
   AuditResult,
@@ -39,4 +39,4 @@ export type {
   InvalidLinkInfo,
   SpecialLinkInfo,
   RedirectChainEntry,
-} from './types.js';
+} from "./types.js";

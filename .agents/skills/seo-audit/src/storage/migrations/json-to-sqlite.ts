@@ -1,11 +1,11 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { getCrawlsDir, getReportsDir, extractDomain } from '../paths.js';
-import { ProjectDatabase } from '../project-db/index.js';
-import { getAuditsDatabase } from '../audits-db/index.js';
-import type { StoredCrawl, StoredPage } from '../crawl-store.js';
-import type { StoredReport } from '../report-store.js';
-import type { InsertPageInput, InsertCategoryInput, InsertResultInput } from '../types.js';
+import * as fs from "fs";
+import * as path from "path";
+import { getCrawlsDir, getReportsDir, extractDomain } from "../paths.js";
+import { ProjectDatabase } from "../project-db/index.js";
+import { getAuditsDatabase } from "../audits-db/index.js";
+import type { StoredCrawl, StoredPage } from "../crawl-store.js";
+import type { StoredReport } from "../report-store.js";
+import type { InsertPageInput, InsertCategoryInput, InsertResultInput } from "../types.js";
 
 /**
  * Migration result
@@ -36,11 +36,11 @@ export function detectJsonFiles(baseDir: string): {
   let reportCount = 0;
 
   if (fs.existsSync(crawlsDir)) {
-    crawlCount = fs.readdirSync(crawlsDir).filter(f => f.endsWith('.json')).length;
+    crawlCount = fs.readdirSync(crawlsDir).filter((f) => f.endsWith(".json")).length;
   }
 
   if (fs.existsSync(reportsDir)) {
-    reportCount = fs.readdirSync(reportsDir).filter(f => f.endsWith('.json')).length;
+    reportCount = fs.readdirSync(reportsDir).filter((f) => f.endsWith(".json")).length;
   }
 
   return {
@@ -81,13 +81,15 @@ function pageToInsertInput(page: StoredPage): InsertPageInput {
     html: page.html,
     headers: page.headers,
     loadTimeMs: page.loadTime,
-    cwv: page.cwv ? {
-      lcp: page.cwv.lcp,
-      cls: page.cwv.cls,
-      inp: page.cwv.inp,
-      fcp: page.cwv.fcp,
-      ttfb: page.cwv.ttfb,
-    } : undefined,
+    cwv: page.cwv
+      ? {
+          lcp: page.cwv.lcp,
+          cls: page.cwv.cls,
+          inp: page.cwv.inp,
+          fcp: page.cwv.fcp,
+          ttfb: page.cwv.ttfb,
+        }
+      : undefined,
   };
 }
 
@@ -96,10 +98,10 @@ function pageToInsertInput(page: StoredPage): InsertPageInput {
  */
 function migrateCrawl(
   filePath: string,
-  projectDbs: Map<string, ProjectDatabase>
+  projectDbs: Map<string, ProjectDatabase>,
 ): { success: boolean; error?: string } {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     const crawl: StoredCrawl = JSON.parse(content);
 
     // Extract domain from URL
@@ -149,10 +151,10 @@ function migrateCrawl(
  */
 function migrateReport(
   filePath: string,
-  auditsDb: AuditsDatabase
+  auditsDb: AuditsDatabase,
 ): { success: boolean; error?: string } {
   try {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     const report: StoredReport = JSON.parse(content);
 
     // Extract domain from URL
@@ -170,7 +172,7 @@ function migrateReport(
 
     // Insert category results
     if (report.categoryResults && report.categoryResults.length > 0) {
-      const categoryInputs: InsertCategoryInput[] = report.categoryResults.map(cat => ({
+      const categoryInputs: InsertCategoryInput[] = report.categoryResults.map((cat) => ({
         categoryId: cat.categoryId,
         categoryName: cat.categoryId, // Legacy format doesn't have name
         score: cat.score,
@@ -240,7 +242,7 @@ export function migrateJsonToSqlite(
   options: {
     dryRun?: boolean;
     backup?: boolean;
-  } = {}
+  } = {},
 ): MigrationStats {
   const stats: MigrationStats = {
     crawlsMigrated: 0,
@@ -269,9 +271,10 @@ export function migrateJsonToSqlite(
   try {
     // Migrate crawls
     if (fs.existsSync(crawlsDir)) {
-      const crawlFiles = fs.readdirSync(crawlsDir)
-        .filter(f => f.endsWith('.json'))
-        .map(f => path.join(crawlsDir, f));
+      const crawlFiles = fs
+        .readdirSync(crawlsDir)
+        .filter((f) => f.endsWith(".json"))
+        .map((f) => path.join(crawlsDir, f));
 
       for (const filePath of crawlFiles) {
         const result = migrateCrawl(filePath, projectDbs);
@@ -295,9 +298,10 @@ export function migrateJsonToSqlite(
 
     // Migrate reports
     if (fs.existsSync(reportsDir)) {
-      const reportFiles = fs.readdirSync(reportsDir)
-        .filter(f => f.endsWith('.json'))
-        .map(f => path.join(reportsDir, f));
+      const reportFiles = fs
+        .readdirSync(reportsDir)
+        .filter((f) => f.endsWith(".json"))
+        .map((f) => path.join(reportsDir, f));
 
       for (const filePath of reportFiles) {
         const result = migrateReport(filePath, auditsDb);

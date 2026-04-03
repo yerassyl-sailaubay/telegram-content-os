@@ -17,15 +17,29 @@ const globalForDb = globalThis as unknown as {
   db: PostgresJsDatabase<typeof schema> | undefined;
 };
 
+function parsePoolMax(raw: string | undefined): number {
+  const fallback = 10;
+  const parsed = Number.parseInt(raw ?? `${fallback}`, 10);
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
 function getDb() {
   if (!globalForDb.db) {
     const url = process.env.DATABASE_URL;
     if (!url) {
       throw new Error("DATABASE_URL is not set. Please set it in your environment variables.");
     }
+
+    const maxPoolSize = parsePoolMax(process.env.DATABASE_POOL_MAX);
+
     const connection = postgres(url, {
       prepare: false,
-      max: 1,
+      max: maxPoolSize,
       idle_timeout: 20,
       connect_timeout: 10,
     });

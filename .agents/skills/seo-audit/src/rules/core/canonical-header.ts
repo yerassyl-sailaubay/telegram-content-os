@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Detect mismatch between HTML canonical tag and HTTP Link header
@@ -8,20 +8,20 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * they should specify the same URL. Conflicting signals confuse search engines.
  */
 export const canonicalHeaderRule = defineRule({
-  id: 'core-canonical-header',
-  name: 'Canonical Header Validation',
-  description: 'Detects mismatch between HTML canonical tag and HTTP Link header',
-  category: 'core',
+  id: "core-canonical-header",
+  name: "Canonical Header Validation",
+  description: "Detects mismatch between HTML canonical tag and HTTP Link header",
+  category: "core",
   weight: 7,
   run: async (context: AuditContext) => {
     const { $, headers } = context;
 
     // Get HTML canonical
-    const htmlCanonical = $('link[rel="canonical"]').first().attr('href')?.trim();
+    const htmlCanonical = $('link[rel="canonical"]').first().attr("href")?.trim();
 
     // Get HTTP Link header canonical
     // Format: <https://example.com/page>; rel="canonical"
-    const linkHeader = headers['link'] || headers['Link'] || '';
+    const linkHeader = headers["link"] || headers["Link"] || "";
     let headerCanonical: string | undefined;
 
     if (linkHeader) {
@@ -34,23 +34,19 @@ export const canonicalHeaderRule = defineRule({
     // If neither exists, this rule doesn't apply (other rules check for presence)
     if (!htmlCanonical && !headerCanonical) {
       return pass(
-        'core-canonical-header',
-        'No conflicting canonical signals (neither HTML tag nor Link header present)',
-        { htmlCanonical: null, headerCanonical: null }
+        "core-canonical-header",
+        "No conflicting canonical signals (neither HTML tag nor Link header present)",
+        { htmlCanonical: null, headerCanonical: null },
       );
     }
 
     // If only one exists, that's fine
     if (!htmlCanonical || !headerCanonical) {
-      return pass(
-        'core-canonical-header',
-        'Single canonical signal present (no conflict)',
-        {
-          htmlCanonical: htmlCanonical || null,
-          headerCanonical: headerCanonical || null,
-          source: htmlCanonical ? 'html' : 'header',
-        }
-      );
+      return pass("core-canonical-header", "Single canonical signal present (no conflict)", {
+        htmlCanonical: htmlCanonical || null,
+        headerCanonical: headerCanonical || null,
+        source: htmlCanonical ? "html" : "header",
+      });
     }
 
     // Both exist - check if they match
@@ -58,9 +54,9 @@ export const canonicalHeaderRule = defineRule({
     const normalizeUrl = (url: string): string => {
       try {
         const parsed = new URL(url);
-        return parsed.href.replace(/\/$/, '').toLowerCase();
+        return parsed.href.replace(/\/$/, "").toLowerCase();
       } catch {
-        return url.replace(/\/$/, '').toLowerCase();
+        return url.replace(/\/$/, "").toLowerCase();
       }
     };
 
@@ -68,22 +64,23 @@ export const canonicalHeaderRule = defineRule({
     const normalizedHeader = normalizeUrl(headerCanonical);
 
     if (normalizedHtml === normalizedHeader) {
-      return pass(
-        'core-canonical-header',
-        'HTML canonical and Link header match',
-        { htmlCanonical, headerCanonical, match: true }
-      );
+      return pass("core-canonical-header", "HTML canonical and Link header match", {
+        htmlCanonical,
+        headerCanonical,
+        match: true,
+      });
     }
 
     return warn(
-      'core-canonical-header',
+      "core-canonical-header",
       `Canonical mismatch: HTML tag "${htmlCanonical}" differs from Link header "${headerCanonical}"`,
       {
         htmlCanonical,
         headerCanonical,
         match: false,
-        recommendation: 'Use HTML canonical tag exclusively; reserve Link header for non-HTML resources like PDFs',
-      }
+        recommendation:
+          "Use HTML canonical tag exclusively; reserve Link header for non-HTML resources like PDFs",
+      },
     );
   },
 });

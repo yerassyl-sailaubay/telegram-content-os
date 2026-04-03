@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EngagementPoint } from "@/server/actions/dashboard";
@@ -9,19 +9,20 @@ type EngagementSparklineProps = {
   data: EngagementPoint[];
 };
 
-function formatDay(dateStr: string): string {
+function formatDay(dateStr: string, locale: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en", { weekday: "short" });
+  return date.toLocaleDateString(locale, { weekday: "short" });
 }
 
 export function EngagementSparkline({ data }: EngagementSparklineProps) {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
 
   const isEmpty = data.length === 0 || data.every((d) => d.total === 0);
 
   const chartData = data.map((d) => ({
     ...d,
-    day: formatDay(d.date),
+    day: formatDay(d.date, locale),
   }));
 
   return (

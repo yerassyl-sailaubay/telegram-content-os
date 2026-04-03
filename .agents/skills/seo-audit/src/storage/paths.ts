@@ -1,11 +1,11 @@
-import * as os from 'os';
-import * as path from 'path';
+import * as os from "os";
+import * as path from "path";
 
 /**
  * Get global seomator directory (~/.seomator)
  */
 export function getGlobalDir(): string {
-  return path.join(os.homedir(), '.seomator');
+  return path.join(os.homedir(), ".seomator");
 }
 
 // =============================================================================
@@ -16,7 +16,7 @@ export function getGlobalDir(): string {
  * Get projects directory (~/.seomator/projects)
  */
 export function getProjectsDir(): string {
-  return path.join(getGlobalDir(), 'projects');
+  return path.join(getGlobalDir(), "projects");
 }
 
 /**
@@ -36,7 +36,7 @@ export function getProjectDbDir(domain: string): string {
  * @param domain - Domain name (e.g., "example.com")
  */
 export function getProjectDbPath(domain: string): string {
-  return path.join(getProjectDbDir(domain), 'project.db');
+  return path.join(getProjectDbDir(domain), "project.db");
 }
 
 /**
@@ -44,7 +44,7 @@ export function getProjectDbPath(domain: string): string {
  * This is a centralized database for all audit results
  */
 export function getAuditsDbPath(): string {
-  return path.join(getGlobalDir(), 'audits.db');
+  return path.join(getGlobalDir(), "audits.db");
 }
 
 /**
@@ -59,7 +59,7 @@ export function extractDomain(url: string): string {
     let hostname = parsed.hostname.toLowerCase();
 
     // Remove www. prefix for consistency
-    if (hostname.startsWith('www.')) {
+    if (hostname.startsWith("www.")) {
       hostname = hostname.slice(4);
     }
 
@@ -67,7 +67,7 @@ export function extractDomain(url: string): string {
   } catch {
     // If URL parsing fails, try to extract domain manually
     const match = url.match(/(?:https?:\/\/)?(?:www\.)?([^\/\s:]+)/i);
-    return match?.[1]?.toLowerCase() ?? 'unknown';
+    return match?.[1]?.toLowerCase() ?? "unknown";
   }
 }
 
@@ -81,52 +81,52 @@ export function extractDomain(url: string): string {
 export function sanitizeDomain(domain: string): string {
   return domain
     .toLowerCase()
-    .replace(/[^a-z0-9.-]/g, '_')
-    .replace(/\.+/g, '.')
-    .replace(/_+/g, '_')
-    .replace(/^[._-]+|[._-]+$/g, '');
+    .replace(/[^a-z0-9.-]/g, "_")
+    .replace(/\.+/g, ".")
+    .replace(/_+/g, "_")
+    .replace(/^[._-]+|[._-]+$/g, "");
 }
 
 /**
  * Get global settings file path
  */
 export function getGlobalSettingsPath(): string {
-  return path.join(getGlobalDir(), 'settings.json');
+  return path.join(getGlobalDir(), "settings.json");
 }
 
 /**
  * Get global link cache database path
  */
 export function getLinkCachePath(): string {
-  return path.join(getGlobalDir(), 'link-cache.db');
+  return path.join(getGlobalDir(), "link-cache.db");
 }
 
 /**
  * Get project seomator directory (.seomator)
  */
 export function getProjectDir(baseDir: string): string {
-  return path.join(baseDir, '.seomator');
+  return path.join(baseDir, ".seomator");
 }
 
 /**
  * Get project settings file path
  */
 export function getProjectSettingsPath(baseDir: string): string {
-  return path.join(getProjectDir(baseDir), 'settings.json');
+  return path.join(getProjectDir(baseDir), "settings.json");
 }
 
 /**
  * Get crawls directory
  */
 export function getCrawlsDir(baseDir: string): string {
-  return path.join(getProjectDir(baseDir), 'crawls');
+  return path.join(getProjectDir(baseDir), "crawls");
 }
 
 /**
  * Get reports directory
  */
 export function getReportsDir(baseDir: string): string {
-  return path.join(getProjectDir(baseDir), 'reports');
+  return path.join(getProjectDir(baseDir), "reports");
 }
 
 /**
@@ -134,7 +134,7 @@ export function getReportsDir(baseDir: string): string {
  * Format: YYYY-MM-DD-xxxxxx
  */
 export function generateId(): string {
-  const date = new Date().toISOString().split('T')[0];
+  const date = new Date().toISOString().split("T")[0];
   const hash = Math.random().toString(36).substring(2, 8);
   return `${date}-${hash}`;
 }

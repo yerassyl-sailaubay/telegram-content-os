@@ -3,8 +3,9 @@
 ## TL;DR
 
 > **Quick Summary**: Build a full-stack Next.js web dashboard that enables Russian Telegram channel creators to repurpose their content to LinkedIn and Twitter/X in English, with AI-powered cultural adaptation, scheduling, analytics, and content management.
-> 
+>
 > **Deliverables**:
+>
 > - Full-stack Next.js 15 app with Supabase backend
 > - Telegram Bot integration (channel connection, post ingestion via webhooks)
 > - AI-powered cross-posting engine (RU→EN adaptation for LinkedIn + Twitter)
@@ -13,7 +14,7 @@
 > - Content & media library with categorization
 > - Freemium billing with Stripe (Free/Plus $19/Pro $49)
 > - Welcome message templates for Telegram channels
-> 
+>
 > **Estimated Effort**: XL (8-12 weeks for solo developer)
 > **Parallel Execution**: YES — 6 waves
 > **Critical Path**: Scaffolding → DB Schema → Telegram Bot → AI Engine → Cross-posting → Analytics
@@ -23,10 +24,13 @@
 ## Context
 
 ### Original Request
+
 Build a Telegram Content OS — a comprehensive web dashboard for Russian Telegram channel creators to manage their channels, create AI-powered content, and grow their personal brand on English-speaking platforms (LinkedIn, Twitter/X). Freemium pricing model with AI content adaptation as the key differentiator.
 
 ### Interview Summary
+
 **Key Discussions**:
+
 - **Target user**: Solo creator running 1-3 Telegram channels, wants English-audience brand growth
 - **Builder**: Solo backend/Python developer choosing full-stack Next.js (TypeScript)
 - **Feature cuts agreed**: V1 focuses on cross-posting + scheduling + analytics. Deferred: moderation, community gamification, competitor spy, viral predictor, multi-payment
@@ -35,6 +39,7 @@ Build a Telegram Content OS — a comprehensive web dashboard for Russian Telegr
 - **AI strategy**: Multi-provider via OpenRouter (GPT-4.1 mini, Claude Haiku, DeepL)
 
 **Research Findings**:
+
 - **Telegram Bot API**: Can read own channel posts + reactions (counts), post as admin. CANNOT read comments, competitor channels, detailed analytics. Rate: ~30 msg/sec global, ~1/sec per chat.
 - **LinkedIn API**: OAuth 2.0 PKCE, Community Management API. Supports text/images/video/articles/polls. No organic carousels. Requires API access approval.
 - **Twitter/X Free tier**: $0, 1,500 posts/mo write-only. Enough for MVP. OAuth 2.0 PKCE.
@@ -43,7 +48,9 @@ Build a Telegram Content OS — a comprehensive web dashboard for Russian Telegr
 - **Infrastructure cost**: $20-40/mo MVP on Vercel + Supabase + Inngest.
 
 ### Gap Analysis (Self-Performed)
+
 **Identified Gaps** (addressed in plan):
+
 - **OAuth token refresh**: LinkedIn/Twitter tokens expire. Must implement refresh flow + encrypted storage → Added to OAuth tasks
 - **Webhook reliability**: Telegram webhooks can fail silently. Need retry + dead letter queue → Added to Telegram integration
 - **Rate limiting per user**: Free tier users need enforcement (5 cross-posts/mo). Must track usage → Added to billing tasks
@@ -56,9 +63,11 @@ Build a Telegram Content OS — a comprehensive web dashboard for Russian Telegr
 ## Work Objectives
 
 ### Core Objective
+
 Deliver a production-ready web dashboard where a Russian Telegram channel creator can connect their channel, have their posts automatically adapted by AI from Russian to English for LinkedIn/Twitter audiences, schedule cross-platform publication, and track engagement analytics — all within a freemium subscription model.
 
 ### Concrete Deliverables
+
 - Next.js 15 app deployed to Vercel at a custom domain
 - Supabase Postgres database with full schema (users, channels, posts, schedules, analytics)
 - Telegram Bot that receives channel posts via webhook and stores them
@@ -73,6 +82,7 @@ Deliver a production-ready web dashboard where a Russian Telegram channel creato
 - Welcome message template editor for Telegram channels
 
 ### Definition of Done
+
 - [ ] User can sign up, connect Telegram channel via bot, see posts appear in dashboard
 - [ ] User can select a post, click "Adapt for LinkedIn", get AI-generated English version, review, edit, and schedule/post
 - [ ] Same flow works for Twitter/X
@@ -83,6 +93,7 @@ Deliver a production-ready web dashboard where a Russian Telegram channel creato
 - [ ] App deploys to Vercel with zero manual steps (CI/CD via GitHub)
 
 ### Must Have
+
 - Supabase Auth with email + OAuth (Google, GitHub) sign-in
 - Telegram Bot API integration via webhooks (not polling)
 - AI content adaptation with user-editable results before posting
@@ -94,6 +105,7 @@ Deliver a production-ready web dashboard where a Russian Telegram channel creato
 - Proper error handling with user-facing error states for every API failure
 
 ### Must NOT Have (Guardrails)
+
 - NO MTProto/User API (ToS risk, only Bot API)
 - NO AI image generation (deferred to V2)
 - NO competitor channel tracking (deferred to V2)
@@ -115,6 +127,7 @@ Deliver a production-ready web dashboard where a Russian Telegram channel creato
 > Acceptance criteria requiring "user manually tests/confirms" are FORBIDDEN.
 
 ### Test Decision
+
 - **Infrastructure exists**: NO (greenfield — must set up)
 - **Automated tests**: YES — Full TDD
 - **Framework**: vitest (unit/integration) + Playwright (E2E)
@@ -122,6 +135,7 @@ Deliver a production-ready web dashboard where a Russian Telegram channel creato
 - **Test setup**: Included as Task 2 (Wave 1)
 
 ### QA Policy
+
 Every task MUST include agent-executed QA scenarios (see TODO template below).
 Evidence saved to `.sisyphus/evidence/task-{N}-{scenario-slug}.{ext}`.
 
@@ -190,39 +204,39 @@ Max Concurrent: 7 (Wave 1)
 
 ### Dependency Matrix
 
-| Task | Depends On | Blocks | Wave |
-|------|-----------|--------|------|
-| 1 | — | 2-7, all | 1 |
-| 2 | 1 | all tests, 30 | 1 |
-| 3 | 1 | 8-13, 17-18, 20, 22-24 | 1 |
-| 4 | 1 | 22, 28 | 1 |
-| 5 | 1 | all UI tasks | 1 |
-| 6 | 1 | 9-11, 13, 19, 21, 24, 27-28 | 1 |
-| 7 | 1 | 8, 11, 14, 17, 18 | 1 |
-| 8 | 3, 7 | 12, 13, 16, 24 | 2 |
-| 9 | 3, 6 | — | 2 |
-| 10 | 3, 6 | — | 2 |
-| 11 | 3, 6, 7 | 25, 26 | 2 |
-| 12 | 3 | 15 | 2 |
-| 13 | 3, 6, 8 | — | 2 |
-| 14 | 7 | 15, 16 | 3 |
-| 15 | 12, 14 | 19 | 3 |
-| 16 | 8, 14 | — | 3 |
-| 17 | 3, 7 | 19, 20, 25, 28 | 3 |
-| 18 | 3, 7 | 19, 20, 25, 28 | 3 |
-| 19 | 6, 15, 17, 18 | 25 | 3 |
-| 20 | 3, 17, 18 | 21, 27 | 4 |
-| 21 | 6, 20 | 27 | 4 |
-| 22 | 3, 4 | 23, 28 | 4 |
-| 23 | 3, 22 | — | 4 |
-| 24 | 3, 6, 8 | — | 4 |
-| 25 | 11, 17, 18, 19 | 26 | 5 |
-| 26 | 11, 25 | — | 5 |
-| 27 | 6, 20, 21 | — | 5 |
-| 28 | 4, 6, 17, 18, 22 | — | 5 |
-| 29 | all UI tasks | — | 5 |
-| 30 | 1, 2 | — | 5 |
-| F1-F4 | ALL | — | FINAL |
+| Task  | Depends On       | Blocks                      | Wave  |
+| ----- | ---------------- | --------------------------- | ----- |
+| 1     | —                | 2-7, all                    | 1     |
+| 2     | 1                | all tests, 30               | 1     |
+| 3     | 1                | 8-13, 17-18, 20, 22-24      | 1     |
+| 4     | 1                | 22, 28                      | 1     |
+| 5     | 1                | all UI tasks                | 1     |
+| 6     | 1                | 9-11, 13, 19, 21, 24, 27-28 | 1     |
+| 7     | 1                | 8, 11, 14, 17, 18           | 1     |
+| 8     | 3, 7             | 12, 13, 16, 24              | 2     |
+| 9     | 3, 6             | —                           | 2     |
+| 10    | 3, 6             | —                           | 2     |
+| 11    | 3, 6, 7          | 25, 26                      | 2     |
+| 12    | 3                | 15                          | 2     |
+| 13    | 3, 6, 8          | —                           | 2     |
+| 14    | 7                | 15, 16                      | 3     |
+| 15    | 12, 14           | 19                          | 3     |
+| 16    | 8, 14            | —                           | 3     |
+| 17    | 3, 7             | 19, 20, 25, 28              | 3     |
+| 18    | 3, 7             | 19, 20, 25, 28              | 3     |
+| 19    | 6, 15, 17, 18    | 25                          | 3     |
+| 20    | 3, 17, 18        | 21, 27                      | 4     |
+| 21    | 6, 20            | 27                          | 4     |
+| 22    | 3, 4             | 23, 28                      | 4     |
+| 23    | 3, 22            | —                           | 4     |
+| 24    | 3, 6, 8          | —                           | 4     |
+| 25    | 11, 17, 18, 19   | 26                          | 5     |
+| 26    | 11, 25           | —                           | 5     |
+| 27    | 6, 20, 21        | —                           | 5     |
+| 28    | 4, 6, 17, 18, 22 | —                           | 5     |
+| 29    | all UI tasks     | —                           | 5     |
+| 30    | 1, 2             | —                           | 5     |
+| F1-F4 | ALL              | —                           | FINAL |
 
 ### Agent Dispatch Summary
 
@@ -279,6 +293,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] shadcn/ui Button component renders correctly
 
   **QA Scenarios:**
+
   ```
   Scenario: Dev server starts successfully
     Tool: Bash
@@ -347,6 +362,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] Test utilities export `render`, `screen`, `userEvent` wrappers
 
   **QA Scenarios:**
+
   ```
   Scenario: Unit test suite runs successfully
     Tool: Bash
@@ -428,6 +444,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] Unit tests verify foreign key relations
 
   **QA Scenarios:**
+
   ```
   Scenario: Schema migration applies cleanly
     Tool: Bash
@@ -508,6 +525,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for all auth flows
 
   **QA Scenarios:**
+
   ```
   Scenario: Full signup → login → dashboard → logout flow
     Tool: Playwright (playwright skill)
@@ -585,6 +603,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD test verifies locale switching
 
   **QA Scenarios:**
+
   ```
   Scenario: Locale switching works correctly
     Tool: Playwright (playwright skill)
@@ -652,6 +671,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for layout components
 
   **QA Scenarios:**
+
   ```
   Scenario: Dashboard layout renders correctly on desktop
     Tool: Playwright (playwright skill)
@@ -729,6 +749,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD test verifies function step execution
 
   **QA Scenarios:**
+
   ```
   Scenario: Inngest dev server and function registration
     Tool: Bash
@@ -815,6 +836,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for all webhook scenarios
 
   **QA Scenarios:**
+
   ```
   Scenario: Webhook receives and stores a channel post
     Tool: Bash (curl)
@@ -895,6 +917,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for all CRUD + search operations
 
   **QA Scenarios:**
+
   ```
   Scenario: Create and search content
     Tool: Playwright (playwright skill)
@@ -967,6 +990,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for upload/delete/list operations
 
   **QA Scenarios:**
+
   ```
   Scenario: Upload and display image
     Tool: Playwright (playwright skill)
@@ -1038,6 +1062,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for scheduling logic and timezone conversions
 
   **QA Scenarios:**
+
   ```
   Scenario: Schedule a post and verify calendar display
     Tool: Playwright (playwright skill)
@@ -1107,6 +1132,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests cover every entity type + edge cases (100% branch coverage on parser)
 
   **QA Scenarios:**
+
   ```
   Scenario: Parse complex Telegram message with mixed formatting
     Tool: Bash (bun REPL)
@@ -1184,6 +1210,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for connect/disconnect flows
 
   **QA Scenarios:**
+
   ```
   Scenario: Connect a Telegram channel
     Tool: Playwright (playwright skill)
@@ -1265,6 +1292,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for all prompts and error scenarios
 
   **QA Scenarios:**
+
   ```
   Scenario: RU→EN adaptation for LinkedIn
     Tool: Bash (bun REPL)
@@ -1356,6 +1384,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for pipeline, splitting, validation
 
   **QA Scenarios:**
+
   ```
   Scenario: Full adaptation pipeline for LinkedIn
     Tool: Bash (bun REPL)
@@ -1431,6 +1460,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for profiler logic
 
   **QA Scenarios:**
+
   ```
   Scenario: Generate channel profile from posts
     Tool: Bash (bun REPL)
@@ -1500,6 +1530,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for OAuth flow + posting
 
   **QA Scenarios:**
+
   ```
   Scenario: Post to LinkedIn via API
     Tool: Bash (curl)
@@ -1582,6 +1613,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for all flows
 
   **QA Scenarios:**
+
   ```
   Scenario: Post a tweet and a thread
     Tool: Bash (curl)
@@ -1652,6 +1684,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for workflow + previews
 
   **QA Scenarios:**
+
   ```
   Scenario: Full cross-post workflow from Telegram to LinkedIn
     Tool: Playwright (playwright skill)
@@ -1745,6 +1778,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for all collector functions
 
   **QA Scenarios:**
+
   ```
   Scenario: LinkedIn analytics collection for posted content
     Tool: Bash (curl + bun)
@@ -1834,6 +1868,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass
 
   **QA Scenarios:**
+
   ```
   Scenario: Analytics dashboard with data
     Tool: Playwright (playwright skill)
@@ -1934,6 +1969,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for checkout, webhook, portal, tier resolution
 
   **QA Scenarios:**
+
   ```
   Scenario: Stripe Checkout flow for Plus tier
     Tool: Bash (curl)
@@ -2022,6 +2058,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for all quota scenarios
 
   **QA Scenarios:**
+
   ```
   Scenario: Free tier quota enforcement
     Tool: Bash (curl + bun)
@@ -2111,6 +2148,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass
 
   **QA Scenarios:**
+
   ```
   Scenario: Create and preview welcome template
     Tool: Playwright (playwright skill)
@@ -2207,6 +2245,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for orchestrator, parallel execution, partial failure
 
   **QA Scenarios:**
+
   ```
   Scenario: Broadcast to LinkedIn + Twitter simultaneously
     Tool: Playwright (playwright skill)
@@ -2300,6 +2339,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass
 
   **QA Scenarios:**
+
   ```
   Scenario: Create weekly recurring schedule
     Tool: Playwright (playwright skill)
@@ -2402,6 +2442,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass
 
   **QA Scenarios:**
+
   ```
   Scenario: Dashboard home with active data
     Tool: Playwright (playwright skill)
@@ -2505,6 +2546,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass
 
   **QA Scenarios:**
+
   ```
   Scenario: Update profile settings
     Tool: Playwright (playwright skill)
@@ -2611,6 +2653,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] TDD tests pass for error boundaries, empty states, skeletons
 
   **QA Scenarios:**
+
   ```
   Scenario: Empty states across all pages
     Tool: Playwright (playwright skill)
@@ -2712,6 +2755,7 @@ Max Concurrent: 7 (Wave 1)
   - [ ] Failed CI blocks merge (branch protection recommended in docs)
 
   **QA Scenarios:**
+
   ```
   Scenario: CI pipeline passes on clean codebase
     Tool: Bash
@@ -2759,39 +2803,40 @@ Max Concurrent: 7 (Wave 1)
 > 4 review agents run in PARALLEL. ALL must APPROVE. Rejection → fix → re-run.
 
 - [ ] F1. **Plan Compliance Audit** — `oracle`
-  Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
-  Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
+      Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
+      Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
 - [ ] F2. **Code Quality Review** — `unspecified-high`
-  Run `tsc --noEmit` + linter + `bun test`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names (data/result/item/temp).
-  Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
+      Run `tsc --noEmit` + linter + `bun test`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names (data/result/item/temp).
+      Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
 - [ ] F3. **Full E2E QA** — `unspecified-high` + `playwright` skill
-  Start from clean state. Execute EVERY QA scenario from EVERY task — follow exact steps, capture evidence. Test cross-task integration (features working together, not isolation). Test edge cases: empty state, invalid input, rapid actions. Save to `.sisyphus/evidence/final-qa/`.
-  Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
+      Start from clean state. Execute EVERY QA scenario from EVERY task — follow exact steps, capture evidence. Test cross-task integration (features working together, not isolation). Test edge cases: empty state, invalid input, rapid actions. Save to `.sisyphus/evidence/final-qa/`.
+      Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
 - [ ] F4. **Scope Fidelity Check** — `deep`
-  For each task: read "What to do", read actual diff (git log/diff). Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Detect cross-task contamination: Task N touching Task M's files. Flag unaccounted changes.
-  Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
+      For each task: read "What to do", read actual diff (git log/diff). Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Detect cross-task contamination: Task N touching Task M's files. Flag unaccounted changes.
+      Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 
 ---
 
 ## Commit Strategy
 
-| Wave | Commit | Message | Pre-commit |
-|------|--------|---------|------------|
-| 1 | After T1-T7 | `chore: project scaffolding with Next.js 15, Supabase, Inngest, vitest, Playwright, i18n, UI shell` | `bun test && bun lint` |
-| 2 | After T8-T13 | `feat(telegram): bot integration, content/media library, scheduling engine, message parser` | `bun test && bun lint` |
-| 3 | After T14-T19 | `feat(crosspost): AI adaptation engine, LinkedIn/Twitter OAuth, cross-post workflow UI` | `bun test && bun lint` |
-| 4 | After T20-T24 | `feat(analytics+billing): analytics dashboard, Stripe billing, usage tracking, welcome messages` | `bun test && bun lint` |
-| 5 | After T25-T30 | `feat(polish): multi-platform broadcast, recurring schedules, dashboard home, settings, CI/CD` | `bun test && bun lint` |
-| FINAL | After F1-F4 | `chore: final verification pass, evidence captured` | `bun test && bun lint && bunx playwright test` |
+| Wave  | Commit        | Message                                                                                             | Pre-commit                                     |
+| ----- | ------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1     | After T1-T7   | `chore: project scaffolding with Next.js 15, Supabase, Inngest, vitest, Playwright, i18n, UI shell` | `bun test && bun lint`                         |
+| 2     | After T8-T13  | `feat(telegram): bot integration, content/media library, scheduling engine, message parser`         | `bun test && bun lint`                         |
+| 3     | After T14-T19 | `feat(crosspost): AI adaptation engine, LinkedIn/Twitter OAuth, cross-post workflow UI`             | `bun test && bun lint`                         |
+| 4     | After T20-T24 | `feat(analytics+billing): analytics dashboard, Stripe billing, usage tracking, welcome messages`    | `bun test && bun lint`                         |
+| 5     | After T25-T30 | `feat(polish): multi-platform broadcast, recurring schedules, dashboard home, settings, CI/CD`      | `bun test && bun lint`                         |
+| FINAL | After F1-F4   | `chore: final verification pass, evidence captured`                                                 | `bun test && bun lint && bunx playwright test` |
 
 ---
 
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 bun test                          # Expected: ALL tests pass
 bun lint                          # Expected: 0 errors, 0 warnings
@@ -2801,6 +2846,7 @@ curl http://localhost:3000/api/health  # Expected: {"status":"ok"}
 ```
 
 ### Final Checklist
+
 - [ ] All "Must Have" present
 - [ ] All "Must NOT Have" absent
 - [ ] All vitest unit/integration tests pass

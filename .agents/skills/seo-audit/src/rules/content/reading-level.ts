@@ -1,10 +1,7 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
-import { extractMainContent, tokenize, countSentences } from './utils/text-extractor.js';
-import {
-  calculateFleschKincaid,
-  getReadingLevelDescription,
-} from './utils/syllable-counter.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
+import { extractMainContent, tokenize, countSentences } from "./utils/text-extractor.js";
+import { calculateFleschKincaid, getReadingLevelDescription } from "./utils/syllable-counter.js";
 
 /**
  * Flesch-Kincaid score thresholds
@@ -28,10 +25,10 @@ const MIN_WORDS_FOR_CHECK = 50; // Need enough text for meaningful analysis
  * - 0-30: Very Difficult (college graduate)
  */
 export const readingLevelRule = defineRule({
-  id: 'content-reading-level',
-  name: 'Reading Level',
-  description: 'Analyzes content readability using Flesch-Kincaid score',
-  category: 'content',
+  id: "content-reading-level",
+  name: "Reading Level",
+  description: "Analyzes content readability using Flesch-Kincaid score",
+  category: "content",
   weight: 3,
   run: async (context: AuditContext) => {
     const { $ } = context;
@@ -44,14 +41,14 @@ export const readingLevelRule = defineRule({
     // Skip check for very short content
     if (words.length < MIN_WORDS_FOR_CHECK) {
       return pass(
-        'content-reading-level',
+        "content-reading-level",
         `Content too short for readability analysis (${words.length} words)`,
         {
           wordCount: words.length,
           sentenceCount,
           skipped: true,
           reason: `Minimum ${MIN_WORDS_FOR_CHECK} words required for meaningful readability analysis`,
-        }
+        },
       );
     }
 
@@ -74,12 +71,12 @@ export const readingLevelRule = defineRule({
     // Optimal readability (60-70)
     if (score >= OPTIMAL_MIN && score <= OPTIMAL_MAX) {
       return pass(
-        'content-reading-level',
+        "content-reading-level",
         `Optimal readability: ${details.score} (${levelDescription})`,
         {
           ...details,
-          note: 'Content is accessible to a general audience while maintaining substance',
-        }
+          note: "Content is accessible to a general audience while maintaining substance",
+        },
       );
     }
 
@@ -89,44 +86,42 @@ export const readingLevelRule = defineRule({
       const isComplex = score < OPTIMAL_MIN;
 
       return pass(
-        'content-reading-level',
+        "content-reading-level",
         `Acceptable readability: ${details.score} (${levelDescription})`,
         {
           ...details,
           recommendation: isSimple
-            ? 'Content may be too simple for some topics. Consider adding more technical depth if appropriate.'
-            : 'Content could be simplified for broader accessibility. Use shorter sentences and simpler vocabulary.',
-        }
+            ? "Content may be too simple for some topics. Consider adding more technical depth if appropriate."
+            : "Content could be simplified for broader accessibility. Use shorter sentences and simpler vocabulary.",
+        },
       );
     }
 
     // Outside acceptable range
     if (score < ACCEPTABLE_MIN) {
       return warn(
-        'content-reading-level',
+        "content-reading-level",
         `Content may be too complex: ${details.score} (${levelDescription})`,
         {
           ...details,
-          impact:
-            'Complex content may alienate general audiences and reduce engagement',
+          impact: "Complex content may alienate general audiences and reduce engagement",
           recommendation:
-            'Simplify language by: using shorter sentences, replacing jargon with common words, breaking long paragraphs into smaller chunks, and using bullet points for lists.',
-          note: 'Technical content for expert audiences may legitimately score lower.',
-        }
+            "Simplify language by: using shorter sentences, replacing jargon with common words, breaking long paragraphs into smaller chunks, and using bullet points for lists.",
+          note: "Technical content for expert audiences may legitimately score lower.",
+        },
       );
     }
 
     // Too simple (score > 80)
     return warn(
-      'content-reading-level',
+      "content-reading-level",
       `Content may be too simplistic: ${details.score} (${levelDescription})`,
       {
         ...details,
-        impact:
-          'Overly simple content may appear thin or lack substance for competitive topics',
+        impact: "Overly simple content may appear thin or lack substance for competitive topics",
         recommendation:
-          'Consider adding more depth and detail. Use varied sentence structures and include relevant technical terms where appropriate.',
-      }
+          "Consider adding more depth and detail. Use varied sentence structures and include relevant technical terms where appropriate.",
+      },
     );
   },
 });

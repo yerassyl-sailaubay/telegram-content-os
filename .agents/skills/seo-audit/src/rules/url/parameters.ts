@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 /**
  * Maximum number of query parameters considered acceptable
@@ -19,11 +19,11 @@ const PARAMS_WARN = 5;
  * Search engines may also struggle to determine the canonical version.
  */
 export const parametersRule = defineRule({
-  id: 'url-parameters',
-  name: 'Excessive URL Parameters',
+  id: "url-parameters",
+  name: "Excessive URL Parameters",
   description:
-    'Checks for excessive query parameters that can fragment crawl budget and dilute page authority',
-  category: 'url',
+    "Checks for excessive query parameters that can fragment crawl budget and dilute page authority",
+  category: "url",
   weight: 5,
   run: async (context: AuditContext) => {
     const { url } = context;
@@ -42,35 +42,35 @@ export const parametersRule = defineRule({
 
       if (paramCount <= PARAMS_GOOD) {
         return pass(
-          'url-parameters',
+          "url-parameters",
           paramCount === 0
-            ? 'URL has no query parameters'
+            ? "URL has no query parameters"
             : `URL has ${paramCount} query parameter(s) (acceptable)`,
-          details
+          details,
         );
       }
 
       if (paramCount <= PARAMS_WARN) {
         return warn(
-          'url-parameters',
-          `URL has ${paramCount} query parameters: ${paramNames.join(', ')}`,
+          "url-parameters",
+          `URL has ${paramCount} query parameters: ${paramNames.join(", ")}`,
           {
             ...details,
-            fix: 'Reduce query parameters or use canonical tags to consolidate variations',
-          }
+            fix: "Reduce query parameters or use canonical tags to consolidate variations",
+          },
         );
       }
 
       return fail(
-        'url-parameters',
-        `URL has ${paramCount} query parameters (exceeds ${PARAMS_WARN}): ${paramNames.join(', ')}`,
+        "url-parameters",
+        `URL has ${paramCount} query parameters (exceeds ${PARAMS_WARN}): ${paramNames.join(", ")}`,
         {
           ...details,
-          fix: 'Reduce query parameters; use canonical tags or parameter handling in Google Search Console',
-        }
+          fix: "Reduce query parameters; use canonical tags or parameter handling in Google Search Console",
+        },
       );
     } catch {
-      return pass('url-parameters', 'Could not parse URL', { url });
+      return pass("url-parameters", "Could not parse URL", { url });
     }
   },
 });

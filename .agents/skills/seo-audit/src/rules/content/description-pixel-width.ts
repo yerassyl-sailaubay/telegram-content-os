@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
-import { estimatePixelWidth } from './utils/pixel-width.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
+import { estimatePixelWidth } from "./utils/pixel-width.js";
 
 /**
  * Google SERP meta description pixel width thresholds
@@ -17,26 +17,25 @@ const MAX_WARN_WIDTH = 990;
  * call-to-action or important information at the end.
  */
 export const descriptionPixelWidthRule = defineRule({
-  id: 'content-description-pixel-width',
-  name: 'Description Pixel Width',
-  description:
-    'Estimates meta description pixel width to predict SERP truncation',
-  category: 'content',
+  id: "content-description-pixel-width",
+  name: "Description Pixel Width",
+  description: "Estimates meta description pixel width to predict SERP truncation",
+  category: "content",
   weight: 6,
   run: async (context: AuditContext) => {
     const { $ } = context;
 
-    const description = $('meta[name="description"]').attr('content');
+    const description = $('meta[name="description"]').attr("content");
 
     if (!description) {
       // Missing description is handled by other rules
       return pass(
-        'content-description-pixel-width',
-        'No meta description found (handled by other rules)',
+        "content-description-pixel-width",
+        "No meta description found (handled by other rules)",
         {
           description: null,
-          reason: 'skipped',
-        }
+          reason: "skipped",
+        },
       );
     }
 
@@ -55,36 +54,36 @@ export const descriptionPixelWidthRule = defineRule({
 
     if (estimatedWidth > MAX_WARN_WIDTH) {
       return fail(
-        'content-description-pixel-width',
+        "content-description-pixel-width",
         `Meta description will be truncated in SERP: estimated ${estimatedWidth}px (max ~${MAX_GOOD_WIDTH}px)`,
         {
           ...details,
           impact:
-            'Truncated descriptions lose the call-to-action and may reduce click-through rates',
+            "Truncated descriptions lose the call-to-action and may reduce click-through rates",
           recommendation:
-            'Shorten the description to fit within 920px (~155 characters). Place the most compelling information first.',
-        }
+            "Shorten the description to fit within 920px (~155 characters). Place the most compelling information first.",
+        },
       );
     }
 
     if (estimatedWidth > MAX_GOOD_WIDTH) {
       return warn(
-        'content-description-pixel-width',
+        "content-description-pixel-width",
         `Meta description may be truncated in SERP: estimated ${estimatedWidth}px (max ~${MAX_GOOD_WIDTH}px)`,
         {
           ...details,
           impact:
-            'Description is borderline and may be truncated depending on exact font rendering',
+            "Description is borderline and may be truncated depending on exact font rendering",
           recommendation:
-            'Consider trimming a few characters to ensure the description displays fully in search results',
-        }
+            "Consider trimming a few characters to ensure the description displays fully in search results",
+        },
       );
     }
 
     return pass(
-      'content-description-pixel-width',
+      "content-description-pixel-width",
       `Meta description fits within SERP display: estimated ${estimatedWidth}px`,
-      details
+      details,
     );
   },
 });

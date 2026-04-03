@@ -41,7 +41,7 @@ type LandingPageProps = {
 
 const sectionShell = "mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-10";
 const glassCard =
-  "relative overflow-hidden rounded-[1.75rem] border border-border/50 bg-card/40 backdrop-blur-xl shadow-lg";
+  "relative overflow-hidden rounded-[1.75rem] border border-border/50 bg-card/40 backdrop-blur-xl shadow-lg transform-gpu isolate";
 
 export function LandingPage({ locale }: LandingPageProps) {
   const t = useTranslations("landing");
@@ -143,6 +143,7 @@ function LandingBackdrop() {
 
 function HeroSection() {
   const t = useTranslations("landing.hero");
+  const tm = useTranslations("landing.mockup");
 
   return (
     <section className={`${sectionShell} text-center`}>
@@ -217,16 +218,16 @@ function HeroSection() {
                   </div>
                   <div className="mt-8 flex flex-col gap-1.5">
                     <div className="bg-primary/10 text-primary flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium">
-                      <LayoutTemplate className="size-4" /> Dashboard
+                      <LayoutTemplate className="size-4" /> {tm("nav.dashboard")}
                     </div>
                     <div className="text-muted-foreground hover:bg-muted/50 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium">
-                      <Workflow className="size-4" /> Content Hub
+                      <Workflow className="size-4" /> {tm("nav.contentHub")}
                     </div>
                     <div className="text-muted-foreground hover:bg-muted/50 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium">
-                      <CalendarRange className="size-4" /> Schedule
+                      <CalendarRange className="size-4" /> {tm("nav.schedule")}
                     </div>
                     <div className="text-muted-foreground hover:bg-muted/50 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium">
-                      <BarChart3 className="size-4" /> Analytics
+                      <BarChart3 className="size-4" /> {tm("nav.analytics")}
                     </div>
                   </div>
                 </div>
@@ -239,23 +240,23 @@ function HeroSection() {
                     <div className="relative z-10 flex items-start justify-between">
                       <div>
                         <p className="text-[10px] font-bold tracking-[0.2em] text-cyan-100/70 uppercase">
-                          Monday, Oct 14
+                          {tm("date")}
                         </p>
                         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                          Welcome back, Creator 👋
+                          {tm("welcome")}
                         </h2>
                         <div className="mt-5 flex gap-3">
                           <button className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold backdrop-blur-md transition-colors hover:bg-white/20">
-                            <Plus className="size-3.5" /> New Post
+                            <Plus className="size-3.5" /> {tm("newPost")}
                           </button>
                           <button className="flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/20 px-4 py-2 text-xs font-semibold text-cyan-100 backdrop-blur-md transition-colors hover:bg-cyan-500/30">
-                            <Sparkles className="size-3.5" /> AI Draft
+                            <Sparkles className="size-3.5" /> {tm("aiDraft")}
                           </button>
                         </div>
                       </div>
                       <div className="hidden min-w-[120px] rounded-2xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-md lg:block">
                         <p className="text-[10px] font-bold tracking-[0.15em] text-cyan-100/60 uppercase">
-                          Calendar Gaps
+                          {tm("calendarGaps")}
                         </p>
                         <p className="mt-2 text-3xl font-bold text-white">3</p>
                       </div>
@@ -267,28 +268,28 @@ function HeroSection() {
                     {[
                       {
                         icon: <MessageSquareQuote className="size-4 text-blue-500" />,
-                        label: "Ideas",
+                        label: tm("stats.ideas"),
                         val: "24",
                         bg: "bg-blue-500/10",
                         border: "border-blue-500/20",
                       },
                       {
                         icon: <Layers3 className="size-4 text-amber-500" />,
-                        label: "Drafts",
+                        label: tm("stats.drafts"),
                         val: "12",
                         bg: "bg-amber-500/10",
                         border: "border-amber-500/20",
                       },
                       {
                         icon: <Rocket className="size-4 text-emerald-500" />,
-                        label: "Published",
+                        label: tm("stats.published"),
                         val: "148",
                         bg: "bg-emerald-500/10",
                         border: "border-emerald-500/20",
                       },
                       {
                         icon: <Bot className="size-4 text-purple-500" />,
-                        label: "AI Used",
+                        label: tm("stats.aiUsed"),
                         val: "85/100",
                         bg: "bg-purple-500/10",
                         border: "border-purple-500/20",
@@ -319,9 +320,11 @@ function HeroSection() {
                   <div className="mt-6 grid grid-cols-3 gap-6">
                     <div className="border-border/50 bg-card col-span-2 flex flex-col rounded-xl border shadow-sm">
                       <div className="border-border/50 flex items-center justify-between border-b px-5 py-3">
-                        <h3 className="text-foreground text-sm font-medium">Upcoming Posts</h3>
+                        <h3 className="text-foreground text-sm font-medium">
+                          {tm("upcomingPosts")}
+                        </h3>
                         <span className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
-                          View Calendar
+                          {tm("viewCalendar")}
                         </span>
                       </div>
                       <div className="flex-1 space-y-4 p-5">
@@ -334,11 +337,11 @@ function HeroSection() {
                             <div className="flex items-center gap-2">
                               <Send className="size-3.5 text-blue-400" />
                               <p className="text-foreground text-xs font-medium">
-                                Launch Announcement 🚀
+                                {tm("posts.launch.title")}
                               </p>
                             </div>
                             <p className="text-muted-foreground mt-2 line-clamp-1 text-xs">
-                              We are finally live! After 6 months of intense building...
+                              {tm("posts.launch.excerpt")}
                             </p>
                           </div>
                         </div>
@@ -350,12 +353,11 @@ function HeroSection() {
                             <div className="flex items-center gap-2">
                               <Send className="size-3.5 text-blue-400" />
                               <p className="text-foreground text-xs font-medium">
-                                Daily Design Tip
+                                {tm("posts.design.title")}
                               </p>
                             </div>
                             <p className="text-muted-foreground mt-2 line-clamp-1 text-xs">
-                              Did you know that utilizing whitespace effectively can increase
-                              conversion...
+                              {tm("posts.design.excerpt")}
                             </p>
                           </div>
                         </div>
@@ -363,7 +365,9 @@ function HeroSection() {
                     </div>
                     <div className="border-border/50 bg-card col-span-1 flex flex-col rounded-xl border shadow-sm">
                       <div className="border-border/50 border-b px-5 py-3">
-                        <h3 className="text-foreground text-sm font-medium">Activity</h3>
+                        <h3 className="text-foreground text-sm font-medium">
+                          {tm("activity.title")}
+                        </h3>
                       </div>
                       <div className="space-y-4 p-5">
                         <div className="flex items-start gap-3">
@@ -371,7 +375,9 @@ function HeroSection() {
                             <Check className="size-3.5" />
                           </div>
                           <div>
-                            <p className="text-foreground text-xs font-medium">Post sent</p>
+                            <p className="text-foreground text-xs font-medium">
+                              {tm("activity.postSent")}
+                            </p>
                             <p className="text-muted-foreground text-[10px]">12m ago</p>
                           </div>
                         </div>
@@ -381,7 +387,7 @@ function HeroSection() {
                           </div>
                           <div>
                             <p className="text-foreground text-xs font-medium">
-                              AI completed draft
+                              {tm("activity.aiCompleted")}
                             </p>
                             <p className="text-muted-foreground text-[10px]">1h ago</p>
                           </div>
@@ -439,7 +445,7 @@ function ProblemsSection() {
         <p className="text-muted-foreground mx-auto mt-4 max-w-2xl text-lg">{t("subtitle")}</p>
       </div>
 
-      <div className="mt-14 grid gap-6 md:grid-cols-3 lg:gap-8">
+      <div className="isolate mt-14 grid gap-6 md:grid-cols-3 lg:gap-8">
         {[
           {
             icon: <Clock3 className="size-6" />,
@@ -463,11 +469,11 @@ function ProblemsSection() {
           <div key={item.key} className={glassCard + " flex flex-col justify-between p-8"}>
             <div>
               <div
-                className={`flex size-12 items-center justify-center rounded-xl ${item.bg} ${item.color}`}
+                className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${item.bg} ${item.color}`}
               >
                 {item.icon}
               </div>
-              <h3 className="text-foreground mt-6 text-xl font-semibold">
+              <h3 className="text-foreground mt-6 transform-gpu text-xl font-semibold">
                 {t(`cards.${item.key}.title`)}
               </h3>
               <p className="text-muted-foreground mt-2">{t(`cards.${item.key}.description`)}</p>

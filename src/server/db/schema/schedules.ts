@@ -46,6 +46,18 @@ export const schedules = pgTable(
       table.status,
       table.scheduledAt,
     ),
+    index("schedules_user_target_status_scheduled_at_idx").on(
+      table.userId,
+      table.targetType,
+      table.status,
+      table.scheduledAt,
+    ),
+    index("schedules_user_target_status_updated_at_idx").on(
+      table.userId,
+      table.targetType,
+      table.status,
+      table.updatedAt,
+    ),
     index("schedules_recurrence_scheduled_at_idx").on(table.recurrenceRule, table.scheduledAt),
     index("schedules_cross_post_id_idx").on(table.crossPostId),
     index("schedules_content_library_id_idx").on(table.contentLibraryId),

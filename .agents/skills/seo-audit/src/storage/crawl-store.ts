@@ -1,8 +1,8 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import type { PartialSeomatorConfig } from '../config/schema.js';
-import type { CoreWebVitals } from '../types.js';
-import { getCrawlsDir, generateId } from './paths.js';
+import * as fs from "fs";
+import * as path from "path";
+import type { PartialSeomatorConfig } from "../config/schema.js";
+import type { CoreWebVitals } from "../types.js";
+import { getCrawlsDir, generateId } from "./paths.js";
 
 /**
  * Stored page data from a crawl
@@ -62,7 +62,7 @@ function ensureCrawlsDir(baseDir: string): string {
 export function saveCrawl(baseDir: string, crawl: StoredCrawl): string {
   const crawlsDir = ensureCrawlsDir(baseDir);
   const filePath = path.join(crawlsDir, `${crawl.id}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(crawl, null, 2), 'utf-8');
+  fs.writeFileSync(filePath, JSON.stringify(crawl, null, 2), "utf-8");
   return crawl.id;
 }
 
@@ -77,7 +77,7 @@ export function loadCrawl(baseDir: string, id: string): StoredCrawl | null {
     return null;
   }
 
-  const content = fs.readFileSync(filePath, 'utf-8');
+  const content = fs.readFileSync(filePath, "utf-8");
   return JSON.parse(content);
 }
 
@@ -91,12 +91,12 @@ export function listCrawls(baseDir: string): CrawlSummary[] {
     return [];
   }
 
-  const files = fs.readdirSync(crawlsDir).filter(f => f.endsWith('.json'));
+  const files = fs.readdirSync(crawlsDir).filter((f) => f.endsWith(".json"));
   const summaries: CrawlSummary[] = [];
 
   for (const file of files) {
     const filePath = path.join(crawlsDir, file);
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const content = fs.readFileSync(filePath, "utf-8");
     const crawl: StoredCrawl = JSON.parse(content);
 
     summaries.push({
@@ -109,8 +109,8 @@ export function listCrawls(baseDir: string): CrawlSummary[] {
   }
 
   // Sort by timestamp descending
-  return summaries.sort((a, b) =>
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  return summaries.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   );
 }
 
@@ -131,7 +131,7 @@ export function getLatestCrawl(baseDir: string): StoredCrawl | null {
 export function createCrawl(
   url: string,
   project: string,
-  config: PartialSeomatorConfig
+  config: PartialSeomatorConfig,
 ): StoredCrawl {
   return {
     id: generateId(),

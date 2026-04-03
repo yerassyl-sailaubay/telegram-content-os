@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, fail } from "../define-rule.js";
 
 /**
  * Rule: Multiple Viewport Meta Tags
@@ -13,10 +13,10 @@ import { defineRule, pass, fail } from '../define-rule.js';
  * - Copy-paste errors in the HTML head
  */
 export const multipleViewportsRule = defineRule({
-  id: 'mobile-multiple-viewports',
-  name: 'Multiple Viewport Tags',
-  description: 'Checks for multiple viewport meta tags which can cause confusion',
-  category: 'mobile',
+  id: "mobile-multiple-viewports",
+  name: "Multiple Viewport Tags",
+  description: "Checks for multiple viewport meta tags which can cause confusion",
+  category: "mobile",
   weight: 8,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -26,29 +26,30 @@ export const multipleViewportsRule = defineRule({
 
     if (count <= 1) {
       return pass(
-        'mobile-multiple-viewports',
+        "mobile-multiple-viewports",
         count === 0
-          ? 'No viewport meta tags found (handled by viewport-present rule)'
-          : 'Single viewport meta tag found (correct)',
-        { viewportCount: count }
+          ? "No viewport meta tags found (handled by viewport-present rule)"
+          : "Single viewport meta tag found (correct)",
+        { viewportCount: count },
       );
     }
 
     // Collect the content of each viewport tag for details
     const viewportContents: string[] = [];
     viewportTags.each((_, el) => {
-      const content = $(el).attr('content') || '(empty)';
+      const content = $(el).attr("content") || "(empty)";
       viewportContents.push(content);
     });
 
     return fail(
-      'mobile-multiple-viewports',
+      "mobile-multiple-viewports",
       `Found ${count} viewport meta tags; browsers use the last one, which can cause unexpected behavior`,
       {
         viewportCount: count,
         viewportContents,
-        recommendation: 'Remove duplicate viewport meta tags; keep only one with content="width=device-width, initial-scale=1"',
-      }
+        recommendation:
+          'Remove duplicate viewport meta tags; keep only one with content="width=device-width, initial-scale=1"',
+      },
     );
   },
 });

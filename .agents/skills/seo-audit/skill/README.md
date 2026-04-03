@@ -21,17 +21,17 @@ When you ask Claude to audit a website, this skill:
 
 ## Categories Analyzed
 
-| Category | Weight | What It Checks |
-|----------|--------|----------------|
-| Meta Tags | 15% | Title, description, canonical, viewport |
-| Technical SEO | 15% | robots.txt, sitemap, URL structure |
-| Core Web Vitals | 15% | LCP, CLS, FCP, TTFB, INP |
-| Security | 10% | HTTPS, HSTS, CSP, headers |
-| Links | 10% | Broken links, anchor text, depth |
-| Images | 10% | Alt text, dimensions, formats |
-| Headings | 10% | H1, hierarchy, uniqueness |
-| Structured Data | 8% | JSON-LD validation |
-| Social | 7% | Open Graph, Twitter cards |
+| Category        | Weight | What It Checks                          |
+| --------------- | ------ | --------------------------------------- |
+| Meta Tags       | 15%    | Title, description, canonical, viewport |
+| Technical SEO   | 15%    | robots.txt, sitemap, URL structure      |
+| Core Web Vitals | 15%    | LCP, CLS, FCP, TTFB, INP                |
+| Security        | 10%    | HTTPS, HSTS, CSP, headers               |
+| Links           | 10%    | Broken links, anchor text, depth        |
+| Images          | 10%    | Alt text, dimensions, formats           |
+| Headings        | 10%    | H1, hierarchy, uniqueness               |
+| Structured Data | 8%     | JSON-LD validation                      |
+| Social          | 7%     | Open Graph, Twitter cards               |
 
 ## Example Prompts
 

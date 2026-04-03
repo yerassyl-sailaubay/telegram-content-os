@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn, fail } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn, fail } from "../define-rule.js";
 
 interface BackgroundImageItem {
   /** HTML tag name */
@@ -11,14 +11,7 @@ interface BackgroundImageItem {
 }
 
 /** Tags that commonly contain important visual content */
-const IMPORTANT_CONTAINERS = new Set([
-  'header',
-  'main',
-  'article',
-  'section',
-  'hero',
-  'banner',
-]);
+const IMPORTANT_CONTAINERS = new Set(["header", "main", "article", "section", "hero", "banner"]);
 
 /** Maximum count before it becomes a fail */
 const WARN_THRESHOLD = 2;
@@ -37,10 +30,11 @@ const FAIL_THRESHOLD = 5;
  * Note: External CSS background images cannot be detected through static HTML analysis.
  */
 export const backgroundSeoRule = defineRule({
-  id: 'images-background-seo',
-  name: 'Background Images SEO',
-  description: 'Checks for important images loaded as CSS background images (not crawlable by search engines)',
-  category: 'images',
+  id: "images-background-seo",
+  name: "Background Images SEO",
+  description:
+    "Checks for important images loaded as CSS background images (not crawlable by search engines)",
+  category: "images",
   weight: 5,
   run: (context: AuditContext) => {
     const { $ } = context;
@@ -50,8 +44,8 @@ export const backgroundSeoRule = defineRule({
     // Find all elements with inline background-image styles
     $('[style*="background-image"]').each((_, el) => {
       const $el = $(el);
-      const style = $el.attr('style') || '';
-      const tag = el.tagName?.toLowerCase() || 'unknown';
+      const style = $el.attr("style") || "";
+      const tag = el.tagName?.toLowerCase() || "unknown";
 
       // Extract URL from background-image: url(...)
       const urlMatch = style.match(/background-image\s*:\s*url\s*\(\s*['"]?([^'")]+)['"]?\s*\)/i);
@@ -62,7 +56,11 @@ export const backgroundSeoRule = defineRule({
       const bgUrl = urlMatch[1].trim();
 
       // Skip data URIs and gradients (not real image content)
-      if (bgUrl.startsWith('data:') || bgUrl.startsWith('linear-gradient') || bgUrl.startsWith('radial-gradient')) {
+      if (
+        bgUrl.startsWith("data:") ||
+        bgUrl.startsWith("linear-gradient") ||
+        bgUrl.startsWith("radial-gradient")
+      ) {
         return;
       }
 
@@ -75,11 +73,9 @@ export const backgroundSeoRule = defineRule({
     });
 
     if (found.length === 0) {
-      return pass(
-        'images-background-seo',
-        'No inline CSS background images detected',
-        { count: 0 }
-      );
+      return pass("images-background-seo", "No inline CSS background images detected", {
+        count: 0,
+      });
     }
 
     // Count important vs general background images
@@ -90,40 +86,41 @@ export const backgroundSeoRule = defineRule({
       importantCount,
       examples: found.slice(0, 10).map((item) => ({
         tag: item.tag,
-        url: item.url.length > 80 ? item.url.substring(0, 77) + '...' : item.url,
+        url: item.url.length > 80 ? item.url.substring(0, 77) + "..." : item.url,
         isImportant: item.isImportant,
       })),
-      recommendation: 'Use <img> tags with descriptive alt text for important visual content instead of CSS background-image',
+      recommendation:
+        "Use <img> tags with descriptive alt text for important visual content instead of CSS background-image",
     };
 
     if (found.length <= 1) {
       return pass(
-        'images-background-seo',
+        "images-background-seo",
         `Found ${found.length} inline CSS background image (minimal usage)`,
-        details
+        details,
       );
     }
 
     if (found.length > FAIL_THRESHOLD) {
       return fail(
-        'images-background-seo',
+        "images-background-seo",
         `Found ${found.length} inline CSS background images; significant visual content may be invisible to search engine crawlers`,
-        details
+        details,
       );
     }
 
     if (found.length >= WARN_THRESHOLD) {
       return warn(
-        'images-background-seo',
+        "images-background-seo",
         `Found ${found.length} inline CSS background images; these are not indexable by search engines`,
-        details
+        details,
       );
     }
 
     return pass(
-      'images-background-seo',
+      "images-background-seo",
       `Found ${found.length} inline CSS background image(s) (minimal usage)`,
-      details
+      details,
     );
   },
 });

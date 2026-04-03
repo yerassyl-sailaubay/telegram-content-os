@@ -5,9 +5,9 @@
  * and updates the Zustand store. Returns a clean API for components.
  */
 
-import { useEffect, useCallback } from 'react';
-import { getAPI } from '../lib/ipc-client.js';
-import { useAuditStore } from '../stores/audit-store.js';
+import { useEffect, useCallback } from "react";
+import { getAPI } from "../lib/ipc-client.js";
+import { useAuditStore } from "../stores/audit-store.js";
 
 interface AuditOptions {
   measureCwv?: boolean;

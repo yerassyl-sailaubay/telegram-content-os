@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Maximum recommended image size in bytes (200KB)
@@ -10,19 +10,19 @@ const MAX_RECOMMENDED_SIZE_BYTES = 200 * 1024;
  * Patterns that suggest an image might be large
  */
 const LARGE_IMAGE_INDICATORS = [
-  'hero',
-  'banner',
-  'background',
-  'full-width',
-  'fullwidth',
-  'cover',
-  'large',
-  'big',
-  'hd',
-  '4k',
-  '2x',
-  '3x',
-  'retina',
+  "hero",
+  "banner",
+  "background",
+  "full-width",
+  "fullwidth",
+  "cover",
+  "large",
+  "big",
+  "hd",
+  "4k",
+  "2x",
+  "3x",
+  "retina",
 ];
 
 /**
@@ -32,7 +32,7 @@ const LARGE_IMAGE_INDICATORS = [
 function estimatePotentiallyOversized(
   src: string,
   width?: string,
-  height?: string
+  height?: string,
 ): { isLikelyLarge: boolean; reason: string } {
   const srcLower = src.toLowerCase();
 
@@ -73,14 +73,18 @@ function estimatePotentiallyOversized(
   }
 
   // Check for unoptimized patterns
-  if (srcLower.includes('original') || srcLower.includes('raw') || srcLower.includes('uncompressed')) {
+  if (
+    srcLower.includes("original") ||
+    srcLower.includes("raw") ||
+    srcLower.includes("uncompressed")
+  ) {
     return {
       isLikelyLarge: true,
-      reason: 'Filename suggests unoptimized image',
+      reason: "Filename suggests unoptimized image",
     };
   }
 
-  return { isLikelyLarge: false, reason: '' };
+  return { isLikelyLarge: false, reason: "" };
 }
 
 /**
@@ -88,20 +92,16 @@ function estimatePotentiallyOversized(
  * Warns if images are estimated to be over 200KB
  */
 export const sizeRule = defineRule({
-  id: 'images-size',
-  name: 'Image File Size',
-  description: 'Checks that images are not excessively large (warns if estimated >200KB)',
-  category: 'images',
+  id: "images-size",
+  name: "Image File Size",
+  description: "Checks that images are not excessively large (warns if estimated >200KB)",
+  category: "images",
   weight: 10,
   run: (context: AuditContext) => {
     const { images } = context;
 
     if (images.length === 0) {
-      return pass(
-        'images-size',
-        'No images found on page',
-        { imageCount: 0 }
-      );
+      return pass("images-size", "No images found on page", { imageCount: 0 });
     }
 
     const potentiallyOversized: Array<{
@@ -115,7 +115,7 @@ export const sizeRule = defineRule({
       const { isLikelyLarge, reason } = estimatePotentiallyOversized(
         img.src,
         img.width,
-        img.height
+        img.height,
       );
 
       if (isLikelyLarge) {
@@ -130,27 +130,28 @@ export const sizeRule = defineRule({
 
     if (potentiallyOversized.length > 0) {
       return warn(
-        'images-size',
+        "images-size",
         `Found ${potentiallyOversized.length} potentially oversized image(s) (may exceed 200KB)`,
         {
           potentiallyOversizedCount: potentiallyOversized.length,
           totalImages: images.length,
           maxRecommendedSizeKB: MAX_RECOMMENDED_SIZE_BYTES / 1024,
           images: potentiallyOversized.slice(0, 10),
-          suggestion: 'Optimize large images using compression, resizing, or modern formats (WebP/AVIF)',
-          note: 'File sizes are estimated based on image attributes and filenames. Use browser DevTools for actual sizes.',
-        }
+          suggestion:
+            "Optimize large images using compression, resizing, or modern formats (WebP/AVIF)",
+          note: "File sizes are estimated based on image attributes and filenames. Use browser DevTools for actual sizes.",
+        },
       );
     }
 
     return pass(
-      'images-size',
+      "images-size",
       `No obviously oversized images detected among ${images.length} image(s)`,
       {
         totalImages: images.length,
         maxRecommendedSizeKB: MAX_RECOMMENDED_SIZE_BYTES / 1024,
-        note: 'This is a heuristic check. Use browser DevTools to verify actual file sizes.',
-      }
+        note: "This is a heuristic check. Use browser DevTools to verify actual file sizes.",
+      },
     );
   },
 });

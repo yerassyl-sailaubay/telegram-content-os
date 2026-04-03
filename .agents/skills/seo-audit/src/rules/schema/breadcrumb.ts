@@ -1,6 +1,6 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
-import { findItemsByType, hasField } from './utils.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
+import { findItemsByType, hasField } from "./utils.js";
 
 /**
  * Rule: Validate BreadcrumbList schema structured data
@@ -11,11 +11,11 @@ import { findItemsByType, hasField } from './utils.js';
  * - If present: must have itemListElement with at least 2 items
  */
 export const structuredDataBreadcrumbRule = defineRule({
-  id: 'schema-breadcrumb',
-  name: 'Breadcrumb Schema',
+  id: "schema-breadcrumb",
+  name: "Breadcrumb Schema",
   description:
-    'Validates BreadcrumbList schema presence on non-homepage pages and checks for proper itemListElement structure',
-  category: 'schema',
+    "Validates BreadcrumbList schema presence on non-homepage pages and checks for proper itemListElement structure",
+  category: "schema",
   weight: 8,
   run: async (context: AuditContext) => {
     const { $, url } = context;
@@ -23,26 +23,25 @@ export const structuredDataBreadcrumbRule = defineRule({
     // Check if current URL is homepage
     const parsedUrl = new URL(url);
     const pathname = parsedUrl.pathname;
-    const isHomepage = pathname === '/' || pathname === '';
+    const isHomepage = pathname === "/" || pathname === "";
 
     // Find BreadcrumbList schemas
-    const breadcrumbs = findItemsByType($, 'BreadcrumbList');
+    const breadcrumbs = findItemsByType($, "BreadcrumbList");
 
     // No breadcrumb found
     if (breadcrumbs.length === 0) {
       if (isHomepage) {
-        return pass(
-          'schema-breadcrumb',
-          'Homepage - breadcrumb not required',
-          { isHomepage: true, breadcrumbsFound: 0 }
-        );
+        return pass("schema-breadcrumb", "Homepage - breadcrumb not required", {
+          isHomepage: true,
+          breadcrumbsFound: 0,
+        });
       }
 
-      return warn(
-        'schema-breadcrumb',
-        'Non-homepage missing BreadcrumbList schema',
-        { isHomepage: false, breadcrumbsFound: 0, pathname }
-      );
+      return warn("schema-breadcrumb", "Non-homepage missing BreadcrumbList schema", {
+        isHomepage: false,
+        breadcrumbsFound: 0,
+        pathname,
+      });
     }
 
     // Validate breadcrumb structure
@@ -50,8 +49,8 @@ export const structuredDataBreadcrumbRule = defineRule({
 
     for (const breadcrumb of breadcrumbs) {
       // Check itemListElement exists
-      if (!hasField(breadcrumb, 'itemListElement')) {
-        issues.push('BreadcrumbList missing itemListElement');
+      if (!hasField(breadcrumb, "itemListElement")) {
+        issues.push("BreadcrumbList missing itemListElement");
         continue;
       }
 
@@ -60,33 +59,25 @@ export const structuredDataBreadcrumbRule = defineRule({
       if (Array.isArray(itemListElement)) {
         if (itemListElement.length < 2) {
           issues.push(
-            `BreadcrumbList should have at least 2 items, found ${itemListElement.length}`
+            `BreadcrumbList should have at least 2 items, found ${itemListElement.length}`,
           );
         }
       } else {
-        issues.push('itemListElement should be an array');
+        issues.push("itemListElement should be an array");
       }
     }
 
     if (issues.length > 0) {
-      return warn(
-        'schema-breadcrumb',
-        `BreadcrumbList validation issues: ${issues.join('; ')}`,
-        {
-          breadcrumbsFound: breadcrumbs.length,
-          issues,
-          isHomepage,
-        }
-      );
+      return warn("schema-breadcrumb", `BreadcrumbList validation issues: ${issues.join("; ")}`, {
+        breadcrumbsFound: breadcrumbs.length,
+        issues,
+        isHomepage,
+      });
     }
 
-    return pass(
-      'schema-breadcrumb',
-      `Valid BreadcrumbList schema found with proper structure`,
-      {
-        breadcrumbsFound: breadcrumbs.length,
-        isHomepage,
-      }
-    );
+    return pass("schema-breadcrumb", `Valid BreadcrumbList schema found with proper structure`, {
+      breadcrumbsFound: breadcrumbs.length,
+      isHomepage,
+    });
   },
 });

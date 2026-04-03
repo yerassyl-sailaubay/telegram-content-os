@@ -1,5 +1,5 @@
-import type { AuditContext, RuleResult } from '../../types.js';
-import { defineRule } from '../define-rule.js';
+import type { AuditContext, RuleResult } from "../../types.js";
+import { defineRule } from "../define-rule.js";
 
 /**
  * Authoritative domain patterns
@@ -54,16 +54,16 @@ const AUTHORITATIVE_DOMAINS = {
  * Citation markup patterns
  */
 const CITATION_SELECTORS = [
-  '.citation',
-  '.reference',
-  '.footnote',
-  '.endnote',
+  ".citation",
+  ".reference",
+  ".footnote",
+  ".endnote",
   '[class*="cite"]',
   '[class*="source"]',
   '[class*="reference"]',
   'sup a[href^="#"]', // Footnote-style
-  '.bibliography',
-  '.works-cited',
+  ".bibliography",
+  ".works-cited",
 ];
 
 /**
@@ -73,10 +73,10 @@ const CITATION_SELECTORS = [
  * This is especially important for YMYL content.
  */
 export const citationsRule = defineRule({
-  id: 'eeat-citations',
-  name: 'Citations',
-  description: 'Checks for citations to authoritative external sources',
-  category: 'eeat',
+  id: "eeat-citations",
+  name: "Citations",
+  description: "Checks for citations to authoritative external sources",
+  category: "eeat",
   weight: 6,
 
   run(context: AuditContext): RuleResult {
@@ -92,8 +92,8 @@ export const citationsRule = defineRule({
 
     // Check external links
     $('a[href^="http"]').each((_, el) => {
-      const href = $(el).attr('href') || '';
-      const rel = $(el).attr('rel') || '';
+      const href = $(el).attr("href") || "";
+      const rel = $(el).attr("rel") || "";
 
       try {
         const linkUrl = new URL(href);
@@ -112,7 +112,7 @@ export const citationsRule = defineRule({
                 href: href.slice(0, 100),
                 domain,
                 type,
-                hasNofollow: rel.includes('nofollow'),
+                hasNofollow: rel.includes("nofollow"),
               });
               return; // Only count each link once
             }
@@ -133,10 +133,11 @@ export const citationsRule = defineRule({
     }
 
     // Check for references/sources section
-    const hasReferencesSection = $('h2, h3, h4').filter((_, el) => {
-      const text = $(el).text().toLowerCase();
-      return /references|sources|bibliography|works cited|further reading/i.test(text);
-    }).length > 0;
+    const hasReferencesSection =
+      $("h2, h3, h4").filter((_, el) => {
+        const text = $(el).text().toLowerCase();
+        return /references|sources|bibliography|works cited|further reading/i.test(text);
+      }).length > 0;
 
     // Group citations by type
     const citationsByType: Record<string, number> = {};
@@ -149,7 +150,7 @@ export const citationsRule = defineRule({
 
     if (citations.length >= 3) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 100,
         message: `Strong citation profile: ${citations.length} authoritative sources cited`,
         details: {
@@ -160,7 +161,7 @@ export const citationsRule = defineRule({
           nofollowedCount: nofollowedCitations.length,
           citations: citations.slice(0, 5),
           ...(nofollowedCitations.length > 0 && {
-            recommendation: 'Consider removing nofollow from citations to authoritative sources',
+            recommendation: "Consider removing nofollow from citations to authoritative sources",
           }),
         },
       };
@@ -168,23 +169,24 @@ export const citationsRule = defineRule({
 
     if (citations.length >= 1) {
       return {
-        status: 'pass',
+        status: "pass",
         score: 80,
-        message: `${citations.length} authoritative source${citations.length > 1 ? 's' : ''} cited`,
+        message: `${citations.length} authoritative source${citations.length > 1 ? "s" : ""} cited`,
         details: {
           citationCount: citations.length,
           citationsByType,
           hasCitationMarkup,
           hasReferencesSection,
           citations: citations.slice(0, 5),
-          recommendation: 'Consider adding more citations to authoritative sources (.gov, .edu, research papers)',
+          recommendation:
+            "Consider adding more citations to authoritative sources (.gov, .edu, research papers)",
         },
       };
     }
 
     // Check if page has external links at all
     const externalLinkCount = $('a[href^="http"]').filter((_, el) => {
-      const href = $(el).attr('href') || '';
+      const href = $(el).attr("href") || "";
       try {
         const linkDomain = new URL(href).hostname;
         return linkDomain !== currentDomain;
@@ -195,7 +197,7 @@ export const citationsRule = defineRule({
 
     if (externalLinkCount > 0) {
       return {
-        status: 'warn',
+        status: "warn",
         score: 60,
         message: `${externalLinkCount} external links found, but none to recognized authoritative sources`,
         details: {
@@ -203,20 +205,22 @@ export const citationsRule = defineRule({
           externalLinkCount,
           hasCitationMarkup,
           hasReferencesSection,
-          recommendation: 'Consider linking to authoritative sources like .gov, .edu, or peer-reviewed publications',
+          recommendation:
+            "Consider linking to authoritative sources like .gov, .edu, or peer-reviewed publications",
         },
       };
     }
 
     return {
-      status: 'pass',
+      status: "pass",
       score: 100,
-      message: 'No external citations found (may not be needed for this content type)',
+      message: "No external citations found (may not be needed for this content type)",
       details: {
         citationCount: 0,
         hasCitationMarkup,
         hasReferencesSection,
-        recommendation: 'For content making claims, consider citing authoritative sources to build credibility',
+        recommendation:
+          "For content making claims, consider citing authoritative sources to build credibility",
       },
     };
   },

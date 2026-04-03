@@ -1,11 +1,11 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 import type {
   DbIssue,
   HydratedIssue,
   IssueSeverity,
   IssueQueryOptions,
   InsertIssueInput,
-} from '../types.js';
+} from "../types.js";
 
 /**
  * Hydrate an issue record
@@ -36,7 +36,7 @@ function hydrateIssue(row: DbIssue): HydratedIssue {
  */
 export function calculatePriorityScore(
   severity: IssueSeverity,
-  affectedPagesCount: number
+  affectedPagesCount: number,
 ): number {
   const severityScores: Record<IssueSeverity, number> = {
     critical: 100,
@@ -60,7 +60,7 @@ export function calculatePriorityScore(
 export function insertIssue(
   db: Database.Database,
   auditId: number,
-  input: InsertIssueInput
+  input: InsertIssueInput,
 ): HydratedIssue {
   const priorityScore = calculatePriorityScore(input.severity, input.affectedPages.length);
 
@@ -73,7 +73,7 @@ export function insertIssue(
       fix_suggestion, priority_score
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       auditId,
@@ -85,7 +85,7 @@ export function insertIssue(
       input.affectedPages.length,
       JSON.stringify(input.affectedPages),
       input.fixSuggestion ?? null,
-      priorityScore
+      priorityScore,
     ) as DbIssue;
 
   return hydrateIssue(result);
@@ -102,7 +102,7 @@ export function insertIssue(
 export function insertIssues(
   db: Database.Database,
   auditId: number,
-  issues: InsertIssueInput[]
+  issues: InsertIssueInput[],
 ): number {
   if (issues.length === 0) return 0;
 
@@ -128,7 +128,7 @@ export function insertIssues(
         input.affectedPages.length,
         JSON.stringify(input.affectedPages),
         input.fixSuggestion ?? null,
-        priorityScore
+        priorityScore,
       );
       count++;
     }
@@ -149,28 +149,28 @@ export function insertIssues(
 export function getIssues(
   db: Database.Database,
   auditId: number,
-  options: IssueQueryOptions = {}
+  options: IssueQueryOptions = {},
 ): HydratedIssue[] {
-  const conditions: string[] = ['audit_id = ?'];
+  const conditions: string[] = ["audit_id = ?"];
   const params: unknown[] = [auditId];
 
   if (options.severity) {
-    conditions.push('severity = ?');
+    conditions.push("severity = ?");
     params.push(options.severity);
   }
 
   if (options.categoryId) {
-    conditions.push('category_id = ?');
+    conditions.push("category_id = ?");
     params.push(options.categoryId);
   }
 
   if (options.ruleId) {
-    conditions.push('rule_id = ?');
+    conditions.push("rule_id = ?");
     params.push(options.ruleId);
   }
 
   if (options.minPriority !== undefined) {
-    conditions.push('priority_score >= ?');
+    conditions.push("priority_score >= ?");
     params.push(options.minPriority);
   }
 
@@ -181,10 +181,10 @@ export function getIssues(
     .prepare(
       `
     SELECT * FROM issues
-    WHERE ${conditions.join(' AND ')}
+    WHERE ${conditions.join(" AND ")}
     ORDER BY priority_score DESC, affected_pages_count DESC
     LIMIT ? OFFSET ?
-  `
+  `,
     )
     .all(...params, limit, offset) as DbIssue[];
 
@@ -202,7 +202,7 @@ export function getIssues(
 export function getIssuesBySeverity(
   db: Database.Database,
   auditId: number,
-  severity: IssueSeverity
+  severity: IssueSeverity,
 ): HydratedIssue[] {
   return getIssues(db, auditId, { severity });
 }
@@ -214,11 +214,8 @@ export function getIssuesBySeverity(
  * @param auditId - Database audit ID
  * @returns Array of critical issues
  */
-export function getCriticalIssues(
-  db: Database.Database,
-  auditId: number
-): HydratedIssue[] {
-  return getIssues(db, auditId, { severity: 'critical' });
+export function getCriticalIssues(db: Database.Database, auditId: number): HydratedIssue[] {
+  return getIssues(db, auditId, { severity: "critical" });
 }
 
 /**
@@ -232,7 +229,7 @@ export function getCriticalIssues(
 export function getTopPriorityIssues(
   db: Database.Database,
   auditId: number,
-  limit = 10
+  limit = 10,
 ): HydratedIssue[] {
   return getIssues(db, auditId, { limit });
 }
@@ -242,7 +239,7 @@ export function getTopPriorityIssues(
  */
 export function getIssueCounts(
   db: Database.Database,
-  auditId: number
+  auditId: number,
 ): { critical: number; warning: number; info: number; total: number } {
   const result = db
     .prepare(
@@ -254,7 +251,7 @@ export function getIssueCounts(
       COUNT(*) as total
     FROM issues
     WHERE audit_id = ?
-  `
+  `,
     )
     .get(auditId) as { critical: number; warning: number; info: number; total: number };
 
@@ -270,10 +267,7 @@ export function getIssueCounts(
  * @param auditId - Database audit ID
  * @returns Number of issues generated
  */
-export function generateIssuesFromResults(
-  db: Database.Database,
-  auditId: number
-): number {
+export function generateIssuesFromResults(db: Database.Database, auditId: number): number {
   // Get failed results grouped by rule
   const failedRules = db
     .prepare(
@@ -287,7 +281,7 @@ export function generateIssuesFromResults(
     FROM audit_results
     WHERE audit_id = ? AND status = 'fail'
     GROUP BY rule_id, category_id, rule_name, message
-  `
+  `,
     )
     .all(auditId) as Array<{
     rule_id: string;
@@ -298,11 +292,11 @@ export function generateIssuesFromResults(
   }>;
 
   const issues: InsertIssueInput[] = failedRules.map((rule) => {
-    const affectedPages = rule.affected_pages.split(',');
+    const affectedPages = rule.affected_pages.split(",");
     return {
       ruleId: rule.rule_id,
       categoryId: rule.category_id,
-      severity: 'critical' as IssueSeverity,
+      severity: "critical" as IssueSeverity,
       title: rule.rule_name,
       description: rule.message,
       affectedPages,
@@ -323,7 +317,7 @@ export function generateIssuesFromResults(
     FROM audit_results
     WHERE audit_id = ? AND status = 'warn'
     GROUP BY rule_id, category_id, rule_name, message
-  `
+  `,
     )
     .all(auditId) as Array<{
     rule_id: string;
@@ -334,11 +328,11 @@ export function generateIssuesFromResults(
   }>;
 
   const warningIssues: InsertIssueInput[] = warningRules.map((rule) => {
-    const affectedPages = rule.affected_pages.split(',');
+    const affectedPages = rule.affected_pages.split(",");
     return {
       ruleId: rule.rule_id,
       categoryId: rule.category_id,
-      severity: 'warning' as IssueSeverity,
+      severity: "warning" as IssueSeverity,
       title: rule.rule_name,
       description: rule.message,
       affectedPages,

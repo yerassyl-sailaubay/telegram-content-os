@@ -1,5 +1,5 @@
-import type { AuditContext } from '../../types.js';
-import { defineRule, pass, warn } from '../define-rule.js';
+import type { AuditContext } from "../../types.js";
+import { defineRule, pass, warn } from "../define-rule.js";
 
 /**
  * Rule: Check for invalid links
@@ -9,20 +9,16 @@ import { defineRule, pass, warn } from '../define-rule.js';
  * and can hurt accessibility and crawlability.
  */
 export const invalidLinksRule = defineRule({
-  id: 'links-invalid',
-  name: 'No Invalid Links',
-  description: 'Checks for empty, javascript:, or malformed link hrefs',
-  category: 'links',
+  id: "links-invalid",
+  name: "No Invalid Links",
+  description: "Checks for empty, javascript:, or malformed link hrefs",
+  category: "links",
   weight: 1,
   run: (context: AuditContext) => {
     const { invalidLinks } = context;
 
     if (invalidLinks.length === 0) {
-      return pass(
-        'links-invalid',
-        'No invalid links found',
-        { invalidCount: 0 }
-      );
+      return pass("links-invalid", "No invalid links found", { invalidCount: 0 });
     }
 
     // Group by reason
@@ -31,7 +27,7 @@ export const invalidLinksRule = defineRule({
         acc[link.reason] = (acc[link.reason] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>
+      {} as Record<string, number>,
     );
 
     const issues: string[] = [];
@@ -46,8 +42,8 @@ export const invalidLinksRule = defineRule({
     }
 
     return warn(
-      'links-invalid',
-      `Found ${invalidLinks.length} invalid link(s): ${issues.join(', ')}`,
+      "links-invalid",
+      `Found ${invalidLinks.length} invalid link(s): ${issues.join(", ")}`,
       {
         invalidCount: invalidLinks.length,
         byReason,
@@ -57,8 +53,8 @@ export const invalidLinksRule = defineRule({
           text: l.text,
         })),
         recommendation:
-          'Replace javascript: links with buttons, fix malformed URLs, add proper hrefs to empty links',
-      }
+          "Replace javascript: links with buttons, fix malformed URLs, add proper hrefs to empty links",
+      },
     );
   },
 });

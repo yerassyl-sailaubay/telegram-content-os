@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type Database from "better-sqlite3";
 import type {
   DbCrawl,
   HydratedCrawl,
@@ -7,8 +7,8 @@ import type {
   CrawlStatus,
   CrawlQueryOptions,
   CreateCrawlInput,
-} from '../types.js';
-import type { PartialSeomatorConfig } from '../../config/schema.js';
+} from "../types.js";
+import type { PartialSeomatorConfig } from "../../config/schema.js";
 
 /**
  * Hydrate a crawl record from the database
@@ -32,9 +32,7 @@ function hydrateCrawl(row: DbCrawl): HydratedCrawl {
  * Create crawl summary from row
  */
 function toCrawlSummary(row: DbCrawl): CrawlSummary {
-  const stats: CrawlStats | null = row.stats_json
-    ? JSON.parse(row.stats_json)
-    : null;
+  const stats: CrawlStats | null = row.stats_json ? JSON.parse(row.stats_json) : null;
 
   return {
     id: row.id,
@@ -59,7 +57,7 @@ function toCrawlSummary(row: DbCrawl): CrawlSummary {
 export function createCrawl(
   db: Database.Database,
   projectId: number,
-  input: CreateCrawlInput
+  input: CreateCrawlInput,
 ): HydratedCrawl {
   const result = db
     .prepare(
@@ -67,13 +65,13 @@ export function createCrawl(
     INSERT INTO crawls (crawl_id, project_id, start_url, config_json)
     VALUES (?, ?, ?, ?)
     RETURNING *
-  `
+  `,
     )
     .get(
       input.crawlId,
       projectId,
       input.startUrl,
-      input.config ? JSON.stringify(input.config) : null
+      input.config ? JSON.stringify(input.config) : null,
     ) as DbCrawl;
 
   return hydrateCrawl(result);
@@ -86,13 +84,10 @@ export function createCrawl(
  * @param crawlId - Crawl ID (e.g., "2024-01-23-abc123")
  * @returns Crawl record or null
  */
-export function getCrawl(
-  db: Database.Database,
-  crawlId: string
-): HydratedCrawl | null {
-  const row = db
-    .prepare('SELECT * FROM crawls WHERE crawl_id = ?')
-    .get(crawlId) as DbCrawl | undefined;
+export function getCrawl(db: Database.Database, crawlId: string): HydratedCrawl | null {
+  const row = db.prepare("SELECT * FROM crawls WHERE crawl_id = ?").get(crawlId) as
+    | DbCrawl
+    | undefined;
 
   return row ? hydrateCrawl(row) : null;
 }
@@ -104,13 +99,8 @@ export function getCrawl(
  * @param id - Database ID
  * @returns Crawl record or null
  */
-export function getCrawlById(
-  db: Database.Database,
-  id: number
-): HydratedCrawl | null {
-  const row = db
-    .prepare('SELECT * FROM crawls WHERE id = ?')
-    .get(id) as DbCrawl | undefined;
+export function getCrawlById(db: Database.Database, id: number): HydratedCrawl | null {
+  const row = db.prepare("SELECT * FROM crawls WHERE id = ?").get(id) as DbCrawl | undefined;
 
   return row ? hydrateCrawl(row) : null;
 }
@@ -122,10 +112,7 @@ export function getCrawlById(
  * @param projectId - Project ID
  * @returns Latest crawl or null
  */
-export function getLatestCrawl(
-  db: Database.Database,
-  projectId: number
-): HydratedCrawl | null {
+export function getLatestCrawl(db: Database.Database, projectId: number): HydratedCrawl | null {
   const row = db
     .prepare(
       `
@@ -133,7 +120,7 @@ export function getLatestCrawl(
     WHERE project_id = ?
     ORDER BY started_at DESC
     LIMIT 1
-  `
+  `,
     )
     .get(projectId) as DbCrawl | undefined;
 
@@ -151,23 +138,23 @@ export function getLatestCrawl(
 export function listCrawls(
   db: Database.Database,
   projectId: number,
-  options: CrawlQueryOptions = {}
+  options: CrawlQueryOptions = {},
 ): CrawlSummary[] {
-  const conditions: string[] = ['project_id = ?'];
+  const conditions: string[] = ["project_id = ?"];
   const params: unknown[] = [projectId];
 
   if (options.status) {
-    conditions.push('status = ?');
+    conditions.push("status = ?");
     params.push(options.status);
   }
 
   if (options.since) {
-    conditions.push('started_at >= ?');
+    conditions.push("started_at >= ?");
     params.push(options.since.toISOString());
   }
 
   if (options.until) {
-    conditions.push('started_at <= ?');
+    conditions.push("started_at <= ?");
     params.push(options.until.toISOString());
   }
 
@@ -178,10 +165,10 @@ export function listCrawls(
     .prepare(
       `
     SELECT * FROM crawls
-    WHERE ${conditions.join(' AND ')}
+    WHERE ${conditions.join(" AND ")}
     ORDER BY started_at DESC
     LIMIT ? OFFSET ?
-  `
+  `,
     )
     .all(...params, limit, offset) as DbCrawl[];
 
@@ -199,7 +186,7 @@ export function listCrawls(
 export function updateCrawlStatus(
   db: Database.Database,
   crawlId: string,
-  status: CrawlStatus
+  status: CrawlStatus,
 ): HydratedCrawl | null {
   const result = db
     .prepare(
@@ -208,7 +195,7 @@ export function updateCrawlStatus(
     SET status = ?
     WHERE crawl_id = ?
     RETURNING *
-  `
+  `,
     )
     .get(status, crawlId) as DbCrawl | undefined;
 
@@ -226,7 +213,7 @@ export function updateCrawlStatus(
 export function completeCrawl(
   db: Database.Database,
   crawlId: string,
-  stats: CrawlStats
+  stats: CrawlStats,
 ): HydratedCrawl | null {
   const result = db
     .prepare(
@@ -237,7 +224,7 @@ export function completeCrawl(
         stats_json = ?
     WHERE crawl_id = ?
     RETURNING *
-  `
+  `,
     )
     .get(JSON.stringify(stats), crawlId) as DbCrawl | undefined;
 
@@ -257,7 +244,7 @@ export function failCrawl(
   db: Database.Database,
   crawlId: string,
   errorMessage: string,
-  stats?: Partial<CrawlStats>
+  stats?: Partial<CrawlStats>,
 ): HydratedCrawl | null {
   const result = db
     .prepare(
@@ -269,13 +256,9 @@ export function failCrawl(
         stats_json = ?
     WHERE crawl_id = ?
     RETURNING *
-  `
+  `,
     )
-    .get(
-      errorMessage,
-      stats ? JSON.stringify(stats) : null,
-      crawlId
-    ) as DbCrawl | undefined;
+    .get(errorMessage, stats ? JSON.stringify(stats) : null, crawlId) as DbCrawl | undefined;
 
   return result ? hydrateCrawl(result) : null;
 }
@@ -291,7 +274,7 @@ export function failCrawl(
 export function cancelCrawl(
   db: Database.Database,
   crawlId: string,
-  stats?: Partial<CrawlStats>
+  stats?: Partial<CrawlStats>,
 ): HydratedCrawl | null {
   const result = db
     .prepare(
@@ -302,12 +285,9 @@ export function cancelCrawl(
         stats_json = ?
     WHERE crawl_id = ?
     RETURNING *
-  `
+  `,
     )
-    .get(
-      stats ? JSON.stringify(stats) : null,
-      crawlId
-    ) as DbCrawl | undefined;
+    .get(stats ? JSON.stringify(stats) : null, crawlId) as DbCrawl | undefined;
 
   return result ? hydrateCrawl(result) : null;
 }
@@ -320,9 +300,7 @@ export function cancelCrawl(
  * @returns True if deleted
  */
 export function deleteCrawl(db: Database.Database, crawlId: string): boolean {
-  const result = db
-    .prepare('DELETE FROM crawls WHERE crawl_id = ?')
-    .run(crawlId);
+  const result = db.prepare("DELETE FROM crawls WHERE crawl_id = ?").run(crawlId);
   return result.changes > 0;
 }
 
@@ -335,7 +313,7 @@ export function deleteCrawl(db: Database.Database, crawlId: string): boolean {
  */
 export function getCrawlCount(db: Database.Database, projectId: number): number {
   const result = db
-    .prepare('SELECT COUNT(*) as count FROM crawls WHERE project_id = ?')
+    .prepare("SELECT COUNT(*) as count FROM crawls WHERE project_id = ?")
     .get(projectId) as { count: number };
   return result.count;
 }

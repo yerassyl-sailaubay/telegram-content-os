@@ -3,7 +3,7 @@
  * Ported from the html-reporter.ts SVG score circle.
  */
 
-import { getScoreColor, getScoreLabel } from '../lib/format.js';
+import { getScoreColor, getScoreLabel } from "../lib/format.js";
 
 interface ScoreCircleProps {
   score: number;
@@ -11,7 +11,7 @@ interface ScoreCircleProps {
 }
 
 export function ScoreCircle({ score, size = 140 }: ScoreCircleProps) {
-  const radius = (size / 2) - 12;
+  const radius = size / 2 - 12;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference - (score / 100) * circumference;
   const color = getScoreColor(score);
@@ -19,7 +19,7 @@ export function ScoreCircle({ score, size = 140 }: ScoreCircleProps) {
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <svg width={size} height={size} className="transform -rotate-90">
+      <svg width={size} height={size} className="-rotate-90 transform">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -45,7 +45,7 @@ export function ScoreCircle({ score, size = 140 }: ScoreCircleProps) {
           y={size / 2}
           textAnchor="middle"
           dominantBaseline="central"
-          className="transform rotate-90 origin-center"
+          className="origin-center rotate-90 transform"
           fill="var(--color-text)"
           fontSize={size * 0.28}
           fontWeight="700"
@@ -55,7 +55,7 @@ export function ScoreCircle({ score, size = 140 }: ScoreCircleProps) {
         </text>
       </svg>
       <span
-        className="text-sm font-semibold px-3 py-0.5 rounded-full"
+        className="rounded-full px-3 py-0.5 text-sm font-semibold"
         style={{ color, backgroundColor: `${color}15` }}
       >
         {label}

@@ -24,13 +24,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const createCheckoutSessionPromise = import("@/lib/billing/checkout");
-    const body = (await request.json()) as { priceId?: string };
+    const plansPromise = import("@/lib/billing/plans");
+    let body: { priceId?: string };
+    try {
+      body = (await request.json()) as { priceId?: string };
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
 
     if (!body.priceId) {
       return NextResponse.json({ error: "priceId is required" }, { status: 400 });
     }
 
-    const { createCheckoutSession } = await createCheckoutSessionPromise;
+    const [{ createCheckoutSession }, { resolveTierFromPriceId }] = await Promise.all([
+      createCheckoutSessionPromise,
+      plansPromise,
+    ]);
+
+    if (resolveTierFromPriceId(body.priceId) === "free") {
+      return NextResponse.json({ error: "Invalid plan price" }, { status: 400 });
+    }
 
     const origin = request.nextUrl.origin;
     const session = await createCheckoutSession({
@@ -44,7 +57,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Checkout session creation failed:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
   }
 }

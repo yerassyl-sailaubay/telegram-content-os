@@ -7,10 +7,18 @@ import { BillingTab } from "@/components/settings/billing-tab";
 import { AiPreferencesTab } from "@/components/settings/ai-preferences-tab";
 import { getSettings } from "@/server/actions/settings";
 import type { PlanTier, SubscriptionStatus } from "@/lib/billing/types";
+import { elapsedMs, logHotRoutePerf } from "@/lib/perf/hot-routes";
 
 export default async function SettingsPage() {
+  const startedAt = performance.now();
   const [t, settingsResult] = await Promise.all([getTranslations("settings"), getSettings()]);
   const settings = settingsResult.success ? settingsResult.data : null;
+
+  logHotRoutePerf("route:/dashboard/settings", {
+    totalMs: elapsedMs(startedAt),
+    hasSettings: Boolean(settings),
+    connectedPlatforms: settings?.connections.filter((item) => item.connected).length ?? 0,
+  });
 
   return (
     <>
