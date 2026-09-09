@@ -1,70 +1,74 @@
 # Telegram Content OS
 
-AI-powered content management and distribution system for Telegram creators.
+Telegram-first content operating system for creators who publish regularly.
+
+One workspace for the full loop: capture an idea, ingest a Telegram post or a YouTube/article URL, draft with Gemini, schedule, publish back to Telegram, and review channel performance. Russian is the default locale; English is supported.
+
+This is a working V1, not a landing-page mock. Auth, Telegram webhooks, AI workflows, calendar publishing, Stripe billing, and analytics are implemented.
+
+## What it does
+
+- Connect a Telegram channel and ingest posts (including media groups) over webhooks
+- Keep a content library: ideas, drafts, scheduled and published posts
+- Run 7 Gemini-powered workflows: source-to-Telegram, idea development, repurposing, calendar gap fill, channel profiling, AI writer, LinkedIn/X adaptation
+- Schedule one-off and recurring Telegram posts, then publish
+- Track Telegram growth, timing, and top content
+- Enforce plan quotas with Stripe checkout, customer portal, and webhooks
+- Localize the product in RU/EN
+
+LinkedIn and X have backend plumbing; the shipped product experience is Telegram-first.
 
 ## Stack
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS 4 + shadcn/ui
-- **Package Manager**: Bun
-- **Database**: Supabase (Postgres)
-- **Background Jobs**: Inngest
-- **Payments**: Stripe
-- **AI**: Google Gemini
+- **App:** Next.js (App Router), TypeScript, Tailwind, shadcn/ui
+- **Data:** Supabase Postgres, Drizzle ORM, Row Level Security
+- **Jobs:** Inngest (ingest, AI generation, publishing, analytics)
+- **AI:** Google Gemini
+- **Payments:** Stripe
+- **Tests:** Vitest + Playwright
 
 ## Setup
 
-### 1. Clone and install dependencies
-
 ```bash
 bun install
-```
-
-### 2. Configure environment variables
-
-```bash
 cp .env.local.example .env.local
-# Fill in all values in .env.local
-```
-
-### 3. Run the development server
-
-```bash
+# fill in Supabase, Stripe, Gemini, Telegram, and Inngest values
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Scripts
 
-| Command        | Description                           |
-| -------------- | ------------------------------------- |
-| `bun dev`      | Start development server on port 3000 |
-| `bun build`    | Build production bundle               |
-| `bun start`    | Start production server               |
-| `bun lint`     | Run ESLint                            |
-| `bun format`   | Format code with Prettier             |
-| `bun test`     | Run unit tests (Jest/Vitest)          |
-| `bun test:e2e` | Run end-to-end tests (Playwright)     |
+| Command | Description |
+| --- | --- |
+| `bun dev` | Dev server on port 3000 |
+| `bun build` | Production build |
+| `bun start` | Production server |
+| `bun lint` | ESLint |
+| `bun format` | Prettier |
+| `bun test` | Unit tests (Vitest) |
+| `bun test:e2e` | End-to-end tests (Playwright) |
+| `bun inngest-dev` | Inngest dev worker |
 
-## Project Structure
+## Layout
 
 ```
 src/
-├── app/              # Next.js App Router pages & API routes
-│   └── api/
-│       └── health/   # Health check endpoint → GET /api/health
-├── components/       # Shared React components
-│   └── ui/           # shadcn/ui components
-├── lib/              # Utility functions and helpers
-├── server/           # Server-side logic (actions, db, etc.)
-└── types/            # Shared TypeScript type definitions
+├── app/           # App Router pages, auth, API routes, webhooks
+├── components/    # Dashboard, content, calendar, billing, marketing UI
+├── lib/           # AI, Telegram, billing, scheduling, Inngest functions
+├── server/        # Server actions and Drizzle schema
+├── messages/      # RU/EN catalogs
+└── test/          # Shared test helpers
+docs/              # Product, QA, and launch notes
+e2e/               # Playwright specs
+drizzle/           # SQL migrations
 ```
 
-## Health Check
+## Docs
 
-```bash
-curl http://localhost:3000/api/health
-# → {"status":"ok"}
-```
+- [Feature status](docs/features.md)
+- [PRD](docs/prd.md)
+- [AI features](docs/AI_FEATURES_AUDIT.md)
+- [Testing plan](docs/testing-plan.md)

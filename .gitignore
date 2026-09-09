@@ -47,3 +47,15 @@ next-env.d.ts
 
 # Backup env files
 env.local
+
+# agent / local coding artifacts
+.agents/
+.agent/
+.claude/
+.sisyphus/
+.omo/
+.scratch/
+skills-lock.json
+AGENTS.md
+**/AGENTS.md
+seomator.toml
